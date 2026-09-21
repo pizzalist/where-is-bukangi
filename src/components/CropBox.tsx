@@ -2,11 +2,21 @@ import { useEffect, useRef, useState } from "react";
 
 /**
  * 사진 영역 지정. 세로 사진도 잘리지 않게 사용자가 직접 보일 부분을 정한다.
- * 드래그로 이동, 슬라이더로 확대. 결과는 4:3으로 잘라 1280px JPEG로 내보낸다.
- * (업로드 전에 줄여서 저장 비용과 업로드 시간을 같이 줄인다.)
+ * 드래그로 이동, 슬라이더로 확대.
+ *
+ * 결과는 4:3, 긴 변 2048px. 보관용이라 카드 표시(340px)보다 훨씬 크게 남긴다.
+ * WebP를 지원하면 WebP(같은 화질에 JPEG의 절반 크기), 아니면 JPEG로 떨어진다.
  */
 const ASPECT = 4 / 3;
-const OUT_W = 1280;
+const OUT_W = 2048;
+const QUALITY = 0.90;
+
+/** WebP를 실제로 인코딩할 수 있는지 (사파리 14+ 포함 대부분 가능) */
+function encode(c: HTMLCanvasElement) {
+  const webp = c.toDataURL("image/webp", QUALITY);
+  if (webp.startsWith("data:image/webp")) return webp;
+  return c.toDataURL("image/jpeg", QUALITY);
+}
 
 export default function CropBox({ src, onDone, onCancel }: { src: string; onDone: (dataUrl: string) => void; onCancel: () => void }) {
   const boxRef = useRef<HTMLDivElement>(null);
@@ -56,7 +66,7 @@ export default function CropBox({ src, onDone, onCancel }: { src: string; onDone
     const ctx = c.getContext("2d")!;
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(imgRef.current, sx, sy, sw, sh, 0, 0, c.width, c.height);
-    onDone(c.toDataURL("image/jpeg", 0.82));
+    onDone(encode(c));
   }
 
   return (
