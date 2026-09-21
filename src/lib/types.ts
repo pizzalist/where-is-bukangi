@@ -16,8 +16,15 @@ export interface Event {
 
 export interface Notice { src: string; title: string; url: string; crit?: boolean }
 
+export interface Stats {
+  visitsToday: number; viewsToday: number;
+  visitsTotal: number; viewsTotal: number;
+  reportsToday: number; reportsTotal: number; approvedTotal: number;
+}
+
 export interface Status {
   updatedAt: string;
+  stats?: Stats;
   control: null | { title: string; url?: string };
   last: (Event & { evidence?: string }) | null;
   counters: { seen: number; visit: number };

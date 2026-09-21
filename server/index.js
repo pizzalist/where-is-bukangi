@@ -16,7 +16,7 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "";
 const SERVE_STATIC = process.env.SERVE_STATIC !== "0"; // 운영에선 0 (Cloudflare Pages가 담당)
 const MAX_PHOTO = 3 * 1024 * 1024;                     // 3MB (앱이 보내는 건 보통 70KB)
 const UPLOAD_CONCURRENCY = 8;
-const STATUS_TTL = 5000;
+const STATUS_TTL = Number(process.env.STATUS_TTL || 5000);
 
 if (!ADMIN_TOKEN) { console.error("ADMIN_TOKEN 환경변수가 필요합니다."); process.exit(1); }
 if (ADMIN_TOKEN.length < 24) console.warn("경고: ADMIN_TOKEN이 짧습니다. 32자 이상 무작위 문자열을 쓰세요.");
@@ -73,6 +73,22 @@ app.use("/photos", express.static(PHOTOS, {
   res.status(err?.status === 404 ? 404 : 404).json({ error: "없는 사진이에요." });
 });
 
+/* ---------- 방문 집계 ---------- */
+const bumpVisit = db.prepare(`INSERT INTO visits (day, kind, n) VALUES (?,?,1) ON CONFLICT(day,kind) DO UPDATE SET n = n + 1`);
+const qVisits = db.prepare(`SELECT kind, n FROM visits WHERE day = ?`);
+const qVisitsAll = db.prepare(`SELECT kind, SUM(n) n FROM visits GROUP BY kind`);
+const seenToday = new Set();            // 오늘 본 방문자 해시 (자정에 비움)
+let visitDay = "";
+function today() { const d = new Date(Date.now() + 9 * 3600e3); return d.toISOString().slice(0, 10); }
+function countVisit(req) {
+  const day = today();
+  if (day !== visitDay) { visitDay = day; seenToday.clear(); }
+  bumpVisit.run(day, "view");
+  // IP+UA를 해시해서 순방문자만. 원본은 저장하지 않는다
+  const h = crypto.createHash("sha256").update(`${day}|${clientIp(req)}|${req.headers["user-agent"] || ""}`).digest("base64url").slice(0, 22);
+  if (!seenToday.has(h)) { seenToday.add(h); bumpVisit.run(day, "uniq"); }
+}
+
 /* ---------- 공개: 상황판 (메모리 캐시) ---------- */
 const ZONES = [
   { code: "A", name: "제4보도교" }, { code: "B", name: "제5보도교" },
@@ -82,6 +98,11 @@ const qSubs = db.prepare(`SELECT id, zone, taken_at AS at, photo, ordinal FROM s
 const qObs = db.prepare(`SELECT kind, zone, at, note FROM observations ORDER BY at DESC LIMIT 40`);
 const qNotices = db.prepare(`SELECT src, title, url, crit FROM notices ORDER BY created_at DESC LIMIT 6`);
 const qOrdinal = db.prepare("SELECT v FROM meta WHERE k='ordinal'");
+const qSubCount = db.prepare(`SELECT
+  COUNT(*) total,
+  SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) approved,
+  SUM(CASE WHEN substr(submitted_at,1,10) = strftime('%Y-%m-%d','now','+9 hours') THEN 1 ELSE 0 END) today
+  FROM submissions`);
 
 function buildStatus() {
   const timeline = [
@@ -96,8 +117,18 @@ function buildStatus() {
   const notices = qNotices.all().map((n) => ({ ...n, crit: !!n.crit }));
   const control = notices.find((n) => n.crit) || null;
 
+  const vToday = Object.fromEntries(qVisits.all(today()).map((r) => [r.kind, r.n]));
+  const vAll = Object.fromEntries(qVisitsAll.all().map((r) => [r.kind, r.n]));
+  const subCount = qSubCount.get();
+
   return {
     updatedAt: new Date().toISOString(),
+    stats: {
+      visitsToday: vToday.uniq || 0, viewsToday: vToday.view || 0,
+      visitsTotal: vAll.uniq || 0, viewsTotal: vAll.view || 0,
+      reportsToday: subCount.today || 0, reportsTotal: subCount.total || 0,
+      approvedTotal: subCount.approved || 0,
+    },
     control: control ? { title: control.title, url: control.url } : null,
     last, zones: ZONES, timeline, notices,
     counters: { seen: Number(qOrdinal.get()?.v || 1204), visit: 0 },
@@ -113,6 +144,7 @@ function statusBody() {
   return cache;
 }
 app.get("/api/status", (req, res) => {
+  try { countVisit(req); } catch { /* 집계 실패는 무시 */ }
   const { body, etag } = statusBody();
   res.set("Cache-Control", "public, max-age=10, s-maxage=10, stale-while-revalidate=30");
   res.set("ETag", etag);

@@ -50,6 +50,14 @@ CREATE TABLE IF NOT EXISTS notices (
 );
 
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT);
+
+-- 방문 집계. 개인 식별 없이 일별 카운트만 남긴다 (IP는 해시해서 순방문자만 센다)
+CREATE TABLE IF NOT EXISTS visits (
+  day TEXT NOT NULL,
+  kind TEXT NOT NULL,          -- view | uniq
+  n INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, kind)
+);
 `);
 
 export function nextOrdinal() {

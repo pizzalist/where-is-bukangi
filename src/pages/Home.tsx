@@ -124,6 +124,17 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
         </ul>
       </section>
 
+      {status.stats && (
+        <section className="section">
+          <div className="statbar">
+            <div><b>{status.stats.visitsToday.toLocaleString()}</b><span>오늘 방문</span></div>
+            <div><b>{status.stats.reportsToday.toLocaleString()}</b><span>오늘 제보</span></div>
+            <div><b>{status.stats.approvedTotal.toLocaleString()}</b><span>공개된 카드</span></div>
+            <div><b>{status.stats.visitsTotal.toLocaleString()}</b><span>누적 방문</span></div>
+          </div>
+        </section>
+      )}
+
       <section className="section">
         <div className="section-head">
           <h2>안전 · 공지</h2>

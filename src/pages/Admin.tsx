@@ -5,6 +5,8 @@ import { fmtDate, fmtTime } from "../lib/store";
 import { RARITY_META } from "../lib/rarity";
 import { ZONES } from "../lib/zones";
 import { adminApi, getToken, setToken, type QueueItem } from "../lib/admin";
+import { fetchStatus } from "../lib/api";
+import type { Stats } from "../lib/types";
 
 function toLocalInput(d: Date) {
   const p = (n: number) => String(n).padStart(2, "0");
@@ -18,11 +20,13 @@ export default function Admin() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [zoneOf, setZoneOf] = useState<Record<string, ZoneCode>>({});
+  const [stats, setStats] = useState<Stats | null>(null);
 
   const load = useCallback(async () => {
     try {
       const q = await adminApi.queue();
       setQueue(q); setAuthed(true); setErr("");
+      fetchStatus().then((s) => setStats(s.stats ?? null)).catch(() => null);
     } catch (e) {
       if ((e as Error).message === "UNAUTHORIZED") { setAuthed(false); setErr("토큰이 맞지 않아요."); }
       else setErr("서버에 닿지 않아요. 로컬 서버가 떠 있는지 확인해주세요.");
@@ -73,6 +77,14 @@ export default function Admin() {
           <div className="stat"><b>{queue?.length ?? "–"}</b><span>승인 대기</span></div>
           <button className="stat" onClick={load}><b>↻</b><span>새로고침</span></button>
         </div>
+        {stats && (
+          <div className="statbar" style={{ marginTop: "0.6rem" }}>
+            <div><b>{stats.visitsToday.toLocaleString()}</b><span>오늘 방문</span></div>
+            <div><b>{stats.viewsToday.toLocaleString()}</b><span>오늘 조회</span></div>
+            <div><b>{stats.reportsToday.toLocaleString()}</b><span>오늘 제보</span></div>
+            <div><b>{stats.reportsTotal.toLocaleString()}</b><span>누적 제보</span></div>
+          </div>
+        )}
 
         <ObservationForm onDone={load} />
 
