@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-const B = 'http://localhost:8787';
+const B = process.argv[2] || 'http://localhost:8787';
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 390, height: 844 } });
 const errs = []; p.on('pageerror', e => errs.push(e.message));

@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { db, PHOTOS, photoPath, nextOrdinal } from "./db.js";
 import { roll, isRevival } from "./rarity.js";
 import { startScreener } from "./screener.js";
+import { verify as verifyAction, enabled as notifyEnabled, notifyText } from "./notify.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -102,7 +103,7 @@ const ZONES = [
   { code: "A", name: "제4보도교" }, { code: "B", name: "제5보도교" },
   { code: "C", name: "제6보도교" }, { code: "D", name: "방파제" },
 ];
-const qSubs = db.prepare(`SELECT id, zone, taken_at AS at, photo, ordinal FROM submissions WHERE status='approved' ORDER BY taken_at DESC LIMIT 40`);
+const qSubs = db.prepare(`SELECT id, zone, taken_at AS at, photo, thumb, ordinal FROM submissions WHERE status='approved' ORDER BY taken_at DESC LIMIT 40`);
 const qObs = db.prepare(`SELECT kind, zone, at, note FROM observations ORDER BY at DESC LIMIT 40`);
 const qNotices = db.prepare(`SELECT src, title, url, crit FROM notices ORDER BY created_at DESC LIMIT 6`);
 const qOrdinal = db.prepare("SELECT v FROM meta WHERE k='ordinal'");
@@ -114,7 +115,7 @@ const qSubCount = db.prepare(`SELECT
 
 function buildStatus() {
   const timeline = [
-    ...qSubs.all().map((s) => ({ at: s.at, kind: "seen", zone: s.zone, tier: "confirmed", note: "현장 사진", photo: s.photo ? `/photos/${s.photo}` : null, ordinal: s.ordinal })),
+    ...qSubs.all().map((s) => ({ at: s.at, kind: "seen", zone: s.zone, tier: "confirmed", note: "현장 사진", photo: s.thumb || s.photo ? `/photos/${s.thumb || s.photo}` : null, ordinal: s.ordinal })),
     ...qObs.all().map((o) => ({ at: o.at, kind: o.kind, zone: o.zone, tier: "confirmed", note: o.note })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30);
 
@@ -162,14 +163,15 @@ app.get("/api/status", (req, res) => {
 
 /* ---------- 공개: 명예의 전당 ---------- */
 const HALL_ORDER = ["gold", "rainbow", "fullart", "galaxy", "reverse", "holo", "rare", "uncommon", "common"];
-const qHall = db.prepare(`SELECT id, ordinal, rarity, zone, taken_at AS takenAt, photo FROM submissions WHERE status='approved' AND photo IS NOT NULL`);
+const qHall = db.prepare(`SELECT id, ordinal, rarity, zone, taken_at AS takenAt, photo, thumb FROM submissions WHERE status='approved' AND photo IS NOT NULL`);
 let hallCache = { at: 0, body: "" };
 app.get("/api/hall", (_req, res) => {
   const now = Date.now();
   if (now - hallCache.at > 30000) {
     const rows = qHall.all();
     rows.sort((a, b) => (HALL_ORDER.indexOf(a.rarity) - HALL_ORDER.indexOf(b.rarity)) || a.ordinal - b.ordinal);
-    hallCache = { at: now, body: JSON.stringify(rows.slice(0, 60).map((r) => ({ ...r, photo: `/photos/${r.photo}` }))) };
+    // 목록은 썸네일, 원본은 카드 상세(/api/submissions/:id)에서만
+    hallCache = { at: now, body: JSON.stringify(rows.slice(0, 60).map(({ thumb, ...r }) => ({ ...r, photo: `/photos/${thumb || r.photo}` }))) };
   }
   res.set("Cache-Control", "public, max-age=30, s-maxage=30");
   res.type("application/json").send(hallCache.body);
@@ -296,6 +298,48 @@ app.post("/api/admin/notice", adminGuard, (req, res) => {
   insNotice.run(String(src).slice(0, 60), String(title).slice(0, 200), url || null, crit ? 1 : 0, new Date().toISOString());
   cache.at = 0;
   res.json({ ok: true });
+});
+
+/* ---------- 디스코드 서명 링크로 공개/반려 ----------
+   GET  /r/:id/:action/:sig → 확인 화면 (링크 미리보기 봇이 열어도 아무 일 없음)
+   POST /r/:id/:action/:sig → 실제 처리. pending일 때만 통한다 */
+const qPendingOne = db.prepare(`SELECT id, ordinal, zone, photo, thumb, status FROM submissions WHERE id=?`);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function actionPage(title, body) {
+  return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>${esc(title)}</title>
+<style>body{font-family:-apple-system,system-ui,sans-serif;background:#f4f6f8;margin:0;padding:24px;color:#111}
+.box{max-width:420px;margin:0 auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+img{width:100%;border-radius:12px;display:block;margin:12px 0}h1{font-size:1.2rem;margin:0 0 6px}p{color:#555;margin:6px 0}
+button{width:100%;padding:14px;border:0;border-radius:12px;font-size:1.05rem;font-weight:700;color:#fff;margin-top:12px}
+.ok{background:#1a7f37}.no{background:#b42318}.muted{color:#888;font-size:.9rem}</style>
+<div class="box">${body}</div>`;
+}
+const actionLimiter = limiter({ windowMs: 15 * 60e3, max: 60, key: clientIp });
+app.get("/r/:id/:action/:sig", actionLimiter, (req, res) => {
+  const { id, action, sig } = req.params;
+  res.set("Cache-Control", "no-store");
+  if (!["approve", "reject"].includes(action) || !verifyAction(id, action, sig)) return res.status(404).send(actionPage("없는 링크", "<h1>없는 링크예요</h1>"));
+  const r = qPendingOne.get(String(id).slice(0, 32));
+  if (!r) return res.status(404).send(actionPage("없는 제보", "<h1>없는 제보예요</h1>"));
+  if (r.status !== "pending") return res.send(actionPage("이미 처리됨", `<h1>이미 처리된 제보예요</h1><p>현재 상태: ${esc(r.status === "approved" ? "공개" : "반려")}</p>`));
+  const img = r.thumb || r.photo;
+  res.send(actionPage(`No.${r.ordinal} ${action === "approve" ? "공개" : "반려"}`,
+    `<h1>No.${esc(r.ordinal)} · ${r.zone ? esc(r.zone) + " 구역" : "구역 없음"}</h1>
+     ${img ? `<img src="/photos/${esc(img)}" alt="">` : ""}
+     <form method="post"><button class="${action === "approve" ? "ok" : "no"}">${action === "approve" ? "✅ 공개할게요" : "❌ 반려할게요"}</button></form>
+     <p class="muted">이 링크는 이 제보가 대기 중일 때만 동작해요.</p>`));
+});
+app.post("/r/:id/:action/:sig", actionLimiter, (req, res) => {
+  const { id, action, sig } = req.params;
+  res.set("Cache-Control", "no-store");
+  if (!["approve", "reject"].includes(action) || !verifyAction(id, action, sig)) return res.status(404).send(actionPage("없는 링크", "<h1>없는 링크예요</h1>"));
+  const r = qPendingOne.get(String(id).slice(0, 32));
+  if (!r) return res.status(404).send(actionPage("없는 제보", "<h1>없는 제보예요</h1>"));
+  if (r.status !== "pending") return res.send(actionPage("이미 처리됨", `<h1>이미 처리된 제보예요</h1><p>현재 상태: ${esc(r.status === "approved" ? "공개" : "반려")}</p>`));
+  const u = db.prepare(`UPDATE submissions SET status=? WHERE id=? AND status='pending'`).run(action === "approve" ? "approved" : "rejected", r.id);
+  cache.at = 0; hallCache.at = 0;
+  res.send(actionPage("완료", `<h1>${action === "approve" ? "공개했어요 ✅" : "반려했어요 ❌"}</h1><p>No.${esc(r.ordinal)}${u.changes ? "" : " (이미 처리돼 있었어요)"}</p>`));
 });
 
 /* ---------- 상태 점검 ---------- */

@@ -56,7 +56,7 @@ export default function App() {
             <img className="brand-logo" src={ONE} alt="" width={40} height={40} />
             <span>
               <div className="display">부캉이 지금 있나</div>
-              <small>북항 친수공원 · 비공식</small>
+              <small>북항 친수공원 상어 상황판</small>
             </span>
           </a>
           <span className="spacer" />

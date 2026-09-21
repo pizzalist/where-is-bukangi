@@ -6,8 +6,7 @@ import { drawCert } from "../lib/cert";
 import HoloCard from "../components/HoloCard";
 import { RARITY_META, RARITY_ORDER } from "../lib/rarity";
 import { useTiltAvailable } from "../lib/tilt";
-
-const SITE = "bukang.kr";
+import { SITE_HOST } from "../lib/site";
 
 export default function Card({ status, focus, onTiers }: { status: Status; focus?: string | null; onTiers?: () => void }) {
   const subs = loadSubmissions();
@@ -27,7 +26,7 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
     const zoneName = status.zones.find((z) => z.code === sel.zone)?.name ?? "";
     (async () => {
       try { await (document as Document & { fonts?: FontFaceSet }).fonts?.load("120px 'Jua'"); } catch { /* ignore */ }
-      await drawCert(canvasRef.current!, { type: sel.type, ordinal: sel.ordinal ?? 0, takenAt: sel.takenAt, zone: sel.zone, zoneName, photoDataUrl: sel.photoDataUrl, siteUrl: SITE, rarity: sel.rarity ?? "common" });
+      await drawCert(canvasRef.current!, { type: sel.type, ordinal: sel.ordinal ?? 0, takenAt: sel.takenAt, zone: sel.zone, zoneName, photoDataUrl: sel.photoDataUrl, siteUrl: SITE_HOST, rarity: sel.rarity ?? "common" });
       setPng(canvasRef.current!.toDataURL("image/png"));
     })();
   }, [sel, status.zones]);
@@ -56,7 +55,7 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
     const file = new File([blob], "bukang-cert.png", { type: "image/png" });
     const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
     if (nav.share && nav.canShare?.({ files: [file] })) {
-      try { await nav.share({ files: [file], title: "부캉이 인증", text: `부캉이 ${sel?.type === "seen" ? "목격" : "방문"} 인증 · ${SITE}` }); return; } catch { /* fallthrough */ }
+      try { await nav.share({ files: [file], title: "부캉이 인증", text: `부캉이 ${sel?.type === "seen" ? "목격" : "방문"} 인증 · ${SITE_HOST}` }); return; } catch { /* fallthrough */ }
     }
     const a = document.createElement("a"); a.href = png; a.download = "bukang-cert.png"; a.click();
   }

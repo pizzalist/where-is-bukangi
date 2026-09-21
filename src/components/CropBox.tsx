@@ -66,11 +66,11 @@ export default function CropBox({ src, onDone, onCancel }: { src: string; onDone
     const ctx = c.getContext("2d")!;
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(imgRef.current, sx, sy, sw, sh, 0, 0, c.width, c.height);
-    // AI 1차 심사용 작은 썸네일 (384px). 비용·속도를 위해 따로 만든다.
+    // 작은 썸네일 (480px). AI 1차 심사와 목록(타임라인·명예의 전당)에 쓴다. 원본은 카드에서만.
     const tc = document.createElement("canvas");
-    tc.width = 384; tc.height = Math.round(384 / ASPECT);
+    tc.width = 480; tc.height = Math.round(480 / ASPECT);
     tc.getContext("2d")!.drawImage(c, 0, 0, tc.width, tc.height);
-    onDone(encode(c), tc.toDataURL("image/jpeg", 0.7));
+    onDone(encode(c), tc.toDataURL("image/jpeg", 0.78));
   }
 
   return (

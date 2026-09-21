@@ -15,6 +15,10 @@
     <key>HOST</key><string>127.0.0.1</string>
     <key>SERVE_STATIC</key><string>0</string>
     <key>ADMIN_TOKEN</key><string>CHANGE_ME_32자_이상_무작위</string>
+    <!-- 디스코드 알림 (선택). 없으면 알림 없이 관리자 페이지에서만 처리 -->
+    <key>DISCORD_WEBHOOK</key><string></string>
+    <key>PUBLIC_URL</key><string>https://api.CHANGE_ME.kr</string>
+    <key>SITE_URL</key><string>https://CHANGE_ME.kr</string>
     <key>BUKANG_DATA</key><string>/Users/CHANGE_ME/bukang</string>
   </dict>
   <key>RunAtLoad</key><true/>

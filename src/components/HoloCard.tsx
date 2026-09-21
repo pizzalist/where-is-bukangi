@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import type { CertType, ZoneCode } from "../lib/types";
 import { RARITY_META, cardStats, type Rarity } from "../lib/rarity";
 import { fmtDate, fmtTime } from "../lib/store";
+import { SITE_HOST } from "../lib/site";
 
-const SAMPLE = `${import.meta.env.BASE_URL}sample.png`;
+const SAMPLE = `${import.meta.env.BASE_URL}sample.webp`;
 
 export interface HoloCardProps {
   type: CertType;
@@ -28,7 +29,7 @@ export interface HoloCardProps {
  */
 export default function HoloCard(p: HoloCardProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(!!p.fixed || !!p.sweep);
+  const [active, setActive] = useState(!!p.fixed);
   const touching = useRef(false);
   const meta = RARITY_META[p.rarity];
   const stats = cardStats(p.ordinal, p.takenAt, p.id);
@@ -46,16 +47,20 @@ export default function HoloCard(p: HoloCardProps) {
 
   useEffect(() => { if (p.fixed) setPos(p.fixed.mx, p.fixed.my); }, [p.fixed]);
 
-  // 자동 스윕 (예시 페이지)
+  // 자동 스윕 (예시 페이지). 화면에 보이는 카드만, 30fps로. 9장이 동시에 60fps로 돌면 폰이 버벅인다.
   useEffect(() => {
     if (!p.sweep) return;
-    let raf = 0; const t0 = performance.now();
+    const el = ref.current; if (!el) return;
+    let visible = false, raf = 0, last = 0; const t0 = performance.now();
     const loop = (t: number) => {
-      if (!touching.current) { const a = (t - t0) / 2200; setPos(50 + Math.cos(a) * 32, 50 + Math.sin(a * 0.8) * 26); }
       raf = requestAnimationFrame(loop);
+      if (!visible || touching.current || t - last < 33) return;
+      last = t; const a = (t - t0) / 2200; setPos(50 + Math.cos(a) * 32, 50 + Math.sin(a * 0.8) * 26);
     };
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; setActive(visible); }, { rootMargin: "40px" });
+    io.observe(el);
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); };
   }, [p.sweep]);
 
   useEffect(() => {
@@ -122,7 +127,7 @@ export default function HoloCard(p: HoloCardProps) {
             <div className="holo-flavor">{fmtDate(p.takenAt)} {fmtTime(p.takenAt)} 부산 북항 친수공원 인증.</div>
             <div className="holo-bottom">
               <span className="holo-rarity">{meta.symbol} {meta.label}</span>
-              <span className="holo-site mono">{p.ordinal.toLocaleString()} · bukang.kr</span>
+              <span className="holo-site mono">{p.ordinal.toLocaleString()} · {SITE_HOST}</span>
             </div>
           </div>
         </div>
