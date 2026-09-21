@@ -25,10 +25,10 @@ export interface ZoneDef {
 export const DEFAULT_ZONE: ZoneCode = "B";
 
 export const ZONES: ZoneDef[] = [
-  { code: "A", name: "제4보도교", full: "제4보도교 쪽", landmark: "하늘광장에서 들어와 첫 다리를 건넌 북쪽 수로" },
+  { code: "A", name: "제4보도교", full: "제4보도교 쪽", landmark: "공원 북쪽 수로. 하늘광장에서 가장 가깝다" },
   { code: "B", name: "제5보도교", full: "제5보도교 일대", landmark: "크루즈 부두 앞. 가장 자주 보이는 곳", main: true },
-  { code: "C", name: "제6보도교", full: "제6보도교 쪽", landmark: "크루즈 부두 남쪽, 수로가 바다로 꺾이기 전" },
-  { code: "D", name: "방파제", full: "방파제 · 수로 입구", landmark: "수로가 바다와 만나는 곳. 돌 깔린 얕은 물가" },
+  { code: "C", name: "제6보도교", full: "제6보도교 쪽", landmark: "크루즈 부두 남쪽, 수로가 바다로 꺾이는 구간" },
+  { code: "D", name: "방파제", full: "방파제 · 수로 입구", landmark: "수로가 바다로 빠지는 남동쪽 입구" },
 ];
 
 export const ZONE_BY_CODE = Object.fromEntries(ZONES.map((z) => [z.code, z])) as Record<ZoneCode, ZoneDef>;

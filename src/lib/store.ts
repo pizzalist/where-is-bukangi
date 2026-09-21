@@ -2,6 +2,28 @@ import type { Status, Submission } from "./types";
 
 const KEY = "bukang.submissions.v1";
 const COUNTER_KEY = "bukang.counters.v1";
+const QUOTA_KEY = "bukang.quota.v1";
+
+/** 하루 뽑기 상한. 재방문을 만들고 무작위 대량 업로드를 막는다. */
+export const DAILY_LIMIT = 3;
+
+function today() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
+
+export function drawsLeft() {
+  try {
+    const q = JSON.parse(localStorage.getItem(QUOTA_KEY) || "null");
+    if (!q || q.date !== today()) return DAILY_LIMIT;
+    return Math.max(0, DAILY_LIMIT - q.used);
+  } catch { return DAILY_LIMIT; }
+}
+
+export function useDraw() {
+  try {
+    const q = JSON.parse(localStorage.getItem(QUOTA_KEY) || "null");
+    const used = (!q || q.date !== today()) ? 1 : q.used + 1;
+    localStorage.setItem(QUOTA_KEY, JSON.stringify({ date: today(), used }));
+  } catch { /* ignore */ }
+}
 
 export async function loadStatus(): Promise<Status> {
   const res = await fetch(`${import.meta.env.BASE_URL}status.json`, { cache: "no-store" });

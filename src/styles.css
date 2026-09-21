@@ -117,6 +117,8 @@ input, select, textarea { font: inherit; }
 .zone-map .pier { fill: #d8d2c4; }
 .zone-map .green { fill: #d9ead0; }
 .zone-map .green2 { fill: #cfe4c2; }
+.zone-map .parkingdot { fill: #e5483a; }
+.zone-map .parkingtxt { font-family: "Noto Sans KR", sans-serif; font-size: 9px; font-weight: 700; fill: #fff; pointer-events: none; }
 .zone-map .ship { fill: #f4f6f8; stroke: #9fb3c2; stroke-width: 1; }
 .zone-map .breakwater line { stroke: #8a8172; stroke-width: 4; stroke-linecap: round; }
 .zone-map .bridge line { stroke: #cfc6b2; stroke-width: 5; stroke-linecap: round; }
@@ -540,3 +542,9 @@ input, select, textarea { font: inherit; }
 .ub-label { font-size: 0.72rem; color: var(--ink-3); font-weight: 700; }
 .urlbox input { width: 100%; border: 0; background: transparent; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; color: var(--ink-2); }
 .urlbox input:focus { outline: none; }
+
+.quota { margin-top: 0.6rem; font-size: 0.84rem; color: var(--ink-2); }
+.quota b { font-family: "Jua", sans-serif; font-weight: 400; font-size: 1.05rem; color: var(--sky-deep); }
+.quota span { color: var(--ink-3); font-size: 0.78rem; }
+.reportnote { margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--ink-2); background: var(--accent-soft, var(--foam-2)); border-radius: 12px; padding: 0.6rem 0.75rem; }
+.pickbox:disabled { opacity: 0.5; }

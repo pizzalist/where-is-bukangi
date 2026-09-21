@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
-import { addSubmission, uid, nextOrdinal } from "../lib/store";
+import { addSubmission, uid, nextOrdinal, drawsLeft, useDraw, DAILY_LIMIT } from "../lib/store";
 import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
 import { ZONES, ZONE_BY_CODE, inPark, DEFAULT_ZONE } from "../lib/zones";
 import ZoneMap from "../components/ZoneMap";
@@ -20,6 +20,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
   const [zone, setZone] = useState<ZoneCode | "">(DEFAULT_ZONE);
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
   const [auto, setAuto] = useState<string[]>([]);
+  const [left, setLeft] = useState(drawsLeft());
 
   async function onFile(f: File) {
     const url = await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(f); });
@@ -45,6 +46,8 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
       ordinal: nextOrdinal("seen", status.counters), rarity: rollRarity({ type: "seen", takenAt: iso }),
     };
     addSubmission(s);
+    useDraw();
+    setLeft(drawsLeft());
     onDone(s);
   }
 
@@ -57,9 +60,10 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
           <p style={{ color: "var(--ink-2)", margin: 0, fontSize: "0.95rem" }}>
             {photo ? "사진에서 읽은 값이에요. 다르면 바꿔주세요." : "부캉이 사진을 올리면 카드가 바로 뽑혀요."}
           </p>
+          <div className="quota">오늘 <b>{left}</b>장 남음 <span>· 매일 {DAILY_LIMIT}장, 자정에 채워져요</span></div>
         </div>
 
-        <button className="pickbox" onClick={() => fileRef.current?.click()}>
+        <button className="pickbox" onClick={() => left > 0 && fileRef.current?.click()} disabled={left <= 0}>
           {photo ? <img src={photo} alt="" /> : (
             <span className="pickbox-empty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 7h3l2-3h6l2 3h3v12H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
@@ -92,7 +96,8 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
                   ))}
                 </div>
               </div>
-              <button className="btn btn-big" onClick={draw}>카드 뽑기</button>
+              <button className="btn btn-big" onClick={draw} disabled={left <= 0}>{left > 0 ? "카드 뽑기" : "오늘 뽑기를 다 썼어요"}</button>
+              <p className="reportnote">이 카드는 <b>제보로도 들어가요.</b> 시각과 위치가 상황판 타임라인에 쌓여서 다음 사람이 "지금 있나"를 알 수 있어요.</p>
             </motion.div>
           )}
         </AnimatePresence>
