@@ -4,6 +4,7 @@ import exifr from "exifr";
 import type { Status, ZoneCode, CertType, Submission } from "../lib/types";
 import { addSubmission, uid, nextOrdinal } from "../lib/store";
 import ZoneMap from "../components/ZoneMap";
+import { rollRarity } from "../lib/rarity";
 
 /** 구역 중심 좌표 (초안, 현장에서 확정). 가장 가까운 구역으로 배정. */
 const ZONE_CENTERS: Record<Exclude<ZoneCode, "F">, { lat: number; lng: number }> = {
@@ -67,6 +68,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
       id: uid(), type, zone, takenAt: new Date(takenAt).toISOString(), submittedAt: new Date().toISOString(),
       exifGps: gps, photoDataUrl: photo, link: link || undefined, status: "pending",
       ordinal: nextOrdinal(type, status.counters),
+      rarity: rollRarity({ type, takenAt: new Date(takenAt).toISOString() }),
     };
     addSubmission(s);
     onDone(s);
@@ -76,7 +78,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
     <div className="page">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 style={{ fontSize: "1.6rem", margin: "1.2rem 0 0.2rem" }}>인증받기</h1>
-        <p style={{ color: "var(--ink-2)", marginTop: 0 }}>사진 한 장이면 바로 카드를 드려요. 상황판에는 운영자가 확인한 것만 올라가요. 사진은 공개하지 않고 24시간 안에 지워요.</p>
+        <p style={{ color: "var(--ink-2)", marginTop: 0 }}>사진 한 장이면 바로 카드를 뽑아요. 등급은 랜덤이고 한 사진에 한 번. 상황판에는 운영자가 확인한 것만 올라가요. 사진은 공개하지 않고 24시간 안에 지워요.</p>
 
         <div className="field">
           <label>어떤 인증인가요</label>

@@ -6,13 +6,14 @@ import Home from "./pages/Home";
 import Certify from "./pages/Certify";
 import Card from "./pages/Card";
 import Admin from "./pages/Admin";
+import Tiers from "./pages/Tiers";
 
-type Route = "home" | "certify" | "card" | "admin";
+type Route = "home" | "certify" | "card" | "admin" | "tiers";
 
 function parseHash(): { route: Route; param?: string } {
   const h = location.hash.replace(/^#\/?/, "");
   const [r, p] = h.split("/");
-  if (r === "certify" || r === "card" || r === "admin") return { route: r, param: p };
+  if (r === "certify" || r === "card" || r === "admin" || r === "tiers") return { route: r, param: p };
   return { route: "home" };
 }
 
@@ -62,6 +63,7 @@ export default function App() {
       {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} />}
       {status && nav.route === "card" && <Card status={status} focus={focusCard} />}
       {status && nav.route === "admin" && <Admin status={status} />}
+      {status && nav.route === "tiers" && <Tiers />}
 
       <nav className="nav">
         <div className="nav-inner">

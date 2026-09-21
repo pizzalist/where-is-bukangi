@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import type { Status, Submission } from "../lib/types";
 import { loadSubmissions } from "../lib/store";
 import { drawCert } from "../lib/cert";
+import HoloCard from "../components/HoloCard";
+import { RARITY_META } from "../lib/rarity";
 
 const SITE = "bukang.kr";
 
@@ -19,7 +21,7 @@ export default function Card({ status, focus }: { status: Status; focus?: string
     const zoneName = status.zones.find((z) => z.code === sel.zone)?.name ?? "";
     (async () => {
       try { await (document as Document & { fonts?: FontFaceSet }).fonts?.load("120px 'Jua'"); } catch { /* ignore */ }
-      await drawCert(canvasRef.current!, { type: sel.type, ordinal: sel.ordinal ?? 0, takenAt: sel.takenAt, zone: sel.zone, zoneName, photoDataUrl: sel.photoDataUrl, siteUrl: SITE });
+      await drawCert(canvasRef.current!, { type: sel.type, ordinal: sel.ordinal ?? 0, takenAt: sel.takenAt, zone: sel.zone, zoneName, photoDataUrl: sel.photoDataUrl, siteUrl: SITE, rarity: sel.rarity ?? "common" });
       setPng(canvasRef.current!.toDataURL("image/png"));
     })();
   }, [sel, status.zones]);
@@ -49,12 +51,17 @@ export default function Card({ status, focus }: { status: Status; focus?: string
               {sel.status === "pending" && <span className="pill">상황판 반영은 운영자 확인 후</span>}
               {sel.status === "rejected" && <span className="pill auto">상황판 제외 (카드는 유효)</span>}
             </div>
-            <canvas ref={canvasRef} className="cert-canvas" />
+            <HoloCard type={sel.type} ordinal={sel.ordinal ?? 0} takenAt={sel.takenAt} zone={sel.zone} zoneName={status.zones.find((z) => z.code === sel.zone)?.name ?? ""} photoDataUrl={sel.photoDataUrl} rarity={sel.rarity ?? "common"} interactive />
+            <div style={{ textAlign: "center", fontSize: "0.85rem", color: "var(--ink-2)" }}>
+              <b style={{ fontFamily: "Jua" }}>{RARITY_META[sel.rarity ?? "common"].symbol} {RARITY_META[sel.rarity ?? "common"].label}</b> · 손가락으로 문지르거나 폰을 기울여봐 · <a href="#/tiers">등급 보기</a>
+            </div>
+            <TiltButton />
+            <canvas ref={canvasRef} className="cert-canvas" style={{ display: "none" }} />
             <div className="btn-row">
               <button className="btn" onClick={share} disabled={!png}>공유 / 저장</button>
               <a className="btn secondary" href="#/certify">하나 더</a>
             </div>
-            <p className="disclaimer">인스타 스토리에 올리면 링크가 같이 가요. 카드 한 장이 제보 한 건이에요.</p>
+            <p className="disclaimer">공유하면 이미지로 저장돼요. 홀로 효과는 이 페이지에서만 움직여요.</p>
           </div>
         )}
         {mine.length > 1 && (
@@ -72,4 +79,10 @@ export default function Card({ status, focus }: { status: Status; focus?: string
       </motion.div>
     </div>
   );
+}
+
+function TiltButton() {
+  const D = (window as Window & { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+  if (!D?.requestPermission) return null;
+  return <button className="btn secondary" onClick={() => D.requestPermission!().catch(() => null)}>기울이기 효과 켜기 (iPhone)</button>;
 }

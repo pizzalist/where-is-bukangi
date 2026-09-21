@@ -1,5 +1,6 @@
 import type { CertType, ZoneCode } from "./types";
 import { fmtDate, fmtTime } from "./store";
+import { RARITY_META, type Rarity } from "./rarity";
 
 export interface CertInput {
   type: CertType;
@@ -9,6 +10,7 @@ export interface CertInput {
   zoneName: string;
   photoDataUrl?: string;
   siteUrl: string;
+  rarity?: Rarity;
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -125,8 +127,23 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
   ctx.restore();
   ctx.restore();
 
+  // 등급 프레임 + 정적 홀로 띠
+  const rar = input.rarity ?? "common";
+  const rm = RARITY_META[rar];
+  ctx.save(); ctx.lineWidth = 16; ctx.strokeStyle = rm.frame2; roundRect(ctx, px - 22, py - 22, pw + 44, ph + 44, 34); ctx.stroke(); ctx.restore();
+  if (rar !== "common") {
+    ctx.save(); roundRect(ctx, px - 22, py - 22, pw + 44, ph + 44, 34); ctx.clip();
+    const hg = ctx.createLinearGradient(px, py, px + pw, py + ph);
+    if (rar === "legendary") { ["#ff008c", "#ffe600", "#00ffb3", "#00c8ff", "#b300ff"].forEach((c, i) => hg.addColorStop(0.15 + i * 0.15, c)); }
+    else if (rar === "epic") { hg.addColorStop(0.2, "#ffd166"); hg.addColorStop(0.5, "#c77dff"); hg.addColorStop(0.8, "#ffd166"); }
+    else { hg.addColorStop(0.25, "#dfe9f5"); hg.addColorStop(0.5, "#ffffff"); hg.addColorStop(0.75, "#9cc8ff"); }
+    hg.addColorStop(0, "rgba(255,255,255,0)"); hg.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.globalAlpha = rar === "legendary" ? 0.5 : 0.35; ctx.globalCompositeOperation = "screen";
+    ctx.fillStyle = hg; ctx.fillRect(px - 22, py - 22, pw + 44, ph + 44); ctx.restore();
+  }
   // 도장
   drawStamp(ctx, 880, 232, seen ? "목격 인증" : "방문 인증", accent);
+  drawStamp(ctx, 200, 232, `${rm.symbol} ${rm.label}`, rar === "common" ? "#0b5c8a" : rar === "rare" ? "#5b7fa6" : rar === "epic" ? "#8e44ad" : "#ff008c");
 
   // 부캉이 스티커 (사진 오른쪽 아래에 겹치게)
   drawShark(ctx, 700, 830, 1.35, -0.12);

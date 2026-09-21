@@ -186,3 +186,96 @@ input, select, textarea { font: inherit; }
 .nav svg { width: 22px; height: 22px; }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ===== Holo card (TCG style) ===== */
+.holo {
+  --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --px: 50%; --py: 50%; --hyp: 0;
+  width: 100%; max-width: 340px; aspect-ratio: 63 / 88; margin: 0 auto;
+  perspective: 900px; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.holo-inner {
+  position: relative; width: 100%; height: 100%; border-radius: 18px; overflow: hidden;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 260ms ease-out, box-shadow 260ms;
+  box-shadow: 0 18px 40px rgba(11,92,138,0.28), 0 2px 0 rgba(255,255,255,0.5) inset;
+  background: linear-gradient(160deg, var(--frame), var(--frame2));
+  transform-style: preserve-3d;
+}
+.holo.active .holo-inner { transition: transform 60ms linear; box-shadow: 0 28px 60px rgba(11,92,138,0.38); }
+.holo-frame { position: absolute; inset: 10px; border-radius: 12px; background: #fff; display: flex; flex-direction: column; gap: 6px; padding: 8px 10px 8px; color: var(--ink); }
+.holo-top { display: flex; align-items: baseline; justify-content: space-between; }
+.holo-name { font-family: "Jua", sans-serif; font-size: 1.15rem; }
+.holo-name small { font-size: 0.7rem; color: var(--ink-3); margin-left: 4px; font-family: "Noto Sans KR", sans-serif; font-weight: 700; }
+.holo-no { font-size: 0.72rem; color: var(--ink-3); font-weight: 600; }
+.holo-photo { position: relative; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; border: 3px solid var(--frame2); background: linear-gradient(160deg, #5fcdf6, #0b5c8a); }
+.holo-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.holo-photo-ph { width: 100%; height: 100%; display: grid; place-items: center; }
+.holo-stamp { position: absolute; right: 6px; top: 6px; font-family: "Jua", sans-serif; font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #e5483a; border: 1.5px solid #e5483a; transform: rotate(-6deg); }
+.holo-stats { display: flex; gap: 8px; font-size: 0.68rem; color: var(--ink-2); flex-wrap: wrap; }
+.holo-stats b { color: var(--ink); }
+.holo-moves { display: grid; gap: 4px; }
+.holo-moves div { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: baseline; font-size: 0.7rem; padding: 4px 6px; border-radius: 6px; background: color-mix(in srgb, var(--frame) 25%, #fff); }
+.holo-moves b { font-family: "Jua", sans-serif; font-size: 0.8rem; }
+.holo-moves span { color: var(--ink-2); }
+.holo-flavor { font-size: 0.62rem; color: var(--ink-3); font-style: italic; border-top: 1px dashed var(--line); padding-top: 4px; margin-top: auto; }
+.holo-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 0.66rem; }
+.holo-rarity { font-family: "Jua", sans-serif; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--frame2) 30%, #fff); }
+.holo-site { color: var(--ink-3); }
+
+/* layers */
+.holo-foil, .holo-glare, .holo-sparkle { position: absolute; inset: 0; pointer-events: none; border-radius: 18px; }
+.holo-epic .holo-foil, .holo-legendary .holo-foil {
+  -webkit-mask: linear-gradient(#000, #000) padding-box, linear-gradient(#000, #000);
+  mask-image: linear-gradient(180deg, #000 0%, #000 12%, rgba(0,0,0,0.9) 13%, rgba(0,0,0,0.9) 52%, rgba(0,0,0,0.45) 56%, rgba(0,0,0,0.45) 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 12%, rgba(0,0,0,0.9) 13%, rgba(0,0,0,0.9) 52%, rgba(0,0,0,0.45) 56%, rgba(0,0,0,0.45) 100%);
+}
+.holo-glare {
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.25) 22%, transparent 55%);
+  mix-blend-mode: overlay; opacity: calc(0.25 + var(--hyp) * 0.6); transition: opacity 200ms;
+}
+.holo-foil {
+  background-image:
+    linear-gradient(115deg, transparent 20%, #ff008c 32%, #ffe600 40%, #00ffb3 48%, #00c8ff 56%, #b300ff 64%, transparent 78%),
+    repeating-linear-gradient(-30deg, rgba(255,255,255,0.12) 0 2px, transparent 2px 6px);
+  background-size: 300% 300%, 100% 100%;
+  background-position: var(--px) var(--py), 0 0;
+  mix-blend-mode: color-dodge; filter: brightness(0.75) contrast(1.6) saturate(1.4);
+  opacity: 0; transition: opacity 200ms;
+}
+.holo-sparkle {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.9) 0 1px, transparent 1.6px);
+  background-size: 14px 14px; background-position: var(--mx) var(--my);
+  mix-blend-mode: screen; opacity: 0;
+}
+/* tiers */
+.holo-common .holo-foil { display: none; }
+.holo-common .holo-glare { opacity: calc(0.15 + var(--hyp) * 0.3); }
+
+.holo-rare .holo-foil {
+  background-image: linear-gradient(115deg, transparent 25%, #dfe9f5 38%, #9cc8ff 46%, #ffffff 52%, #b3d9ff 58%, transparent 74%);
+  filter: brightness(0.9) contrast(1.3);
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  padding: 10px; /* 포일이 테두리에만 */
+}
+.holo-rare.active .holo-foil, .holo-rare .holo-foil { opacity: calc(0.35 + var(--hyp) * 0.65); }
+
+.holo-epic .holo-foil {
+  background-image: linear-gradient(115deg, transparent 22%, #ffd166 34%, #ff8fab 42%, #c77dff 50%, #ffd166 58%, transparent 76%);
+  filter: brightness(0.6) contrast(1.4) saturate(1.2);
+  opacity: calc(0.18 + var(--hyp) * 0.35);
+}
+.holo-epic .holo-sparkle { opacity: calc(var(--hyp) * 0.5); }
+.holo-epic .holo-frame { background: linear-gradient(180deg, #fff, #fff7e0); }
+
+.holo-legendary .holo-inner { background: conic-gradient(from 200deg, #ff008c, #ffe600, #00ffb3, #00c8ff, #b300ff, #ff008c); }
+.holo-legendary .holo-foil { opacity: calc(0.22 + var(--hyp) * 0.4); filter: brightness(0.6) contrast(1.5) saturate(1.4); }
+.holo-legendary .holo-sparkle { opacity: calc(0.35 + var(--hyp) * 0.65); background-size: 10px 10px; }
+.holo-legendary .holo-frame { background: linear-gradient(180deg, #fff, #f3f7ff); }
+.holo-legendary .holo-rarity { background: linear-gradient(90deg, #ff008c, #ffe600, #00ffb3, #00c8ff, #b300ff); color: #fff; }
+
+.tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.tier-grid .holo { max-width: 100%; }
+.tier-label { text-align: center; font-family: "Jua", sans-serif; margin-top: 0.4rem; }
+.tier-label small { display: block; font-family: "Noto Sans KR", sans-serif; color: var(--ink-3); font-size: 0.72rem; font-weight: 500; }
+@media (prefers-reduced-motion: reduce) { .holo-inner { transform: none !important; } }
