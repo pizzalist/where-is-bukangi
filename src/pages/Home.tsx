@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Status, Event, ZoneCode } from "../lib/types";
-import { ageMinutes, fmtAge, fmtTime, DECAY_MIN } from "../lib/store";
+import { ageMinutes, fmtAge, fmtTime } from "../lib/store";
 const TWO = `${import.meta.env.BASE_URL}bukang-two.webp`;
 import ZoneMap from "../components/ZoneMap";
 import { RARITY_ORDER, RARITY_META } from "../lib/rarity";
 import { ZONES, ZONE_BY_CODE, naverDirections, naverPlace, PARK } from "../lib/zones";
 
-type HeroState = "seen" | "miss" | "stale" | "none" | "crit";
+type HeroState = "seen" | "miss" | "none" | "crit";
 
 function deriveHero(s: Status, now: number): { state: HeroState; headline: string; sub: string; ageMin: number } {
   if (s.control) return { state: "crit", headline: "출입통제 중", sub: s.control.title, ageMin: 0 };
   if (!s.last) return { state: "none", headline: "아직 제보가 없어요", sub: "부캉이를 봤다면 사진 한 장 올려주세요. 첫 주인공이 돼요", ageMin: 0 };
   const a = ageMinutes(s.last.at, now);
   if (s.last.kind === "miss") return { state: "miss", headline: `최근 관측 미목격 · ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
-  if (a > DECAY_MIN) return { state: "stale", headline: `미확인 · 마지막 확인 ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · 2시간 넘게 새 확인이 없어요`, ageMin: a };
+  // 시간이 오래 지나도 "미확인"으로 바꾸지 않는다. 마지막 목격을 그대로 보여주고, 얼마나 됐는지는 옆 배지로 알린다
   return { state: "seen", headline: `마지막 확인 목격 ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""}`, ageMin: a };
 }
 
@@ -183,7 +183,7 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
           </div>
         </div>
 
-      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. "확인 없음"은 "없음"이 아닙니다.<br /><span style={{ opacity: 0.55 }}>v.{__BUILD__.slice(4, 13)}</span></p>
+      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. 마지막 목격 이후 시간이 지났다고 지금 없는 건 아니에요.<br /><span style={{ opacity: 0.55 }}>v.{__BUILD__.slice(4, 13)}</span></p>
     </div>
   );
 }
