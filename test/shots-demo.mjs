@@ -24,7 +24,7 @@ await p.goto(SITE + '/#/'); await p.waitForTimeout(1500);
 // 제일 좋은 카드를 "내 카드"로 심는다
 await p.evaluate((c) => localStorage.setItem('bukang.submissions.v1', JSON.stringify([{ id: c.id, type: 'seen', takenAt: c.takenAt, submittedAt: c.takenAt, zone: c.zone, photoDataUrl: c.photo, status: 'approved', ordinal: c.ordinal, rarity: c.rarity }])), best);
 await p.goto(SITE + '/#/card/' + best.id); await p.waitForTimeout(3800);
-await p.mouse.move(120, 330); await p.waitForTimeout(400);
+const hb = await p.locator(".holo").first().boundingBox(); await p.mouse.move(hb.x + hb.width * 0.42, hb.y + hb.height * 0.4); await p.waitForTimeout(400);
 await p.screenshot({ path: `${OUT}/shot-card.png` });
 console.log('카드 화면:', best.ordinal, best.rarity, '| 제목:', (await p.locator('h1').first().textContent())?.trim());
 await p.goto(SITE + '/#/'); await p.reload(); await p.waitForTimeout(3000);
