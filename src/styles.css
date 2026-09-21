@@ -116,6 +116,10 @@ input, select, textarea { font: inherit; }
 .zone-map .bldg { fill: #e3dccb; }
 .zone-map .pier { fill: #d8d2c4; }
 .zone-map .green { fill: #d9ead0; }
+.zone-map .station { fill: #f6d7d3; stroke: #e0a9a1; stroke-width: 1; }
+.zone-map .plaza { fill: #ece5d3; stroke: #d6cdb8; stroke-width: 1; }
+.zone-map .walk { stroke: #7b909e; stroke-width: 1.5; stroke-dasharray: 3 3; fill: none; }
+.zone-map .label-sm { font-family: "Noto Sans KR", sans-serif; font-size: 8px; font-weight: 700; fill: var(--ink-2); pointer-events: none; }
 .zone-map .zone.main { stroke-width: 2; stroke-dasharray: none; stroke: rgba(11,92,138,.6); }
 .zone-map .zone { fill: rgba(47,181,232,0.12); stroke: rgba(11,92,138,0.35); stroke-width: 1.5; stroke-dasharray: 4 3; cursor: pointer; transition: fill 160ms; }
 .zone-map .zone:hover, .zone-map .zone.active { fill: rgba(47,181,232,0.35); }
@@ -317,24 +321,38 @@ input, select, textarea { font: inherit; }
 .holo-reverse .holo-moves div { background: rgba(255,255,255,.55); }
 
 /* ---- galaxy: 별가루 + 은은한 무지개, 사진은 살린다 ---- */
-.holo-galaxy .holo-photo img { filter: brightness(.38) saturate(.45) contrast(1.25); }
-.holo-galaxy .holo-photo .fx-art { display: block;
+/* 사진은 살리고, 은하는 카드 바탕·테두리에 (실제 갤럭시 홀로 방식) */
+.holo-galaxy .holo-inner { background: #141438; }
+.holo-galaxy .holo-inner::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background-image:
-    radial-gradient(ellipse 60% 45% at 28% 32%, rgba(190,70,255,.85), transparent 70%),
-    radial-gradient(ellipse 55% 40% at 72% 62%, rgba(0,170,255,.8), transparent 70%),
-    radial-gradient(ellipse 45% 35% at 55% 20%, rgba(255,60,160,.6), transparent 70%),
+    radial-gradient(ellipse 55% 40% at 25% 22%, rgba(190,70,255,.95), transparent 70%),
+    radial-gradient(ellipse 50% 38% at 78% 40%, rgba(0,170,255,.9), transparent 70%),
+    radial-gradient(ellipse 45% 32% at 45% 82%, rgba(255,60,160,.8), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 85% 88%, rgba(90,255,220,.6), transparent 70%),
     var(--galaxy);
-  background-size: 190% 190%, 175% 175%, 160% 160%, 230% 230%;
-  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) var(--posy), var(--posx) calc(100% - var(--posy)), var(--posx) var(--posy);
-  background-blend-mode: screen, screen, screen, overlay;
-  filter: contrast(1.35) saturate(1.5);
-  mix-blend-mode: screen; opacity: calc(.75 + var(--hyp) * .25);
+  background-size: 200% 200%, 185% 185%, 170% 170%, 160% 160%, 240% 240%;
+  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) var(--posy), var(--posx) calc(100% - var(--posy)), calc(100% - var(--posx)) calc(100% - var(--posy)), var(--posx) var(--posy);
+  background-blend-mode: screen, screen, screen, screen, overlay;
+  filter: contrast(1.3) saturate(1.5);
 }
-.holo-galaxy .holo-photo .fx-artglitter { display: block; background-size: 39% 39%, 21% 21%; mix-blend-mode: screen; filter: brightness(2.6) contrast(1.5); opacity: calc(.8 + var(--hyp) * .2); }
-.holo-galaxy .holo-photo::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: radial-gradient(farthest-corner circle at var(--mx) var(--my), rgba(255,255,255,.45), transparent 40%); mix-blend-mode: screen; }
-.holo-galaxy .holo-inner { background: linear-gradient(160deg, #2b2d6b, #0b5c8a 60%, #1b1e4b); }
-.holo-galaxy .holo-frame { background: linear-gradient(180deg, #fff, #eef0ff); }
+.holo-galaxy .holo-inner::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image: var(--glitter), var(--glitter);
+  background-size: 33% 33%, 18% 18%;
+  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) calc(100% - var(--posy));
+  mix-blend-mode: screen; filter: brightness(2.4) contrast(1.5); opacity: calc(.7 + var(--hyp) * .3);
+}
+.holo-galaxy .holo-frame { inset: 4.2cqw; background: rgba(255,255,255,.7); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.holo-galaxy .holo-moves div { background: rgba(255,255,255,.62); }
+.holo-galaxy .holo-stats, .holo-galaxy .holo-flavor { text-shadow: 0 1px 2px rgba(255,255,255,.7); }
+.holo-galaxy .holo-photo { border-color: rgba(255,255,255,.75); }
+.holo-galaxy .holo-photo img { filter: none; }
+/* 사진에는 아주 옅은 광택만 */
+.holo-galaxy .holo-photo .fx-art { display: block;
+  background: linear-gradient(115deg, transparent 38%, rgba(190,160,255,.45) 48%, rgba(255,255,255,.55) 50%, rgba(140,220,255,.45) 52%, transparent 62%);
+  background-size: 280% 280%; background-position: var(--posx) var(--posy);
+  mix-blend-mode: soft-light; opacity: calc(.5 + var(--hyp) * .5);
+}
+.holo-galaxy .holo-photo .fx-artglitter { display: none; }
 
 /* ---- full art: 사진 유지 + 좁은 흰 광선만 screen (검은 영역 = 무변화) ---- */
 .holo-fullart .holo-bleed img { filter: brightness(.74) saturate(1.3) contrast(1.25); }
@@ -506,3 +524,8 @@ input, select, textarea { font: inherit; }
 .pm-chip { font-size: 0.78rem; padding: 0.35rem 0.6rem; border-radius: 999px; background: var(--foam-2); border: 1.5px solid transparent; color: var(--ink-2); }
 .pm-chip b { font-family: "Jua", sans-serif; color: var(--sky-deep); margin-right: 0.25rem; }
 .pm-chip.on { background: var(--white); border-color: var(--sky); color: var(--sky-deep); font-weight: 700; }
+
+.urlbox { display: grid; gap: 0.25rem; background: var(--foam-2); border-radius: 12px; padding: 0.6rem 0.75rem; }
+.ub-label { font-size: 0.72rem; color: var(--ink-3); font-weight: 700; }
+.urlbox input { width: 100%; border: 0; background: transparent; font-family: "IBM Plex Mono", monospace; font-size: 0.74rem; color: var(--ink-2); }
+.urlbox input:focus { outline: none; }

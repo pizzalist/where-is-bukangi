@@ -18,7 +18,7 @@ export const RARITY_META: Record<Rarity, RarityMeta> = {
   rare:     { label: "레어",       en: "Rare",         symbol: "★", weight: 18,  frame: "#d9e2ec", frame2: "#98b5d3", ink: "#0f2a3a", layout: "normal",  how: "테두리 은박 포일." },
   holo:     { label: "홀로",       en: "Rare Holo",    symbol: "★", weight: 14,   frame: "#cfd8e3", frame2: "#8fb3d9", ink: "#0f2a3a", layout: "normal",  how: "사진 창에 무지개 홀로 띠. 목격이면 2배." },
   reverse:  { label: "리버스 홀로", en: "Reverse Holo", symbol: "★", weight: 9,   frame: "#c9d6e2", frame2: "#7f9fc0", ink: "#0f2a3a", layout: "normal",  how: "사진 빼고 카드 전체가 포일." },
-  galaxy:   { label: "갤럭시",     en: "Galaxy Holo",  symbol: "✦", weight: 6, frame: "#2b2d6b", frame2: "#0b5c8a", ink: "#0f2a3a", layout: "normal",  how: "사진 창에 은하수 텍스처. 밤 촬영이면 3배." },
+  galaxy:   { label: "갤럭시",     en: "Galaxy Holo",  symbol: "✦", weight: 6, frame: "#2b2d6b", frame2: "#0b5c8a", ink: "#0f2a3a", layout: "normal",  how: "카드 바탕이 은하수. 밤 촬영이면 3배." },
   fullart:  { label: "풀아트",     en: "Full Art",     symbol: "✦", weight: 4, frame: "#e8eef5", frame2: "#a9c4de", ink: "#ffffff", layout: "fullart", how: "사진이 카드 끝까지. 세로 결 포일." },
   rainbow:  { label: "레인보우",   en: "Rainbow Rare", symbol: "✧", weight: 2.5, frame: "#ffffff", frame2: "#ffd1f0", ink: "#ffffff", layout: "fullart", how: "카드 전체 무지개 + 글리터. 6시간 못 봄 뒤 첫 목격이면 확정." },
   gold:     { label: "시크릿 골드", en: "Secret Gold",  symbol: "✪", weight: 1.5, frame: "#f2c94c", frame2: "#a67c00", ink: "#3a2a00", layout: "fullart", how: "금박 + 글리터. 가장 희귀." },

@@ -30,10 +30,22 @@ export default function Card({ status, focus }: { status: Status; focus?: string
     })();
   }, [sel, status.zones]);
 
+  const cardUrl = sel ? `${location.href.split("#")[0]}#/card/${sel.id}` : "";
+
   function copyLink() {
-    if (!sel) return;
-    navigator.clipboard?.writeText(location.origin + location.pathname + `#/card/${sel.id}`)
-      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => null);
+    if (!cardUrl) return;
+    const done = () => { setCopied(true); setTimeout(() => setCopied(false), 1800); };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(cardUrl).then(done).catch(() => fallbackCopy(cardUrl, done));
+    } else fallbackCopy(cardUrl, done);
+  }
+
+  function fallbackCopy(text: string, done: () => void) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch { /* 수동 복사 안내 */ }
+    document.body.removeChild(ta);
   }
 
   async function share() {
@@ -78,7 +90,10 @@ export default function Card({ status, focus }: { status: Status; focus?: string
               </button>
               <button className="btn" onClick={share} disabled={!png}>공유 / 저장</button>
             </div>
-            <p className="disclaimer">링크를 저장해두면 나중에 이 카드를 다시 열 수 있어요.</p>
+            <div className="urlbox">
+              <span className="ub-label">이 카드 주소</span>
+              <input readOnly value={cardUrl} onFocus={(e) => e.currentTarget.select()} />
+            </div>
           </div>
         )}
         <div className="section">

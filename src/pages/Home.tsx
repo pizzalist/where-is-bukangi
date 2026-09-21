@@ -57,8 +57,8 @@ export default function Home({ status }: { status: Status }) {
 
       <a href="#/certify" className="cta">
         <div>
-          <b>사진 있으면 카드 뽑기</b>
-          <small>등급 9종 · 한 장에 한 번 · 바로 발급</small>
+          <b>부캉이 봤나?</b>
+          <small>부캉이 인증 카드 뽑기</small>
         </div>
         <div className="cta-dots">{RARITY_ORDER.slice(3).map((r) => <span key={r} className={`tier-dot tier-dot-${r} mini`}>{RARITY_META[r].symbol}</span>)}</div>
       </a>

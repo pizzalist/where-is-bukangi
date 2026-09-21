@@ -2,48 +2,64 @@ import type { ZoneCode } from "../lib/types";
 import { ZONES } from "../lib/zones";
 
 /**
- * 부캉이 출몰 구간 개념도 (제4~제6보도교). 실제 축척 아님.
- * 수로가 휘어 있어 상어가 빠져나가지 못하는 구간을 강조한다.
+ * 부캉이 출몰 구간 약도. 실제 축척 아님.
+ * 방위는 네이버 지도와 같게: 왼쪽=부산역(내륙), 오른쪽=바다, 위=국제여객터미널.
+ * 사람들이 부산역에서 걸어 들어오는 동선을 기준으로 그린다.
  */
 const SHAPES: Record<ZoneCode, { d: string; lx: number; ly: number }> = {
-  A: { d: "M118 16 L182 16 L180 54 L116 52 Z", lx: 149, ly: 40 },
-  B: { d: "M116 52 L180 54 L176 98 L110 94 Z", lx: 143, ly: 80 },
-  C: { d: "M110 94 L176 98 L166 136 L98 128 Z", lx: 137, ly: 120 },
-  D: { d: "M98 128 L166 136 L156 168 L82 158 Z", lx: 124, ly: 154 },
+  A: { d: "M148 30 L200 28 L202 62 L150 64 Z", lx: 175, ly: 51 },
+  B: { d: "M150 64 L202 62 L205 100 L152 102 Z", lx: 178, ly: 87 },
+  C: { d: "M152 102 L205 100 L208 136 L150 138 Z", lx: 179, ly: 124 },
+  D: { d: "M150 138 L208 136 L211 174 L146 178 Z", lx: 179, ly: 160 },
   E: { d: "", lx: 0, ly: 0 },
   F: { d: "", lx: 0, ly: 0 },
 };
 
 export default function ZoneMap({ hot, active, onPick }: { hot?: ZoneCode | null; active?: ZoneCode | null; onPick?: (z: ZoneCode) => void }) {
   return (
-    <svg className="zone-map" viewBox="0 0 260 190" role="img" aria-label="부캉이 출몰 구간 개념도">
-      <rect x="0" y="0" width="260" height="190" className="land" />
+    <svg className="zone-map" viewBox="0 0 300 200" role="img" aria-label="부캉이 출몰 구간 약도">
+      <rect x="0" y="0" width="300" height="200" className="land" />
 
-      {/* 크루즈 부두 · 여객터미널 (동쪽) */}
-      <rect x="196" y="10" width="58" height="46" rx="4" className="bldg" />
-      <text x="225" y="30" textAnchor="middle" className="landmark">국제여객</text>
-      <text x="225" y="44" textAnchor="middle" className="landmark">터미널</text>
-      <rect x="196" y="64" width="58" height="34" rx="3" className="pier" />
-      <text x="225" y="84" textAnchor="middle" className="landmark">크루즈 부두</text>
+      {/* 바다 (오른쪽) */}
+      <path d="M258 0 L300 0 L300 200 L252 200 Z" className="sea" />
+      <text x="278" y="186" textAnchor="middle" className="landmark">바다</text>
 
-      {/* 공원 녹지 (서쪽) */}
-      <rect x="6" y="14" width="66" height="150" rx="6" className="green" />
-      <text x="39" y="92" textAnchor="middle" className="landmark">잔디마당</text>
-      <text x="39" y="106" textAnchor="middle" className="landmark">조망언덕</text>
+      {/* 부산역 (왼쪽 출발점) */}
+      <rect x="4" y="86" width="42" height="28" rx="4" className="station" />
+      <text x="25" y="98" textAnchor="middle" className="label-sm">부산역</text>
+      <text x="25" y="109" textAnchor="middle" className="landmark">1호선</text>
+      <path d="M50 100 L60 100" className="walk" markerEnd="url(#arw)" />
+      <defs><marker id="arw" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#7b909e" /></marker></defs>
 
-      {/* 휜 수로 */}
-      <path d="M120 8 L184 8 L176 176 L78 164 L86 120 L124 126 Z" className="water" />
-      <text x="206" y="118" textAnchor="middle" className="landmark">← 바다</text>
+      {/* 하늘광장 · 공원 진입 */}
+      <rect x="64" y="86" width="52" height="28" rx="5" className="plaza" />
+      <text x="90" y="98" textAnchor="middle" className="label-sm">하늘광장</text>
+      <text x="90" y="109" textAnchor="middle" className="landmark">공원 입구</text>
+      <text x="60" y="80" textAnchor="middle" className="landmark">도보 10분</text>
+
+      {/* 공원 녹지 */}
+      <ellipse cx="66" cy="164" rx="58" ry="30" className="green" />
+      <text x="66" y="168" textAnchor="middle" className="landmark">잔디마당 · 조망언덕</text>
+
+      {/* 국제여객터미널 · 크루즈 부두 */}
+      <rect x="146" y="2" width="102" height="20" rx="4" className="bldg" />
+      <text x="197" y="16" textAnchor="middle" className="label-sm">국제여객터미널</text>
+      <rect x="216" y="56" width="36" height="80" rx="4" className="pier" />
+      <text x="234" y="92" textAnchor="middle" className="landmark">크루즈</text>
+      <text x="234" y="104" textAnchor="middle" className="landmark">부두</text>
+
+      {/* 수로 (휘어서 바다로 못 나감) */}
+      <path d="M146 26 L202 24 L212 178 L144 182 Z" className="water" />
 
       {/* 보도교 */}
       <g className="bridge">
-        <rect x="104" y="48" width="88" height="8" rx="2" />
-        <rect x="100" y="92" width="88" height="8" rx="2" />
-        <rect x="88" y="126" width="88" height="8" rx="2" />
+        <rect x="124" y="58" width="98" height="7" rx="2" />
+        <rect x="126" y="96" width="98" height="7" rx="2" />
+        <rect x="128" y="132" width="98" height="7" rx="2" />
       </g>
-      <text x="80" y="42" textAnchor="middle" className="landmark">제4보도교</text>
-      <text x="76" y="86" textAnchor="middle" className="landmark">제5보도교</text>
-      <text x="64" y="150" textAnchor="middle" className="landmark">제6보도교</text>
+      <text x="126" y="54" className="label-sm">제4보도교</text>
+      <text x="128" y="92" className="label-sm">제5보도교</text>
+      <text x="130" y="128" className="label-sm">제6보도교</text>
 
       {ZONES.map((z) => {
         const s = SHAPES[z.code];
@@ -52,7 +68,7 @@ export default function ZoneMap({ hot, active, onPick }: { hot?: ZoneCode | null
           <g key={z.code} onClick={() => onPick?.(z.code)} style={{ cursor: onPick ? "pointer" : "default" }}>
             <path d={s.d} className={`zone${hot === z.code ? " hot" : ""}${active === z.code ? " active" : ""}${z.main ? " main" : ""}`} />
             <text x={s.lx} y={s.ly} textAnchor="middle" className="label">{z.code}</text>
-            {hot === z.code && <circle cx={s.lx} cy={s.ly - 16} r="5" className="marker" />}
+            {hot === z.code && <circle cx={s.lx} cy={s.ly - 15} r="5" className="marker" />}
           </g>
         );
       })}
