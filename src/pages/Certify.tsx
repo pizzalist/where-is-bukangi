@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import exifr from "exifr";
 import type { Status, ZoneCode, CertType, Submission } from "../lib/types";
-import { addSubmission, uid } from "../lib/store";
+import { addSubmission, uid, nextOrdinal } from "../lib/store";
 import ZoneMap from "../components/ZoneMap";
 
 /** 구역 중심 좌표 (초안, 현장에서 확정). 가장 가까운 구역으로 배정. */
@@ -66,6 +66,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
     const s: Submission = {
       id: uid(), type, zone, takenAt: new Date(takenAt).toISOString(), submittedAt: new Date().toISOString(),
       exifGps: gps, photoDataUrl: photo, link: link || undefined, status: "pending",
+      ordinal: nextOrdinal(type, status.counters),
     };
     addSubmission(s);
     onDone(s);
@@ -75,7 +76,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
     <div className="page">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 style={{ fontSize: "1.6rem", margin: "1.2rem 0 0.2rem" }}>인증받기</h1>
-        <p style={{ color: "var(--ink-2)", marginTop: 0 }}>사진 한 장이면 돼요. 승인되면 순번이 찍힌 카드를 드려요. 사진은 공개하지 않고 24시간 안에 지워요.</p>
+        <p style={{ color: "var(--ink-2)", marginTop: 0 }}>사진 한 장이면 바로 카드를 드려요. 상황판에는 운영자가 확인한 것만 올라가요. 사진은 공개하지 않고 24시간 안에 지워요.</p>
 
         <div className="field">
           <label>어떤 인증인가요</label>
@@ -119,7 +120,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
           </div>
         </div>
 
-        <button className="btn" disabled={!canSubmit} onClick={submit}>인증 요청하기</button>
+        <button className="btn" disabled={!canSubmit} onClick={submit}>카드 받기</button>
         <p className="disclaimer">연락처는 받지 않아요. 얼굴이 크게 나온 사진은 반려될 수 있어요.</p>
       </motion.div>
     </div>
