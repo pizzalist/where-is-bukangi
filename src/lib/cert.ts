@@ -127,23 +127,25 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
   ctx.restore();
   ctx.restore();
 
-  // 등급 프레임 + 정적 홀로 띠
+  // 등급 프레임 + 정적 홀로 띠 (PNG는 움직이지 않으므로 고정 각도)
   const rar = input.rarity ?? "common";
   const rm = RARITY_META[rar];
   ctx.save(); ctx.lineWidth = 16; ctx.strokeStyle = rm.frame2; roundRect(ctx, px - 22, py - 22, pw + 44, ph + 44, 34); ctx.stroke(); ctx.restore();
-  if (rar !== "common") {
+  const group = rar === "common" || rar === "uncommon" ? "none" : rar === "rare" ? "silver" : rar === "gold" ? "gold" : "rainbow";
+  if (group !== "none") {
     ctx.save(); roundRect(ctx, px - 22, py - 22, pw + 44, ph + 44, 34); ctx.clip();
     const hg = ctx.createLinearGradient(px, py, px + pw, py + ph);
-    if (rar === "legendary") { ["#ff008c", "#ffe600", "#00ffb3", "#00c8ff", "#b300ff"].forEach((c, i) => hg.addColorStop(0.15 + i * 0.15, c)); }
-    else if (rar === "epic") { hg.addColorStop(0.2, "#ffd166"); hg.addColorStop(0.5, "#c77dff"); hg.addColorStop(0.8, "#ffd166"); }
+    if (group === "rainbow") ["#ff7773", "#ffed5f", "#a8ff5f", "#83fff7", "#7894ff", "#d875ff"].forEach((c, i) => hg.addColorStop(0.1 + i * 0.14, c));
+    else if (group === "gold") { hg.addColorStop(0.15, "#7a5a00"); hg.addColorStop(0.4, "#ffe27a"); hg.addColorStop(0.6, "#b8860b"); hg.addColorStop(0.85, "#fff2b0"); }
     else { hg.addColorStop(0.25, "#dfe9f5"); hg.addColorStop(0.5, "#ffffff"); hg.addColorStop(0.75, "#9cc8ff"); }
     hg.addColorStop(0, "rgba(255,255,255,0)"); hg.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.globalAlpha = rar === "legendary" ? 0.5 : 0.35; ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = rar === "rainbow" || rar === "gold" ? 0.55 : rar === "holo" || rar === "galaxy" || rar === "fullart" ? 0.4 : 0.35;
+    ctx.globalCompositeOperation = group === "gold" ? "overlay" : "screen";
     ctx.fillStyle = hg; ctx.fillRect(px - 22, py - 22, pw + 44, ph + 44); ctx.restore();
   }
   // 도장
   drawStamp(ctx, 880, 232, seen ? "목격 인증" : "방문 인증", accent);
-  drawStamp(ctx, 200, 232, `${rm.symbol} ${rm.label}`, rar === "common" ? "#0b5c8a" : rar === "rare" ? "#5b7fa6" : rar === "epic" ? "#8e44ad" : "#ff008c");
+  drawStamp(ctx, 210, 232, `${rm.symbol} ${rm.label}`, group === "none" ? "#0b5c8a" : group === "silver" ? "#5b7fa6" : group === "gold" ? "#a67c00" : "#ff5fa2");
 
   // 부캉이 스티커 (사진 오른쪽 아래에 겹치게)
   drawShark(ctx, 700, 830, 1.35, -0.12);

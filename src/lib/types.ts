@@ -37,5 +37,5 @@ export interface Submission {
   link?: string;
   status: "pending" | "approved" | "rejected";
   ordinal?: number;
-  rarity?: "common" | "rare" | "epic" | "legendary";
+  rarity?: import("./rarity").Rarity;
 }
