@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Status, Submission } from "./lib/types";
 import { fetchStatus } from "./lib/api";
 const ONE = `${import.meta.env.BASE_URL}bukang-one.webp`;
@@ -48,6 +48,26 @@ export default function App() {
   }, []);
 
   function onCertified(s: Submission) { setFocusCard(s.id); go("card", s.id); }
+
+  // 새 버전 감지: 배포되면 열려 있던 폰들이 옛 JS를 계속 쓰는 걸 막는다.
+  // 사진 올리는 중(certify)에는 끊지 않고, 다른 화면으로 옮길 때 새로고침한다.
+  const routeRef = useRef(nav.route); routeRef.current = nav.route;
+  const stale = useRef(false);
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const r = await fetch(`${import.meta.env.BASE_URL}version.json?t=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const { build } = await r.json();
+        if (build && build !== __BUILD__) { stale.current = true; if (routeRef.current !== "certify") location.reload(); }
+      } catch { /* 오프라인이면 다음에 */ }
+    };
+    const onVis = () => { if (document.visibilityState === "visible") check(); };
+    const t = setInterval(check, 5 * 60e3);
+    addEventListener("visibilitychange", onVis);
+    return () => { clearInterval(t); removeEventListener("visibilitychange", onVis); };
+  }, []);
+  useEffect(() => { if (stale.current && nav.route !== "certify") location.reload(); }, [nav.route]);
 
   // 카드 PNG 렌더용 화면: 카드 하나만 (서버의 헤드리스 브라우저가 연다)
   if (nav.route === "shot") return <Shot id={nav.param} />;
