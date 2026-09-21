@@ -1,12 +1,13 @@
 import type { ZoneCode } from "./types";
 import type { Rarity } from "./rarity";
+import { API_BASE } from "./site";
 
 const KEY = "bukang.admin.token";
 export function getToken() { try { return localStorage.getItem(KEY) || ""; } catch { return ""; } }
 export function setToken(t: string) { try { t ? localStorage.setItem(KEY, t) : localStorage.removeItem(KEY); } catch { /* ignore */ } }
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(path, {
+  const r = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}`, ...(init?.headers || {}) },
   });

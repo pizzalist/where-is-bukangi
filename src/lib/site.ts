@@ -6,3 +6,9 @@
 export const SITE_HOST: string =
   (import.meta.env.VITE_SITE_HOST as string | undefined)?.trim() ||
   (typeof location !== "undefined" ? location.host : "");
+
+/**
+ * API 주소. 화면이 Cloudflare Pages에 있고 API는 맥미니(터널)에 있으면
+ * 빌드할 때 VITE_API_BASE=https://api.bukang.kr 처럼 준다. 없으면 같은 주소.
+ */
+export const API_BASE: string = ((import.meta.env.VITE_API_BASE as string | undefined) || "").replace(/\/$/, "");

@@ -18,6 +18,10 @@ const SERVE_STATIC = process.env.SERVE_STATIC !== "0"; // 운영에선 0 (Cloudf
 const MAX_PHOTO = 3 * 1024 * 1024;                     // 3MB (앱이 보내는 건 보통 70KB)
 const UPLOAD_CONCURRENCY = 8;
 const STATUS_TTL = Number(process.env.STATUS_TTL || 5000);
+const PUBLIC_URL = (process.env.PUBLIC_URL || "").replace(/\/$/, "");      // API의 바깥 주소. 있으면 사진을 절대주소로 준다
+const SITE_ORIGINS = new Set([process.env.SITE_URL, ...(process.env.ALLOWED_ORIGINS || "").split(",")]
+  .map((v) => (v || "").trim().replace(/\/$/, "")).filter(Boolean));       // 제보·운영자 API를 부를 수 있는 화면 주소
+const photoUrl = (name) => (name ? `${PUBLIC_URL}/photos/${name}` : null);
 
 if (!ADMIN_TOKEN) { console.error("ADMIN_TOKEN 환경변수가 필요합니다."); process.exit(1); }
 if (ADMIN_TOKEN.length < 24) console.warn("경고: ADMIN_TOKEN이 짧습니다. 32자 이상 무작위 문자열을 쓰세요.");
@@ -35,6 +39,23 @@ app.use((_req, res, next) => {
     "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
     "Cross-Origin-Resource-Policy": "cross-origin",
   });
+  next();
+});
+
+/* ---------- CORS (화면이 Pages 같은 다른 주소에 있을 때) ----------
+   공개 읽기(/api/status, /api/hall, /api/submissions/:id, /photos)는 누구나.
+   제보·운영자 API는 SITE_URL(+ALLOWED_ORIGINS)에서 온 화면만. 쿠키를 안 쓰니 토큰 탈취 경로는 없다 */
+const PUBLIC_READ = /^\/(api\/(status|hall)|api\/submissions\/[^/]+|photos\/)/;
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin) return next();                                   // 같은 주소에서 온 요청은 CORS 무관
+  if (PUBLIC_READ.test(req.path) && req.method === "GET") res.set("Access-Control-Allow-Origin", "*");
+  else if (SITE_ORIGINS.has(origin)) res.set({ "Access-Control-Allow-Origin": origin, "Vary": "Origin" });
+  else if (req.method === "OPTIONS") return res.status(403).end();
+  if (req.method === "OPTIONS") {
+    res.set({ "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Max-Age": "86400" });
+    return res.status(204).end();
+  }
   next();
 });
 
@@ -115,7 +136,7 @@ const qSubCount = db.prepare(`SELECT
 
 function buildStatus() {
   const timeline = [
-    ...qSubs.all().map((s) => ({ at: s.at, kind: "seen", zone: s.zone, tier: "confirmed", note: "현장 사진", photo: s.thumb || s.photo ? `/photos/${s.thumb || s.photo}` : null, ordinal: s.ordinal })),
+    ...qSubs.all().map((s) => ({ at: s.at, kind: "seen", zone: s.zone, tier: "confirmed", note: "현장 사진", photo: photoUrl(s.thumb || s.photo), ordinal: s.ordinal })),
     ...qObs.all().map((o) => ({ at: o.at, kind: o.kind, zone: o.zone, tier: "confirmed", note: o.note })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30);
 
@@ -171,7 +192,7 @@ app.get("/api/hall", (_req, res) => {
     const rows = qHall.all();
     rows.sort((a, b) => (HALL_ORDER.indexOf(a.rarity) - HALL_ORDER.indexOf(b.rarity)) || a.ordinal - b.ordinal);
     // 목록은 썸네일, 원본은 카드 상세(/api/submissions/:id)에서만
-    hallCache = { at: now, body: JSON.stringify(rows.slice(0, 60).map(({ thumb, ...r }) => ({ ...r, photo: `/photos/${thumb || r.photo}` }))) };
+    hallCache = { at: now, body: JSON.stringify(rows.slice(0, 60).map(({ thumb, ...r }) => ({ ...r, photo: photoUrl(thumb || r.photo) }))) };
   }
   res.set("Cache-Control", "public, max-age=30, s-maxage=30");
   res.type("application/json").send(hallCache.body);
@@ -233,7 +254,7 @@ app.post("/api/submissions",
       insSub.run(id, ordinal, rarity, zone || null, new Date(t).toISOString(), new Date().toISOString(), name,
         Number.isFinite(lat) ? lat : null, Number.isFinite(lng) ? lng : null, thumbName);
 
-      res.json({ id, ordinal, rarity, photo: `/photos/${name}` });
+      res.json({ id, ordinal, rarity, photo: photoUrl(name) });
     } catch (e) {
       console.error("submission 실패:", e.message);
       res.status(500).json({ error: "저장하지 못했어요." });
@@ -245,7 +266,7 @@ app.get("/api/submissions/:id", limiter({ windowMs: 60e3, max: 60, key: clientIp
   const r = qSub.get(String(req.params.id).slice(0, 32));
   if (!r) return res.status(404).json({ error: "없는 카드예요." });
   res.set("Cache-Control", "public, max-age=30");
-  res.json({ ...r, photo: r.photo ? `/photos/${r.photo}` : null });
+  res.json({ ...r, photo: photoUrl(r.photo) });
 });
 
 /* ---------- 운영자 ---------- */
@@ -266,7 +287,7 @@ const qQueue = db.prepare(`
   WHERE s.status='pending' ORDER BY s.submitted_at DESC LIMIT 100`);
 app.get("/api/admin/queue", limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), auth, (_req, res) => {
   res.set("Cache-Control", "no-store");
-  res.json(qQueue.all().map((r) => ({ ...r, photo: r.photo ? `/photos/${r.photo}` : null })));
+  res.json(qQueue.all().map((r) => ({ ...r, photo: photoUrl(r.photo) })));
 });
 
 const updSub = db.prepare(`UPDATE submissions SET status=?, zone=COALESCE(?, zone) WHERE id=?`);
