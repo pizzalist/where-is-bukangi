@@ -2,12 +2,18 @@ import type { ZoneCode } from "./types";
 import type { Rarity } from "./rarity";
 import { API_BASE } from "./site";
 
+/**
+ * 운영자 API는 공개 호스트(api.)에서 터널이 404로 막는다.
+ * admin.<도메인>으로 들어오면 그 호스트가 화면과 API를 같이 내주므로 같은 주소로 부른다.
+ */
+const ADMIN_BASE = typeof location !== "undefined" && /^admin\./.test(location.host) ? "" : API_BASE;
+
 const KEY = "bukang.admin.token";
 export function getToken() { try { return localStorage.getItem(KEY) || ""; } catch { return ""; } }
 export function setToken(t: string) { try { t ? localStorage.setItem(KEY, t) : localStorage.removeItem(KEY); } catch { /* ignore */ } }
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(`${API_BASE}${path}`, {
+  const r = await fetch(`${ADMIN_BASE}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}`, ...(init?.headers || {}) },
   });

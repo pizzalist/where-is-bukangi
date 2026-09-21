@@ -1,0 +1,18 @@
+{
+  // 부캉이 화면 배포 설정. 정적 파일만 올린다 (서버 코드는 맥미니에서 돈다).
+  //   npm run build && npx wrangler deploy
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bukangi",
+  "compatibility_date": "2026-09-21",
+  "assets": {
+    "directory": "./dist",
+    // 해시 라우팅이라 없는 경로는 전부 index.html로 돌려준다
+    "not_found_handling": "single-page-application"
+  },
+  // 사람들이 보는 주소. www도 같이 받는다
+  "routes": [
+    { "pattern": "bukangi.com", "custom_domain": true },
+    { "pattern": "www.bukangi.com", "custom_domain": true }
+  ],
+  "observability": { "enabled": true }
+}
