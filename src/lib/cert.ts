@@ -90,8 +90,7 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
   const W = 1080, H = 1350;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
-  const seen = input.type === "seen";
-  const accent = seen ? "#ff6b57" : "#1f8a5b";
+  const accent = "#ff6b57";
 
   // 배경
   const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -104,7 +103,7 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
   // 상단 문구
   ctx.fillStyle = "#fff"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   ctx.font = "400 58px 'Jua', 'Noto Sans KR', sans-serif";
-  ctx.fillText(seen ? "부캉이 봤다!!" : "부캉이 보러 왔다!", 70, 118);
+  ctx.fillText("부캉이 봤다!!", 70, 118);
   ctx.font = "500 28px 'Noto Sans KR', sans-serif"; ctx.globalAlpha = 0.9;
   ctx.fillText("부산 북항 친수공원", 72, 160); ctx.globalAlpha = 1;
 
@@ -144,7 +143,7 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
     ctx.fillStyle = hg; ctx.fillRect(px - 22, py - 22, pw + 44, ph + 44); ctx.restore();
   }
   // 도장
-  drawStamp(ctx, 880, 232, seen ? "목격 인증" : "방문 인증", accent);
+  drawStamp(ctx, 880, 232, "부캉이 인증", accent);
   drawStamp(ctx, 210, 232, `${rm.symbol} ${rm.label}`, group === "none" ? "#0b5c8a" : group === "silver" ? "#5b7fa6" : group === "gold" ? "#a67c00" : "#ff5fa2");
 
   // 부캉이 스티커 (사진 오른쪽 아래에 겹치게)
@@ -156,7 +155,7 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
   roundRect(ctx, bx, by, bw, bh, 39); ctx.fillStyle = "#fff"; ctx.fill();
   ctx.beginPath(); ctx.moveTo(bx + 60, by + bh); ctx.lineTo(bx + 80, by + bh + 24); ctx.lineTo(bx + 100, by + bh); ctx.fill();
   ctx.fillStyle = "#0f2a3a"; ctx.font = "400 34px 'Jua', 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText(seen ? "진짜 봤음 ㄹㅇ" : "다음엔 꼭 본다", bx + bw / 2, by + bh / 2 + 2);
+  ctx.fillText("진짜 봤음 ㄹㅇ", bx + bw / 2, by + bh / 2 + 2);
   ctx.restore();
 
   // 순번
@@ -167,7 +166,7 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
   ctx.shadowColor = "transparent";
   const nw = ctx.measureText(`${input.ordinal.toLocaleString()}`).width;
   ctx.font = "400 56px 'Jua', 'Noto Sans KR', sans-serif";
-  ctx.fillText(seen ? "번째 목격자" : "번째 방문자", 70 + nw + 18, 1160);
+  ctx.fillText("번째 인증", 70 + nw + 18, 1160);
 
   // 시각·구역
   ctx.font = "600 38px 'IBM Plex Mono', monospace";

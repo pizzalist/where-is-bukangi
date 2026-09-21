@@ -4,6 +4,7 @@ import type { Status, Event } from "../lib/types";
 import { ageMinutes, fmtAge, fmtTime, DECAY_MIN } from "../lib/store";
 import Shark from "../components/Shark";
 import ZoneMap from "../components/ZoneMap";
+import { RARITY_ORDER, RARITY_META } from "../lib/rarity";
 
 type HeroState = "seen" | "miss" | "stale" | "none" | "crit";
 
@@ -53,6 +54,14 @@ export default function Home({ status }: { status: Status }) {
         </div>
         <Shark className="shark" size={150} />
       </motion.section>
+
+      <a href="#/certify" className="cta">
+        <div>
+          <b>사진 있으면 카드 뽑기</b>
+          <small>등급 9종 · 한 장에 한 번 · 바로 발급</small>
+        </div>
+        <div className="cta-dots">{RARITY_ORDER.slice(3).map((r) => <span key={r} className={`tier-dot tier-dot-${r} mini`}>{RARITY_META[r].symbol}</span>)}</div>
+      </a>
 
       <section className="section">
         <div className="section-head">

@@ -29,7 +29,6 @@ export default function HoloCard(p: HoloCardProps) {
   const touching = useRef(false);
   const meta = RARITY_META[p.rarity];
   const stats = cardStats(p.ordinal, p.takenAt);
-  const seen = p.type === "seen";
 
   function setPos(mx: number, my: number) {
     const el = ref.current; if (!el) return;
@@ -87,13 +86,13 @@ export default function HoloCard(p: HoloCardProps) {
         )}
         <div className="holo-frame">
           <div className="holo-top">
-            <span className="holo-name">부캉이 <small>{seen ? "목격" : "방문"}</small></span>
+            <span className="holo-name">부캉이</span>
             <span className="holo-no mono">No.{p.ordinal.toLocaleString()}</span>
           </div>
           {meta.layout === "normal" && (
             <div className="holo-photo">
               {p.photoDataUrl ? <img src={p.photoDataUrl} alt="" draggable={false} /> : <div className="holo-photo-ph"><SharkSil /></div>}
-              <span className="holo-stamp">{seen ? "목격 인증" : "방문 인증"}</span>
+              <span className="holo-stamp">부캉이 인증</span>
             </div>
           )}
           {meta.layout === "fullart" && <div className="holo-spacer" />}
@@ -106,7 +105,7 @@ export default function HoloCard(p: HoloCardProps) {
             <div className="holo-moves">
               {stats.moves.map(([n, d]) => (<div key={n}><b>{n}</b><span>{d}</span></div>))}
             </div>
-            <div className="holo-flavor">{fmtDate(p.takenAt)} {fmtTime(p.takenAt)} 부산 북항 친수공원에서 {seen ? "직접 목격" : "현장 방문"}.</div>
+            <div className="holo-flavor">{fmtDate(p.takenAt)} {fmtTime(p.takenAt)} 부산 북항 친수공원 인증.</div>
             <div className="holo-bottom">
               <span className="holo-rarity">{meta.symbol} {meta.label}</span>
               <span className="holo-site">bukang.kr · #부캉이</span>

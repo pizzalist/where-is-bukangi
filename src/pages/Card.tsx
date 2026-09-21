@@ -4,7 +4,7 @@ import type { Status, Submission } from "../lib/types";
 import { loadSubmissions } from "../lib/store";
 import { drawCert } from "../lib/cert";
 import HoloCard from "../components/HoloCard";
-import { RARITY_META } from "../lib/rarity";
+import { RARITY_META, RARITY_ORDER } from "../lib/rarity";
 
 const SITE = "bukang.kr";
 
@@ -15,6 +15,9 @@ export default function Card({ status, focus }: { status: Status; focus?: string
   const [sel, setSel] = useState<Submission | undefined>(initial);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [png, setPng] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(!focus);
+  useEffect(() => { if (focus) { setRevealed(false); const t = setTimeout(() => setRevealed(true), 1400); return () => clearTimeout(t); } }, [focus]);
+  const owned = new Set(subs.map((s) => s.rarity ?? "common"));
 
   useEffect(() => {
     if (!sel || !canvasRef.current) { setPng(null); return; }
@@ -51,19 +54,36 @@ export default function Card({ status, focus }: { status: Status; focus?: string
               {sel.status === "pending" && <span className="pill">상황판 반영은 운영자 확인 후</span>}
               {sel.status === "rejected" && <span className="pill auto">상황판 제외 (카드는 유효)</span>}
             </div>
+            <div className={`reveal${revealed ? " on" : ""}`}>
+              <div className="reveal-back"><span style={{ fontFamily: "Jua", color: "#fff", fontSize: "1.4rem" }}>뽑는 중…</span></div>
+              <div className="reveal-front">
             <HoloCard type={sel.type} ordinal={sel.ordinal ?? 0} takenAt={sel.takenAt} zone={sel.zone} zoneName={status.zones.find((z) => z.code === sel.zone)?.name ?? ""} photoDataUrl={sel.photoDataUrl} rarity={sel.rarity ?? "common"} interactive />
-            <div style={{ textAlign: "center", fontSize: "0.85rem", color: "var(--ink-2)" }}>
-              <b style={{ fontFamily: "Jua" }}>{RARITY_META[sel.rarity ?? "common"].symbol} {RARITY_META[sel.rarity ?? "common"].label}</b> · 손가락으로 문지르거나 폰을 기울여봐 · <a href="#/tiers">등급 보기</a>
+              </div>
             </div>
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={revealed ? { opacity: 1, scale: 1 } : {}} transition={{ type: "spring", stiffness: 300, damping: 18 }} style={{ textAlign: "center" }}>
+              <span className={`tier-dot tier-dot-${sel.rarity ?? "common"}`} style={{ display: "inline-flex", padding: "0.4rem 0.9rem", fontSize: "1rem" }}><span>{RARITY_META[sel.rarity ?? "common"].symbol}</span>&nbsp;{RARITY_META[sel.rarity ?? "common"].label}</span>
+              <div style={{ fontSize: "0.8rem", color: "var(--ink-3)", marginTop: "0.3rem" }}>문지르거나 폰을 기울여봐</div>
+            </motion.div>
             <TiltButton />
             <canvas ref={canvasRef} className="cert-canvas" style={{ display: "none" }} />
             <div className="btn-row">
               <button className="btn" onClick={share} disabled={!png}>공유 / 저장</button>
-              <a className="btn secondary" href="#/certify">하나 더</a>
+              <a className="btn secondary" href="#/certify">한 장 더</a>
             </div>
             <p className="disclaimer">공유하면 이미지로 저장돼요. 홀로 효과는 이 페이지에서만 움직여요.</p>
           </div>
         )}
+        <div className="section">
+          <div className="section-head"><h2>내 컬렉션</h2><a className="more" href="#/tiers">등급 설명</a></div>
+          <div className="tier-strip">
+            {RARITY_ORDER.map((r) => (
+              <a key={r} href="#/tiers" className={`tier-dot tier-dot-${r}${owned.has(r) ? "" : " off"}`}>
+                <span>{owned.has(r) ? RARITY_META[r].symbol : "?"}</span>
+                <small>{RARITY_META[r].label}</small>
+              </a>
+            ))}
+          </div>
+        </div>
         {mine.length > 1 && (
           <div className="section">
             <div className="section-head"><h2>지난 카드</h2></div>

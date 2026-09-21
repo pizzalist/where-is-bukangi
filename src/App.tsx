@@ -68,7 +68,7 @@ export default function App() {
       <nav className="nav">
         <div className="nav-inner">
           <a href="#/" className={nav.route === "home" ? "on" : ""}>{Icon.home}지금</a>
-          <a href="#/certify" className={nav.route === "certify" ? "on" : ""}>{Icon.certify}인증받기</a>
+          <a href="#/certify" className={nav.route === "certify" ? "on" : ""}>{Icon.certify}카드 뽑기</a>
           <a href="#/card" className={nav.route === "card" ? "on" : ""}>{Icon.card}내 카드</a>
           <a href="#/admin" className={nav.route === "admin" ? "on" : ""}>{Icon.admin}운영</a>
         </div>
