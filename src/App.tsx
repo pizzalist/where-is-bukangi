@@ -24,10 +24,16 @@ const Icon = {
   admin: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>,
 };
 
+export function navigate(route: Route, param?: string) {
+  const h = `#/${route === "home" ? "" : route}${param ? "/" + param : ""}`;
+  try { if (location.hash !== h) location.hash = h; } catch { /* 샌드박스에서 막힐 수 있음 */ }
+}
+
 export default function App() {
   const [status, setStatus] = useState<Status | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [nav, setNav] = useState(parseHash());
+  const go = (route: Route, param?: string) => { setNav({ route, param }); navigate(route, param); };
   const [focusCard, setFocusCard] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,13 +45,13 @@ export default function App() {
     return () => { clearInterval(t); removeEventListener("hashchange", onHash); };
   }, []);
 
-  function onCertified(s: Submission) { setFocusCard(s.id); location.hash = `#/card/${s.id}`; }
+  function onCertified(s: Submission) { setFocusCard(s.id); go("card", s.id); }
 
   return (
     <div className="app">
       <header className="topbar">
         <div className="topbar-inner">
-          <a className="brand" href="#/">
+          <a className="brand" href="#/" onClick={(e) => { e.preventDefault(); go("home"); }}>
             <Shark size={40} swim={false} />
             <span>
               <div className="display">부캉이 지금 있나</div>
@@ -60,17 +66,17 @@ export default function App() {
 
       {err && <div className="page"><div className="alert warn" style={{ marginTop: "1rem" }}>{err}</div></div>}
       {!status && !err && <div className="page" style={{ paddingTop: "3rem", textAlign: "center", color: "var(--ink-3)" }}><Shark size={90} /><div>불러오는 중</div></div>}
-      {status && nav.route === "home" && <Home status={status} />}
-      {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} />}
-      {status && nav.route === "card" && <Card status={status} focus={nav.param ?? focusCard} />}
+      {status && nav.route === "home" && <Home status={status} onDraw={() => go("certify")} />}
+      {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} onTiers={() => go("tiers")} />}
+      {status && nav.route === "card" && <Card status={status} focus={nav.param ?? focusCard} onTiers={() => go("tiers")} />}
       {status && nav.route === "admin" && <Admin status={status} />}
-      {status && nav.route === "tiers" && <Tiers />}
+      {status && nav.route === "tiers" && <Tiers onBack={() => go("certify")} />}
 
       <nav className="nav">
         <div className="nav-inner nav-3">
-          <a href="#/" className={nav.route === "home" ? "on" : ""}>{Icon.home}지금</a>
-          <a href="#/certify" className={nav.route === "certify" ? "on" : ""}>{Icon.certify}카드 뽑기</a>
-          <a href="#/card" className={nav.route === "card" ? "on" : ""}>{Icon.card}내 카드</a>
+          <a href="#/" className={nav.route === "home" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("home"); }}>{Icon.home}지금</a>
+          <a href="#/certify" className={nav.route === "certify" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("certify"); }}>{Icon.certify}카드 뽑기</a>
+          <a href="#/card" className={nav.route === "card" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("card"); }}>{Icon.card}내 카드</a>
         </div>
       </nav>
     </div>

@@ -21,7 +21,7 @@ function deriveHero(s: Status, now: number): { state: HeroState; headline: strin
 const TIER_LABEL = { confirmed: "확인됨", est: "SNS 추정", auto: "미확인" } as const;
 const TIER_CLASS = { confirmed: "ok", est: "est", auto: "auto" } as const;
 
-export default function Home({ status }: { status: Status }) {
+export default function Home({ status, onDraw }: { status: Status; onDraw?: () => void }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
   const hero = useMemo(() => deriveHero(status, now), [status, now]);
@@ -55,13 +55,13 @@ export default function Home({ status }: { status: Status }) {
         <Shark className="shark" size={150} />
       </motion.section>
 
-      <a href="#/certify" className="cta">
+      <button className="cta" onClick={onDraw}>
         <div>
           <b>부캉이 봤나?</b>
           <small>부캉이 인증 카드 뽑기</small>
         </div>
         <div className="cta-dots">{RARITY_ORDER.slice(3).map((r) => <span key={r} className={`tier-dot tier-dot-${r} mini`}>{RARITY_META[r].symbol}</span>)}</div>
-      </a>
+      </button>
 
       <section className="section">
         <div className="section-head">

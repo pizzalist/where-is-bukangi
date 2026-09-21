@@ -5,12 +5,14 @@ import { loadSubmissions } from "../lib/store";
 import { drawCert } from "../lib/cert";
 import HoloCard from "../components/HoloCard";
 import { RARITY_META, RARITY_ORDER } from "../lib/rarity";
+import { useTiltAvailable } from "../lib/tilt";
 
 const SITE = "bukang.kr";
 
-export default function Card({ status, focus }: { status: Status; focus?: string | null }) {
+export default function Card({ status, focus, onTiers }: { status: Status; focus?: string | null; onTiers?: () => void }) {
   const subs = loadSubmissions();
   const [copied, setCopied] = useState(false);
+  const tilt = useTiltAvailable();
   const mine = subs;
   const initial = focus ? subs.find((s) => s.id === focus) : mine[0];
   const [sel, setSel] = useState<Submission | undefined>(initial);
@@ -64,7 +66,7 @@ export default function Card({ status, focus }: { status: Status; focus?: string
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 style={{ fontSize: "1.6rem", margin: "1.2rem 0 0.2rem" }}>내 카드</h1>
         {!sel && mine.length === 0 && (
-          <div className="card">아직 카드가 없어요. <a href="#/certify">인증받기</a>에서 사진 한 장 올려보세요.</div>
+          <div className="card">아직 카드가 없어요. 아래 "카드 뽑기"에서 사진 한 장 올려보세요.</div>
         )}
         {sel && (
           <div className="cert-wrap">
@@ -81,7 +83,7 @@ export default function Card({ status, focus }: { status: Status; focus?: string
             </div>
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={revealed ? { opacity: 1, scale: 1 } : {}} transition={{ type: "spring", stiffness: 300, damping: 18 }} style={{ textAlign: "center" }}>
               <span className={`tier-dot tier-dot-${sel.rarity ?? "common"}`} style={{ display: "inline-flex", padding: "0.4rem 0.9rem", fontSize: "1rem" }}><span>{RARITY_META[sel.rarity ?? "common"].symbol}</span>&nbsp;{RARITY_META[sel.rarity ?? "common"].label}</span>
-              <div style={{ fontSize: "0.8rem", color: "var(--ink-3)", marginTop: "0.3rem" }}>문지르거나 폰을 기울여봐</div>
+              <div style={{ fontSize: "0.8rem", color: "var(--ink-3)", marginTop: "0.3rem" }}>손가락으로 문질러보세요{tilt && " · 폰을 기울여도 돼요"}</div>
             </motion.div>
             <canvas ref={canvasRef} className="cert-canvas" style={{ display: "none" }} />
             <div className="share-row">
@@ -97,13 +99,13 @@ export default function Card({ status, focus }: { status: Status; focus?: string
           </div>
         )}
         <div className="section">
-          <div className="section-head"><h2>내 컬렉션</h2><a className="more" href="#/tiers">등급 설명</a></div>
+          <div className="section-head"><h2>내 컬렉션</h2><button className="more" onClick={onTiers}>등급 설명</button></div>
           <div className="tier-strip">
             {RARITY_ORDER.map((r) => (
-              <a key={r} href="#/tiers" className={`tier-dot tier-dot-${r}${owned.has(r) ? "" : " off"}`}>
+              <button key={r} className={`tier-dot tier-dot-${r}${owned.has(r) ? "" : " off"}`} onClick={onTiers}>
                 <span>{owned.has(r) ? RARITY_META[r].symbol : "?"}</span>
                 <small>{RARITY_META[r].label}</small>
-              </a>
+              </button>
             ))}
           </div>
         </div>

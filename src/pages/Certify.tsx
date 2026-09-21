@@ -13,7 +13,7 @@ function toLocalInput(d: Date) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default function Certify({ status, onDone }: { status: Status; onDone: (s: Submission) => void }) {
+export default function Certify({ status, onDone, onTiers }: { status: Status; onDone: (s: Submission) => void; onTiers?: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | undefined>();
   const [takenAt, setTakenAt] = useState(toLocalInput(new Date()));
@@ -108,15 +108,15 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
               <b>등급 9종</b>
               <small>커먼부터 시크릿 골드까지</small>
             </div>
-            <a href="#/tiers" className="tp-more">전부 보기 ›</a>
+            <button className="tp-more" onClick={onTiers}>전부 보기 ›</button>
           </div>
           <div className="tp-grid">
             {RARITY_ORDER.map((r) => (
-              <a key={r} href="#/tiers" className={`tp-cell tp-${r}`}>
+              <button key={r} className={`tp-cell tp-${r}`} onClick={onTiers}>
                 <span className="tp-sym">{RARITY_META[r].symbol}</span>
                 <span className="tp-name">{RARITY_META[r].label}</span>
                 <span className="tp-odds">{oddsPercent(r)}%</span>
-              </a>
+              </button>
             ))}
           </div>
         </div>
