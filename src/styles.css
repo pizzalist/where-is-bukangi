@@ -401,3 +401,4 @@ input, select, textarea { font: inherit; }
 .reveal.on .reveal-front { transform: rotateY(0deg); }
 .reveal:not(.on) .reveal-back { animation: wobble 1.4s ease-in-out infinite; }
 @keyframes wobble { 0%,100% { transform: rotateY(0) rotate(0); } 50% { transform: rotateY(12deg) rotate(-2deg); } }
+@media (max-width: 520px) { .tier-grid { grid-template-columns: 1fr; gap: 1.2rem; } .tier-grid .holo { max-width: 300px; } }
