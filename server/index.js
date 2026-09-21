@@ -289,6 +289,34 @@ app.get(/^\/api\/cards\/([A-Za-z0-9_-]{6,32})\.png$/, limiter({ windowMs: 15 * 6
   }
 });
 
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+/* ---------- 카드 공유 링크 /c/:id ----------
+   카톡·인스타 봇이 읽는 OG 태그(이 카드의 PNG)를 주고, 사람은 바로 앱의 카드 화면으로 보낸다 */
+const RARITY_LABEL = { common: "커먼", uncommon: "언커먼", rare: "레어", holo: "홀로", reverse: "리버스 홀로", galaxy: "갤럭시", fullart: "풀아트", rainbow: "레인보우", gold: "시크릿 골드" };
+const SITE_URL = (process.env.SITE_URL || "").replace(/\/$/, "");
+app.get(/^\/c\/([A-Za-z0-9_-]{6,32})$/, limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), (req, res) => {
+  const r = qCardRow.get(req.params[0]);
+  const site = SITE_URL || `${req.protocol}://${req.get("host")}`;
+  if (!r) return res.redirect(302, `${site}/#/`);
+  const when = new Date(r.taken_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const title = `부캉이 인증 카드 No.${Number(r.ordinal).toLocaleString()}`;
+  const desc = `${when} ${r.zone ? ZONE_NAME[r.zone] || "" : "부산 북항 친수공원"} · ${RARITY_LABEL[r.rarity] || r.rarity}`;
+  const img = `${PUBLIC_URL || site}/api/cards/${r.id}.png`;
+  const app = `${site}/#/card/${r.id}`;
+  res.set("Cache-Control", "public, max-age=60, s-maxage=300");
+  res.type("html").send(`<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<title>${esc(title)}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta property="og:type" content="website"><meta property="og:site_name" content="부캉이 지금 있나">
+<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
+<meta property="og:url" content="${esc(site)}/c/${esc(r.id)}">
+<meta property="og:image" content="${esc(img)}"><meta property="og:image:width" content="1476"><meta property="og:image:height" content="1983">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(img)}">
+<meta http-equiv="refresh" content="0;url=${esc(app)}">
+<script>location.replace(${JSON.stringify(app)})</script>
+</head><body style="font-family:sans-serif;padding:24px"><a href="${esc(app)}">${esc(title)} 보기</a></body></html>`);
+});
+
 /* ---------- 운영자 ---------- */
 const TOKEN_BUF = Buffer.from(`Bearer ${ADMIN_TOKEN}`);
 function auth(req, res, next) {
@@ -345,7 +373,6 @@ app.post("/api/admin/notice", adminGuard, (req, res) => {
    GET  /r/:id/:action/:sig → 확인 화면 (링크 미리보기 봇이 열어도 아무 일 없음)
    POST /r/:id/:action/:sig → 실제 처리. pending일 때만 통한다 */
 const qPendingOne = db.prepare(`SELECT id, ordinal, zone, photo, thumb, status FROM submissions WHERE id=?`);
-const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function actionPage(title, body) {
   return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${esc(title)}</title>

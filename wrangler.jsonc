@@ -4,8 +4,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "bukangi",
   "compatibility_date": "2026-09-21",
+  // /c/<id> 카드 공유 링크만 처리하는 작은 스크립트. 정적 파일 요청은 스크립트를 거치지 않는다
+  "main": "worker.js",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     // 해시 라우팅이라 없는 경로는 전부 index.html로 돌려준다
     "not_found_handling": "single-page-application"
   },

@@ -34,7 +34,7 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus]);
 
-  const cardUrl = sel ? `${location.href.split("#")[0]}#/card/${sel.id}` : "";
+  const cardUrl = sel ? `${location.origin}/c/${sel.id}` : "";
 
   function copyLink() {
     if (!cardUrl) return;
@@ -52,8 +52,20 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
     document.body.removeChild(ta);
   }
 
-  /** 화면에 보이는 홀로 카드 그대로를 서버가 PNG로 찍어준다. 폰이면 공유 시트, 아니면 내려받기 */
-  async function share() {
+  /** 공유하기: 링크를 보낸다. 받는 쪽 카톡엔 이 카드 이미지가 미리보기로 뜬다 */
+  async function shareLink() {
+    if (!sel) return;
+    const text = `부캉이 인증 카드 No.${(sel.ordinal ?? 0).toLocaleString()} · ${RARITY_META[sel.rarity ?? "common"].label}`;
+    const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+    if (nav.share) {
+      try { await nav.share({ title: "부캉이 지금 있나", text, url: cardUrl }); return; }
+      catch (e) { if ((e as Error).name === "AbortError") return; }
+    }
+    copyLink();   // 공유 시트가 없으면 링크 복사
+  }
+
+  /** 이미지 저장: 화면의 홀로 카드를 서버가 PNG로 찍어준다. 폰은 사진첩(공유 시트의 "이미지 저장"), PC는 내려받기 */
+  async function saveImage() {
     if (!sel || busy) return;
     setBusy(true); setErr(null);
     try {
@@ -68,8 +80,8 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
       const file = new File([blob], `bukangi-${sel.ordinal ?? 0}.png`, { type: "image/png" });
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
       if (nav.share && nav.canShare?.({ files: [file] })) {
-        try { await nav.share({ files: [file], title: "부캉이 인증 카드", text: `부캉이 인증 No.${(sel.ordinal ?? 0).toLocaleString()} · ${cardUrl}` }); return; }
-        catch (e) { if ((e as Error).name === "AbortError") return; /* 공유 시트 미지원이면 내려받기 */ }
+        try { await nav.share({ files: [file] }); return; }
+        catch (e) { if ((e as Error).name === "AbortError") return; /* 파일 공유 미지원이면 내려받기 */ }
       }
       const u = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = u; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
@@ -104,10 +116,8 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
               <div style={{ fontSize: "0.8rem", color: "var(--ink-3)", marginTop: "0.3rem" }}>손가락으로 문질러보세요{tilt && " · 폰을 기울여도 돼요"}</div>
             </motion.div>
             <div className="share-row">
-              <button className="btn secondary icon-btn" onClick={copyLink} title="카드 주소 복사">
-                {copied ? "복사됨" : "링크 복사"}
-              </button>
-              <button className="btn" onClick={share} disabled={busy}>{busy ? "카드 만드는 중…" : "공유 / 저장"}</button>
+              <button className="btn secondary" onClick={saveImage} disabled={busy}>{busy ? "만드는 중…" : "이미지 저장"}</button>
+              <button className="btn" onClick={shareLink}>{copied ? "링크 복사됨" : "공유하기"}</button>
             </div>
             {err && <div className="alert warn">{err}</div>}
             <div className="urlbox">
