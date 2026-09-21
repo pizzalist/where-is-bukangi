@@ -135,10 +135,10 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
         </section>
       )}
 
+      {status.notices.length > 0 && (
       <section className="section">
         <div className="section-head">
           <h2>안전 · 공지</h2>
-          
         </div>
         <div style={{ display: "grid", gap: "0.5rem" }}>
           {status.notices.map((n, i) => (
@@ -150,6 +150,9 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
             </a>
           ))}
         </div>
+      </section>
+      )}
+
         <div className="section">
           <div className="section-head"><h2>찾아가기</h2></div>
           <div style={{ display: "grid", gap: "0.5rem" }}>
@@ -177,8 +180,7 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
           </div>
         </div>
 
-        <p className="disclaimer">비공식 관람 정보입니다. 물가 접근 금지 등 해경·구청 안내를 따르세요. "확인 없음"은 "없음"이 아닙니다.</p>
-      </section>
+      <p className="disclaimer">비공식 관람 정보입니다. 물가 접근 금지 등 해경·구청 안내를 따르세요. "확인 없음"은 "없음"이 아닙니다.</p>
     </div>
   );
 }

@@ -11,7 +11,8 @@
     "server": "node server/index.js",
     "seed": "node server/seed.js",
     "load": "node test/load.mjs",
-    "e2e": "node test/server.mjs"
+    "e2e": "node test/server.mjs",
+    "reset": "node server/reset.js"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

@@ -421,20 +421,20 @@ input, select, textarea { font: inherit; }
 .holo-rainbow .holo-panel { background: rgba(8,14,30,.68); }
 
 /* ---- secret gold: 금속 줄무늬 + 강한 스펙큘러 + 금가루 ---- */
-.holo-gold .holo-bleed img { filter: sepia(1) saturate(2.4) brightness(.6) contrast(1.85); }
+.holo-gold .holo-bleed img { filter: sepia(.85) saturate(2) brightness(.95) contrast(2); }
 .holo-gold .holo-bleed .fx-art { display: block;
   background-image:
     /* 금속 결: 검정과 밝은 금이 번갈아 → screen에서 줄무늬 반사 */
-    repeating-linear-gradient(115deg, #000 0 11px, rgba(255,214,90,.8) 11px 13px, rgba(255,250,215,1) 13px 14px, rgba(255,214,90,.8) 14px 16px, #000 16px 28px),
+    repeating-linear-gradient(115deg, #000 0 22px, rgba(255,214,90,.75) 22px 24px, rgba(255,250,215,1) 24px 25px, rgba(255,214,90,.75) 25px 27px, #000 27px 46px),
     /* 이동하는 하이라이트 */
-    linear-gradient(115deg, #000 28%, rgba(255,206,70,.9) 42%, #fffbe0 50%, rgba(255,206,70,.9) 58%, #000 72%),
+    linear-gradient(115deg, #000 36%, rgba(255,206,70,.85) 45%, #fffbe0 50%, rgba(255,206,70,.85) 55%, #000 64%),
     /* 금빛 번짐 */
-    radial-gradient(ellipse 45% 32% at 40% 32%, rgba(255,190,40,.9), transparent 62%);
+    radial-gradient(ellipse 32% 22% at 38% 28%, rgba(255,190,40,.75), transparent 58%);
   background-size: 100% 100%, 260% 260%, 190% 190%;
   background-position: 0 0, var(--posx) var(--posy), var(--posx) var(--posy);
   background-blend-mode: screen, screen, screen;
   filter: contrast(1.45) saturate(1.6) brightness(1.05);
-  mix-blend-mode: screen; opacity: calc(.62 + var(--hyp) * .3);
+  mix-blend-mode: screen; opacity: calc(.42 + var(--hyp) * .3);
 }
 .holo-gold .holo-bleed .fx-artglitter { background-size: 31% 31%, 17% 17%; filter: brightness(2.8) sepia(1) saturate(7) contrast(1.4); opacity: calc(.75 + var(--hyp) * .25); }
 .holo-gold .holo-inner { background: linear-gradient(160deg, #fff0b8, #b8860b 38%, #fffbe0 52%, #8a6300 70%, #ffe27a); }
@@ -629,3 +629,5 @@ input, select, textarea { font: inherit; }
 .statbar div { display: grid; justify-items: center; gap: 0.1rem; }
 .statbar b { font-family: "Jua", sans-serif; font-weight: 400; font-size: 1.15rem; color: var(--sky-deep); font-variant-numeric: tabular-nums; }
 .statbar span { font-size: 0.68rem; color: var(--ink-3); white-space: nowrap; }
+
+.demobar { background: var(--warn-soft); color: var(--warn); font-size: 0.82rem; text-align: center; padding: 0.55rem 1rem; }

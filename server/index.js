@@ -77,17 +77,25 @@ app.use("/photos", express.static(PHOTOS, {
 const bumpVisit = db.prepare(`INSERT INTO visits (day, kind, n) VALUES (?,?,1) ON CONFLICT(day,kind) DO UPDATE SET n = n + 1`);
 const qVisits = db.prepare(`SELECT kind, n FROM visits WHERE day = ?`);
 const qVisitsAll = db.prepare(`SELECT kind, SUM(n) n FROM visits GROUP BY kind`);
-const seenToday = new Set();            // 오늘 본 방문자 해시 (자정에 비움)
-let visitDay = "";
+const insVisitor = db.prepare(`INSERT OR IGNORE INTO visitors (day, h) VALUES (?,?)`);
+const delOldVisitors = db.prepare(`DELETE FROM visitors WHERE day < ?`);
 function today() { const d = new Date(Date.now() + 9 * 3600e3); return d.toISOString().slice(0, 10); }
+function daysAgo(n) { const d = new Date(Date.now() + 9 * 3600e3 - n * 864e5); return d.toISOString().slice(0, 10); }
+
+// 방문 집계는 DB에 남겨 서버를 재시작해도 순방문자가 어긋나지 않는다.
+const countVisitTx = db.transaction((day, h) => {
+  bumpVisit.run(day, "view");
+  if (insVisitor.run(day, h).changes > 0) bumpVisit.run(day, "uniq");
+});
 function countVisit(req) {
   const day = today();
-  if (day !== visitDay) { visitDay = day; seenToday.clear(); }
-  bumpVisit.run(day, "view");
-  // IP+UA를 해시해서 순방문자만. 원본은 저장하지 않는다
-  const h = crypto.createHash("sha256").update(`${day}|${clientIp(req)}|${req.headers["user-agent"] || ""}`).digest("base64url").slice(0, 22);
-  if (!seenToday.has(h)) { seenToday.add(h); bumpVisit.run(day, "uniq"); }
+  // IP+UA를 그날의 소금과 함께 해시. 원본은 저장하지 않고 7일 뒤 해시도 지운다.
+  const h = crypto.createHash("sha256")
+    .update(`${day}|${clientIp(req)}|${req.headers["user-agent"] || ""}`)
+    .digest("base64url").slice(0, 22);
+  countVisitTx(day, h);
 }
+setInterval(() => { try { delOldVisitors.run(daysAgo(7)); } catch { /* 무시 */ } }, 6 * 3600e3).unref();
 
 /* ---------- 공개: 상황판 (메모리 캐시) ---------- */
 const ZONES = [

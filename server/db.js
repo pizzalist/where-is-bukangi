@@ -58,6 +58,13 @@ CREATE TABLE IF NOT EXISTS visits (
   n INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (day, kind)
 );
+
+-- 순방문 판별용 해시. 원본 IP는 저장하지 않으며 7일 뒤 지운다.
+CREATE TABLE IF NOT EXISTS visitors (
+  day TEXT NOT NULL,
+  h TEXT NOT NULL,
+  PRIMARY KEY (day, h)
+);
 `);
 
 export function nextOrdinal() {

@@ -2,8 +2,8 @@ import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
-import { addSubmission, uid, nextOrdinal, drawsLeft, useDraw, DAILY_LIMIT } from "../lib/store";
-import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
+import { addSubmission, drawsLeft, useDraw, DAILY_LIMIT } from "../lib/store";
+import { RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
 import { postSubmission } from "../lib/api";
 import { ZONES, ZONE_BY_CODE, inPark, DEFAULT_ZONE } from "../lib/zones";
 import ZoneMap from "../components/ZoneMap";
@@ -15,7 +15,7 @@ function toLocalInput(d: Date) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default function Certify({ status, onDone, onTiers }: { status: Status; onDone: (s: Submission) => void; onTiers?: () => void }) {
+export default function Certify({ onDone, onTiers }: { status: Status; onDone: (s: Submission) => void; onTiers?: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [raw, setRaw] = useState<string | undefined>();
   const [photo, setPhoto] = useState<string | undefined>();
@@ -44,23 +44,27 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
   function reset() { setRaw(undefined); setPhoto(undefined); setThumb(undefined); setAuto([]); if (fileRef.current) fileRef.current.value = ""; }
 
   const [sending, setSending] = useState(false);
+  const [sendErr, setSendErr] = useState("");
 
   async function draw() {
     if (!photo || sending) return;
-    setSending(true);
+    setSending(true); setSendErr("");
     const iso = new Date(takenAt).toISOString();
-    const r = await postSubmission({ photo, thumb, takenAt: iso, zone: zone || undefined, lat: gps?.lat, lng: gps?.lng });
-    const s: Submission = {
-      id: r?.id ?? uid(), type: "seen", zone: zone || undefined, takenAt: iso, submittedAt: new Date().toISOString(),
-      exifGps: gps, photoDataUrl: photo, status: "pending",
-      ordinal: r?.ordinal ?? nextOrdinal("seen", status.counters),
-      rarity: r?.rarity ?? rollRarity({ type: "seen", takenAt: iso }),
-    };
-    addSubmission(s);
-    useDraw();
-    setLeft(drawsLeft());
-    setSending(false);
-    onDone(s);
+    try {
+      // 등급과 순번은 반드시 서버가 정한다. 실패하면 카드를 만들지 않는다.
+      const r = await postSubmission({ photo, thumb, takenAt: iso, zone: zone || undefined, lat: gps?.lat, lng: gps?.lng });
+      if (!r) throw new Error("제보를 저장하지 못했어요.");
+      const s: Submission = {
+        id: r.id, type: "seen", zone: zone || undefined, takenAt: iso, submittedAt: new Date().toISOString(),
+        exifGps: gps, photoDataUrl: photo, status: "pending", ordinal: r.ordinal, rarity: r.rarity,
+      };
+      addSubmission(s);
+      useDraw();
+      setLeft(drawsLeft());
+      onDone(s);
+    } catch (e) {
+      setSendErr((e as Error).message || "서버에 닿지 않아요. 잠시 뒤 다시 시도해주세요.");
+    } finally { setSending(false); }
   }
 
   return (
@@ -115,6 +119,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
                 </div>
               </div>
               <button className="btn btn-big" onClick={draw} disabled={left <= 0 || sending}>{sending ? "보내는 중…" : left > 0 ? "카드 뽑기" : "오늘 뽑기를 다 썼어요"}</button>
+              {sendErr && <div className="alert warn">{sendErr}</div>}
               <p className="reportnote">이 카드는 <b>제보로도 들어가요.</b> 시각과 위치가 상황판 타임라인에 쌓여서 다음 사람이 "지금 있나"를 알 수 있어요.</p>
             </motion.div>
           )}

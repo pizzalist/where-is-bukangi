@@ -1,0 +1,16 @@
+import { chromium } from 'playwright';
+const B='http://localhost:8787';
+const b=await chromium.launch(); const p=await b.newPage({viewport:{width:390,height:844}});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto(B+'/#/'); await p.waitForTimeout(2000);
+await p.evaluate(()=>localStorage.clear()); await p.reload(); await p.waitForTimeout(2000);
+console.log('히어로:', (await p.locator('.hero .headline').textContent())?.trim());
+console.log('타임라인 항목:', await p.locator('.tl-item').count());
+console.log('공지 항목:', await p.locator('.notice').count());
+console.log('데모 배너:', await p.locator('.demobar').count());
+console.log('통계:', await p.locator('.statbar').textContent());
+await p.screenshot({path:'/tmp/empty-home.png', fullPage:true});
+await p.goto(B+'/#/hall'); await p.waitForTimeout(1500);
+console.log('명예의 전당:', (await p.locator('.card').textContent().catch(()=>''))?.trim().slice(0,40) || `${await p.locator('.hall-item').count()}장`);
+await b.close();
+console.log('ERRORS:', errs.length?errs.join(' | '):'none');

@@ -24,6 +24,7 @@ export interface Stats {
 
 export interface Status {
   updatedAt: string;
+  demo?: boolean;
   stats?: Stats;
   control: null | { title: string; url?: string };
   last: (Event & { evidence?: string }) | null;
