@@ -33,3 +33,6 @@ dist-ssr
 
 # Cloudflare
 .wrangler/
+
+# 스크린샷용 빌드
+dist-test/
