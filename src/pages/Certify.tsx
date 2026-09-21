@@ -42,12 +42,15 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
     const url = await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(f); });
     setPhoto(url);
     try {
-      const ex = await exifr.parse(f, { gps: true, pick: ["DateTimeOriginal", "latitude", "longitude"] });
+      const [ex, g] = await Promise.all([
+        exifr.parse(f, { pick: ["DateTimeOriginal"] }).catch(() => null),
+        exifr.gps(f).catch(() => null),
+      ]);
       const notes: string[] = [];
       if (ex?.DateTimeOriginal) { setTakenAt(toLocalInput(new Date(ex.DateTimeOriginal))); notes.push("촬영 시각 자동 입력"); }
-      if (ex?.latitude && ex?.longitude) {
-        setGps({ lat: ex.latitude, lng: ex.longitude });
-        const z = nearestZone(ex.latitude, ex.longitude);
+      if (g?.latitude && g?.longitude) {
+        setGps({ lat: g.latitude, lng: g.longitude });
+        const z = nearestZone(g.latitude, g.longitude);
         setZone(z); notes.push(z === "F" ? "위치가 수로 밖이에요. 구역을 직접 골라주세요" : `${z}구역으로 자동 배정`);
       } else {
         notes.push("위치 정보 없음. 지도에서 구역을 골라주세요 (카톡·인스타 거친 사진은 위치가 지워져요)");
