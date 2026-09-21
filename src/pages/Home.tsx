@@ -11,7 +11,7 @@ type HeroState = "seen" | "miss" | "stale" | "none" | "crit";
 
 function deriveHero(s: Status, now: number): { state: HeroState; headline: string; sub: string; ageMin: number } {
   if (s.control) return { state: "crit", headline: "출입통제 중", sub: s.control.title, ageMin: 0 };
-  if (!s.last) return { state: "none", headline: "최근 확인 없음", sub: "아직 확인된 기록이 없어요", ageMin: 0 };
+  if (!s.last) return { state: "none", headline: "아직 제보가 없어요", sub: "부캉이를 봤다면 사진 한 장 올려주세요. 첫 주인공이 돼요", ageMin: 0 };
   const a = ageMinutes(s.last.at, now);
   if (s.last.kind === "miss") return { state: "miss", headline: `최근 관측 미목격 · ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
   if (a > DECAY_MIN) return { state: "stale", headline: `미확인 · 마지막 확인 ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · 2시간 넘게 새 확인이 없어요`, ageMin: a };

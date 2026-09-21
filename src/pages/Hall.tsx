@@ -15,7 +15,7 @@ export default function Hall({ onBack }: { onBack?: () => void }) {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <button className="backlink" onClick={onBack}>‹ 지금으로</button>
         <h1 style={{ fontSize: "1.6rem", margin: "0.6rem 0 0.2rem" }}>명예의 전당</h1>
-        <p style={{ color: "var(--ink-2)", marginTop: 0, fontSize: "0.9rem" }}>귀한 등급이 나온 순서예요. 운영자가 확인한 사진만 올라가요.</p>
+        <p style={{ color: "var(--ink-2)", marginTop: 0, fontSize: "0.9rem" }}>귀한 등급이 나온 순서예요. 검증된 사진만 올라가요.</p>
 
         {items === null && <div className="card" style={{ color: "var(--ink-3)" }}>불러오는 중</div>}
         {items?.length === 0 && <div className="card" style={{ color: "var(--ink-3)" }}>아직 올라온 카드가 없어요. 첫 번째가 되어보세요.</div>}

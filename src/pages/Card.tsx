@@ -102,7 +102,7 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
           <div className="cert-wrap">
             <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
               {sel.status === "approved" && <span className="pill ok">상황판에 반영됨</span>}
-              {sel.status === "pending" && <span className="pill">상황판 반영은 운영자 확인 후</span>}
+              {sel.status === "pending" && <span className="pill">상황판 반영은 검증 후</span>}
               {sel.status === "rejected" && <span className="pill auto">상황판 제외 (카드는 유효)</span>}
             </div>
             <div className={`reveal${revealed ? " on" : ""}`}>

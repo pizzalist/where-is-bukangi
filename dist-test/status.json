@@ -1,0 +1,92 @@
+{
+  "demo": true,
+  "updatedAt": "2026-09-21T14:40:00+09:00",
+  "control": null,
+  "last": {
+    "kind": "seen",
+    "at": "2026-09-21T14:32:00+09:00",
+    "zone": "B",
+    "tier": "confirmed",
+    "evidence": "현장 사진 2건 + 운영자 승인"
+  },
+  "counters": {
+    "seen": 1204,
+    "visit": 3871
+  },
+  "zones": [
+    {
+      "code": "A",
+      "name": "제4보도교"
+    },
+    {
+      "code": "B",
+      "name": "제5보도교"
+    },
+    {
+      "code": "C",
+      "name": "제6보도교"
+    },
+    {
+      "code": "D",
+      "name": "방파제"
+    }
+  ],
+  "timeline": [
+    {
+      "at": "2026-09-21T14:32:00+09:00",
+      "kind": "seen",
+      "zone": "B",
+      "tier": "confirmed",
+      "note": "현장 사진 2건"
+    },
+    {
+      "at": "2026-09-21T13:50:00+09:00",
+      "kind": "seen",
+      "zone": "B",
+      "tier": "est",
+      "note": "인스타 클립 · 댓글 \"지금 보여요\""
+    },
+    {
+      "at": "2026-09-21T12:10:00+09:00",
+      "kind": "seen",
+      "zone": "C",
+      "tier": "confirmed",
+      "note": "운영자 현장 관측"
+    },
+    {
+      "at": "2026-09-21T11:00:00+09:00",
+      "kind": "miss",
+      "zone": "B",
+      "tier": "confirmed",
+      "note": "10:30~11:00 관측, 미목격"
+    },
+    {
+      "at": "2026-09-21T09:20:00+09:00",
+      "kind": "seen",
+      "zone": "A",
+      "tier": "auto",
+      "note": "유튜브 영상 게시 · 미확인"
+    },
+    {
+      "at": "2026-09-20T18:40:00+09:00",
+      "kind": "seen",
+      "zone": "B",
+      "tier": "confirmed",
+      "note": "현장 사진 3건"
+    }
+  ],
+  "notices": [
+    {
+      "src": "부산해양경찰서",
+      "title": "북항 친수공원 상어 출현, 물가 접근 자제 당부",
+      "url": "https://www.newspim.com/news/view/20260918000700",
+      "crit": false
+    },
+    {
+      "src": "국립수산과학원",
+      "title": "무태상어 추정, 무리한 유도 시 공격성 가능",
+      "url": "https://www.etoday.co.kr/news/view/2627722",
+      "crit": false
+    }
+  ]
+}
