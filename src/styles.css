@@ -215,15 +215,15 @@ input, select, textarea { font: inherit; }
 .holo-name { font-family: "Jua", sans-serif; font-size: 1.15rem; }
 .holo-name small { font-size: 0.7rem; opacity: .7; margin-left: 4px; font-family: "Noto Sans KR", sans-serif; font-weight: 700; }
 .holo-no { font-size: 0.72rem; opacity: .7; font-weight: 600; }
-.holo-photo { position: relative; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; contain: paint; border: 3px solid var(--frame2); background: linear-gradient(160deg, #5fcdf6, #0b5c8a); z-index: 2; }
+.holo-photo { position: relative; flex: 0 0 auto; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; contain: paint; border: 3px solid var(--frame2); background: linear-gradient(160deg, #5fcdf6, #0b5c8a); z-index: 2; }
 .holo-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .holo-photo-ph { width: 100%; height: 100%; display: grid; place-items: center; }
 .holo-stamp { position: absolute; right: 6px; top: 6px; font-family: "Jua", sans-serif; font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #e5483a; border: 1.5px solid #e5483a; transform: rotate(-6deg); }
-.holo-panel { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.holo-panel { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
 .holo-stats { display: flex; gap: 8px; font-size: 0.68rem; opacity: .85; flex-wrap: wrap; }
 .holo-stats b { opacity: 1; }
 .holo-moves { display: grid; gap: 4px; }
-.holo-moves div { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: baseline; font-size: 0.7rem; padding: 4px 6px; border-radius: 6px; background: color-mix(in srgb, var(--frame) 25%, #fff); }
+.holo-moves div { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: baseline; font-size: 0.66rem; line-height: 1.25; padding: 3px 6px; border-radius: 6px; background: color-mix(in srgb, var(--frame) 25%, #fff); }
 .holo-moves b { font-family: "Jua", sans-serif; font-size: 0.8rem; }
 .holo-moves span { opacity: .8; }
 .holo-flavor { font-size: 0.62rem; opacity: .7; font-style: italic; border-top: 1px dashed rgba(0,0,0,.15); padding-top: 4px; margin-top: auto; }
