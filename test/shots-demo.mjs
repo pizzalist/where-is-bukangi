@@ -8,20 +8,23 @@ const OUT = process.argv[2]; const DATA = process.env.BUKANG_DATA;
 const SITE = 'http://localhost:4173';
 const { db, photoPath, ROOT } = await import('../server/db.js');
 const { cardStats } = await import('../src/lib/rarity.ts');
-const WANT = ['롯데 연승 부스터', '상어돔 기원', '핑크퐁 주가 상승', '상어야 고맙데이', '아기상어 무한재생', '실검 점령'];
+const WANT = ['롯데 연승 부스터', '핑크퐁 주가 상승', '상어야 고맙데이', '아기상어 무한재생', '실검 점령', '3만 관중'];
+const MINE_PAIR = ['롯데 연승 부스터', '핑크퐁 주가 상승'];   // 내 카드에 넣을 기술 두 개
 const ago = (min) => new Date(Date.now() - min * 60e3).toISOString();
 const day = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
 fs.mkdirSync(path.join(ROOT, 'photos', day), { recursive: true });
 const ins = db.prepare(`INSERT INTO submissions (id, ordinal, rarity, zone, taken_at, submitted_at, status, photo, thumb) VALUES (?,?,?,?,?,?,'approved',?,NULL)`);
-function pickId(ordinal, takenAt, wantTwo) {   // 원하는 밈 기술이 나오는 id를 찾는다
-  for (let i = 0; i < 20000; i++) { const id = crypto.randomBytes(9).toString('base64url'); const mv = cardStats(ordinal, takenAt, id).moves.map((m) => m[0]);
-    const hit = mv.filter((m) => WANT.includes(m)).length; if (hit >= (wantTwo ? 2 : 1)) return id; }
-  return crypto.randomBytes(9).toString('base64url');
+function pickId(ordinal, takenAt, exact) {   // 원하는 밈 기술이 나오는 id를 찾는다
+  for (let i = 0; i < 400000; i++) { const id = crypto.randomBytes(9).toString('base64url'); const mv = cardStats(ordinal, takenAt, id).moves.map((m) => m[0]);
+    if (exact) { if (exact.every((m) => mv.includes(m))) return id; }
+    else if (mv.some((m) => WANT.includes(m))) return id; }
+  return null;
 }
 const rows = [[1, 'galaxy', 'B', 290], [2, 'holo', 'C', 170], [3, 'reverse', 'B', 95], [4, 'galaxy', 'B', 38]];
 const cards = [];
 for (const [ordinal, rarity, zone, m] of rows) {
-  const takenAt = ago(m); const id = pickId(ordinal, takenAt, ordinal === 4);
+  const takenAt = ago(m); const id = pickId(ordinal, takenAt, ordinal === 4 ? MINE_PAIR : null);
+  if (!id) { console.log('id 못 찾음', ordinal); continue; }
   const photo = `${day}/${id}.png`; fs.copyFileSync('public/sample.png', photoPath(photo));
   ins.run(id, ordinal, rarity, zone, takenAt, takenAt, photo);
   cards.push({ id, ordinal, rarity, zone, takenAt, photo: `http://localhost:8788/photos/${photo}`, moves: cardStats(ordinal, takenAt, id).moves.map((x) => x[0]) });
