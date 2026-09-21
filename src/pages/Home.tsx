@@ -183,7 +183,7 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
           </div>
         </div>
 
-      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. "확인 없음"은 "없음"이 아닙니다.</p>
+      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. "확인 없음"은 "없음"이 아닙니다.<br /><span style={{ opacity: 0.55 }}>v.{__BUILD__.slice(4, 13)}</span></p>
     </div>
   );
 }
