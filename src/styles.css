@@ -191,8 +191,9 @@ input, select, textarea { font: inherit; }
 /* ===== Holo card (TCG style, 9 rarities) ===== */
 .holo {
   --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --posx: 50%; --posy: 50%; --hyp: 0;
-  --glitter: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 34 0 0 0 -26'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>");
+  --glitter: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='1' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 40 0 0 0 -31'/></filter><rect width='512' height='512' filter='url(%23g)'/></svg>");
   --galaxy: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='turbulence' baseFrequency='0.012' numOctaves='4' seed='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='2.2'/><feComponentTransfer><feFuncA type='linear' slope='1.4' intercept='-0.15'/></feComponentTransfer></filter><rect width='400' height='400' filter='url(%23n)'/></svg>");
+  --rainbow-diag: linear-gradient(115deg, rgb(255,119,115) 0%, rgb(255,237,95) 18%, rgb(168,255,95) 36%, rgb(131,255,247) 54%, rgb(120,148,255) 72%, rgb(216,117,255) 90%, rgb(255,119,115) 100%);
   --rainbow: repeating-linear-gradient(0deg, rgb(255,119,115) 5%, rgb(255,237,95) 10%, rgb(168,255,95) 15%, rgb(131,255,247) 20%, rgb(120,148,255) 25%, rgb(216,117,255) 30%, rgb(255,119,115) 35%);
   --bands: repeating-linear-gradient(133deg, #0e152e 0%, hsl(180,10%,60%) 3.8%, hsl(180,29%,66%) 4.5%, hsl(180,10%,60%) 5.2%, #0e152e 10%, #0e152e 12%);
   --vignette: radial-gradient(farthest-corner circle at var(--mx) var(--my), rgba(0,0,0,.1) 12%, rgba(0,0,0,.15) 20%, rgba(0,0,0,.25) 120%);
@@ -237,7 +238,14 @@ input, select, textarea { font: inherit; }
 .holo-bleed .holo-photo-ph { height: 100%; }
 .layout-fullart .holo-frame { inset: 0; background: transparent; padding: 12px 12px 10px; text-shadow: 0 1px 2px rgba(0,0,0,.45); }
 .layout-fullart .holo-spacer { flex: 1; }
-.layout-fullart .holo-panel { flex: 0; background: rgba(8,20,36,.58); backdrop-filter: blur(6px); border-radius: 10px; padding: 8px; color: #fff; }
+.layout-fullart .holo-top { margin: -12px -12px 0; padding: 10px 12px 16px; background: linear-gradient(180deg, rgba(8,20,36,.55), rgba(8,20,36,0)); color: #fff; }
+.layout-fullart .holo-name, .layout-fullart .holo-no { color: #fff; opacity: 1; }
+.layout-fullart .holo-panel { flex: 0 0 auto; min-height: auto; gap: 4px; background: rgba(8,20,36,.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.25); border-radius: 10px; padding: 7px 8px; color: #fff; }
+.layout-fullart .holo-flavor { display: none; }
+.layout-fullart .holo-stats { font-size: 0.64rem; }
+.layout-fullart .holo-moves div { padding: 2px 6px; font-size: 0.64rem; }
+.layout-fullart .holo-moves span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.layout-fullart .holo-bottom { font-size: 0.62rem; }
 .layout-fullart .holo-moves div { background: rgba(255,255,255,.12); }
 .layout-fullart .holo-flavor { border-top-color: rgba(255,255,255,.25); }
 .layout-fullart .holo-rarity { background: rgba(255,255,255,.2); }
@@ -256,7 +264,7 @@ input, select, textarea { font: inherit; }
 .holo-stamp { z-index: 3; }
 .fx-artglitter {
   background-image: var(--glitter), var(--glitter);
-  background-size: 26% 26%, 15% 15%;
+  background-size: 61% 61%, 37% 37%;
   background-position: var(--posx) var(--posy), calc(100% - var(--posx)) calc(100% - var(--posy));
   mix-blend-mode: screen; filter: brightness(1.2);
 }
@@ -274,16 +282,16 @@ input, select, textarea { font: inherit; }
   background-size: 250% 250%; background-position: var(--posx) var(--posy);
 }
 
-/* ---- holo: 사진 창에 무지개 띠 (클래식) ---- */
+/* ---- holo: 사진 창에 대각 무지개 띠 (클래식) ---- */
 .holo-holo .holo-photo .fx-art { display: block;
-  background-image: var(--rainbow), var(--bands), var(--vignette);
-  background-size: 50% 50%, 200% 200%, 200% 200%;
-  background-position: 0% var(--posy), var(--posx) var(--posy), var(--mx) var(--my);
+  background-image: var(--rainbow-diag), var(--bands), var(--vignette);
+  background-size: 250% 250%, 200% 200%, 200% 200%;
+  background-position: var(--posx) var(--posy), var(--posx) var(--posy), var(--mx) var(--my);
   background-blend-mode: exclusion, hue, hard-light;
-  filter: brightness(calc((var(--hyp) * .3) + .5)) contrast(2) saturate(1.5);
-  mix-blend-mode: color-dodge; opacity: calc(.45 + var(--hyp) * .45);
+  filter: brightness(calc((var(--hyp) * .3) + .55)) contrast(1.8) saturate(1.4);
+  mix-blend-mode: color-dodge; opacity: calc(.4 + var(--hyp) * .4);
 }
-.holo-holo .holo-photo .fx-artglitter { display: block; opacity: calc(var(--hyp) * .5); }
+.holo-holo .holo-photo .fx-artglitter { display: block; opacity: calc(var(--hyp) * .4); }
 .holo-holo .holo-inner { background: linear-gradient(160deg, #d9e2ec, #98b5d3); }
 
 /* ---- reverse holo: 사진 빼고 전부 포일 ---- */
@@ -291,69 +299,73 @@ input, select, textarea { font: inherit; }
 .holo-reverse .holo-frame::before {
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
   background-image: var(--rainbow), var(--bands), var(--glitter);
-  background-size: 50% 50%, 200% 200%, 18% 18%;
+  background-size: 50% 50%, 200% 200%, 47% 47%;
   background-position: 0% var(--posy), var(--posx) var(--posy), var(--posx) var(--posy);
   background-blend-mode: exclusion, hue, screen;
   filter: brightness(calc((var(--hyp) * .35) + .55)) contrast(1.7) saturate(1.3);
-  mix-blend-mode: hard-light; opacity: calc(.35 + var(--hyp) * .45);
+  mix-blend-mode: hard-light; opacity: calc(.28 + var(--hyp) * .4);
 }
 .holo-reverse .holo-frame > * { position: relative; z-index: 1; }
 .holo-reverse .holo-moves div { background: rgba(255,255,255,.55); }
 
-/* ---- galaxy: 사진 창에 은하수 ---- */
+/* ---- galaxy: 별가루 + 은은한 무지개, 사진은 살린다 ---- */
 .holo-galaxy .holo-photo .fx-art { display: block;
-  background-image: var(--galaxy), var(--rainbow);
-  background-size: 180% 180%, 60% 60%;
-  background-position: var(--posx) var(--posy), 0% var(--posy);
-  background-blend-mode: screen, hue;
-  filter: brightness(calc((var(--hyp) * .4) + .6)) contrast(1.6) saturate(1.5);
-  mix-blend-mode: color-dodge; opacity: calc(.45 + var(--hyp) * .45);
+  background-image: var(--rainbow-diag), var(--galaxy);
+  background-size: 300% 300%, 220% 220%;
+  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) var(--posy);
+  background-blend-mode: normal, screen;
+  mix-blend-mode: overlay; opacity: calc(.35 + var(--hyp) * .35);
 }
-.holo-galaxy .holo-photo .fx-artglitter { display: block; background-size: 12% 12%, 7% 7%; opacity: calc(.25 + var(--hyp) * .6); }
+.holo-galaxy .holo-photo .fx-artglitter { display: block; background-size: 53% 53%, 29% 29%; mix-blend-mode: screen; opacity: calc(.45 + var(--hyp) * .55); filter: brightness(1.6); }
+.holo-galaxy .holo-photo::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(farthest-corner circle at var(--mx) var(--my), rgba(255,255,255,.35), transparent 45%); mix-blend-mode: screen; }
 .holo-galaxy .holo-inner { background: linear-gradient(160deg, #2b2d6b, #0b5c8a 60%, #1b1e4b); }
 .holo-galaxy .holo-frame { background: linear-gradient(180deg, #fff, #eef0ff); }
 
-/* ---- full art: 사진 끝까지 + 세로 결 포일 (사진이 보여야 함) ---- */
+/* ---- full art: 선명한 사진 + 에칭 결 + 강한 반사 ---- */
+.holo-fullart .holo-bleed img { filter: saturate(1.15) contrast(1.08); }
 .holo-fullart .holo-bleed .fx-art { display: block;
   background-image:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 3px, rgba(255,255,255,.5) 3px 4px, rgba(255,255,255,0) 4px 9px),
-    linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, rgba(180,220,255,.5) 50%, rgba(255,255,255,.55) 55%, transparent 70%);
-  background-size: 100% 100%, 300% 300%;
+    repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 2px, rgba(255,255,255,.22) 2px 3px, rgba(255,255,255,0) 3px 6px),
+    linear-gradient(115deg, transparent 38%, rgba(255,255,255,.6) 47%, rgba(200,230,255,.7) 50%, rgba(255,255,255,.6) 53%, transparent 62%);
+  background-size: 100% 100%, 320% 320%;
   background-position: 0 0, var(--posx) var(--posy);
-  mix-blend-mode: overlay; opacity: calc(.35 + var(--hyp) * .5);
+  mix-blend-mode: overlay; opacity: calc(.4 + var(--hyp) * .5);
 }
-.holo-fullart .holo-bleed .fx-artglitter { display: block; opacity: calc(var(--hyp) * .35); }
+.holo-fullart .holo-bleed .fx-artglitter { display: block; opacity: calc(var(--hyp) * .3); }
 .holo-fullart .holo-inner { background: linear-gradient(160deg, #e8eef5, #a9c4de); }
 
-/* ---- rainbow rare: 사진 위 무지개 광택 + 글리터 ---- */
+/* ---- rainbow rare: 진한 대각 무지개 워시 + 글리터 (TCG 레인보우) ---- */
+.holo-rainbow .holo-bleed img { filter: grayscale(.7) contrast(1.15) brightness(1.08); }
 .holo-rainbow .holo-bleed .fx-art { display: block;
-  background-image:
-    linear-gradient(115deg, #ff7773, #ffed5f, #a8ff5f, #83fff7, #7894ff, #d875ff, #ff7773),
-    radial-gradient(farthest-corner circle at var(--mx) var(--my), rgba(255,255,255,.9) 0%, rgba(255,255,255,.2) 35%, transparent 70%);
-  background-size: 400% 400%, 100% 100%;
-  background-position: var(--posx) var(--posy), 0 0;
-  background-blend-mode: normal, overlay;
-  mix-blend-mode: soft-light; opacity: calc(.7 + var(--hyp) * .3);
+  background-image: var(--rainbow-diag), var(--bands);
+  background-size: 180% 180%, 200% 200%;
+  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) var(--posy);
+  background-blend-mode: normal, soft-light;
+  mix-blend-mode: screen; filter: saturate(1.6) contrast(1.1); opacity: calc(.25 + var(--hyp) * .35);
 }
 .holo-rainbow .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: linear-gradient(115deg, rgba(255,119,115,.35), rgba(255,237,95,.35), rgba(168,255,95,.35), rgba(131,255,247,.35), rgba(120,148,255,.35), rgba(216,117,255,.35));
-  background-size: 300% 300%; background-position: var(--posx) var(--posy); mix-blend-mode: screen; }
-.holo-rainbow .holo-bleed .fx-artglitter { display: block; background-size: 18% 18%, 10% 10%; opacity: calc(.25 + var(--hyp) * .5); }
+  background: var(--rainbow-diag); background-size: 130% 130%; background-position: var(--posx) var(--posy); mix-blend-mode: multiply; opacity: .92; }
+.holo-rainbow .holo-bleed .fx-artglitter { display: block; background-size: 57% 57%, 31% 31%; opacity: calc(.4 + var(--hyp) * .6); filter: brightness(1.7); }
 .holo-rainbow .holo-inner { background: conic-gradient(from 200deg, #ff7773, #ffed5f, #a8ff5f, #83fff7, #7894ff, #d875ff, #ff7773); }
-.holo-rainbow .holo-panel { background: rgba(8,20,36,.55); }
+.holo-rainbow .holo-panel { background: rgba(8,20,36,.5); }
 
-/* ---- secret gold: 금박 광택 + 금 글리터 ---- */
+/* ---- secret gold: 세피아 사진 위 금박 + 금 글리터 ---- */
+.holo-gold .holo-bleed img { filter: sepia(1) saturate(2.2) brightness(.85) contrast(1.25); }
 .holo-gold .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(160deg, rgba(120,90,0,.45), rgba(255,220,120,.2) 50%, rgba(120,90,0,.45)); mix-blend-mode: multiply; }
+  background: linear-gradient(160deg, rgba(90,60,0,.35), rgba(255,215,100,.05) 45%, rgba(90,60,0,.4)); }
 .holo-gold .holo-bleed .fx-art { display: block;
-  background-image: linear-gradient(115deg, rgba(122,90,0,0) 0%, rgba(255,226,122,.9) 22%, rgba(184,134,11,.6) 38%, rgba(255,242,176,.95) 52%, rgba(196,154,26,.6) 66%, rgba(255,226,122,.9) 80%, rgba(122,90,0,0) 100%);
-  background-size: 300% 300%; background-position: var(--posx) var(--posy);
-  mix-blend-mode: overlay; opacity: calc(.6 + var(--hyp) * .4);
+  background-image:
+    repeating-linear-gradient(115deg, rgba(120,80,0,.25) 0 2px, rgba(255,248,200,.55) 2px 3px, rgba(120,80,0,0) 3px 7px),
+    linear-gradient(115deg, rgba(120,80,0,.5) 0%, rgba(255,240,170,.2) 35%, rgba(255,255,235,1) 50%, rgba(255,240,170,.2) 65%, rgba(120,80,0,.5) 100%);
+  background-size: 100% 100%, 320% 320%;
+  background-position: 0 0, var(--posx) var(--posy);
+  mix-blend-mode: hard-light; opacity: calc(.55 + var(--hyp) * .45);
 }
-.holo-gold .holo-bleed .fx-artglitter { display: block; background-size: 20% 20%, 11% 11%; filter: brightness(1.4) sepia(1) saturate(4); mix-blend-mode: screen; opacity: calc(.25 + var(--hyp) * .5); }
+.holo-gold .holo-bleed .fx-artglitter { display: block; background-size: 57% 57%, 31% 31%; filter: brightness(1.6) sepia(1) saturate(5); mix-blend-mode: screen; opacity: calc(.35 + var(--hyp) * .55); }
 .holo-gold .holo-inner { background: linear-gradient(160deg, #f6d675, #a67c00 45%, #ffe9a8 60%, #8a6300); }
 .holo-gold .holo-frame { color: #fff; }
-.holo-gold .holo-panel { background: rgba(60,40,0,.62); }
+.holo-gold .holo-panel { background: rgba(60,40,0,.55); border-color: rgba(255,230,150,.45); }
 .holo-gold .holo-rarity { background: linear-gradient(90deg, #ffe27a, #b8860b); color: #3a2a00; }
 
 /* active state */
