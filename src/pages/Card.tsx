@@ -30,6 +30,12 @@ export default function Card({ status, focus }: { status: Status; focus?: string
     })();
   }, [sel, status.zones]);
 
+  function copyLink() {
+    if (!sel) return;
+    navigator.clipboard?.writeText(location.origin + location.pathname + `#/card/${sel.id}`)
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => null);
+  }
+
   async function share() {
     if (!png) return;
     const blob = await (await fetch(png)).blob();
@@ -65,19 +71,14 @@ export default function Card({ status, focus }: { status: Status; focus?: string
               <span className={`tier-dot tier-dot-${sel.rarity ?? "common"}`} style={{ display: "inline-flex", padding: "0.4rem 0.9rem", fontSize: "1rem" }}><span>{RARITY_META[sel.rarity ?? "common"].symbol}</span>&nbsp;{RARITY_META[sel.rarity ?? "common"].label}</span>
               <div style={{ fontSize: "0.8rem", color: "var(--ink-3)", marginTop: "0.3rem" }}>문지르거나 폰을 기울여봐</div>
             </motion.div>
-            <TiltButton />
             <canvas ref={canvasRef} className="cert-canvas" style={{ display: "none" }} />
-            <div className="btn-row">
-              <button className="btn" onClick={share} disabled={!png}>공유 / 저장</button>
-              <a className="btn secondary" href="#/certify">한 장 더</a>
-            </div>
-            <div className="keep">
-              <b>이 카드 주소를 저장해두세요</b>
-              <span>로그인이 없어서, 이 폰 브라우저를 지우면 목록이 사라져요. 주소를 복사해두면 나중에 다시 열 수 있어요. 이미지는 저장하면 영구 보관돼요.</span>
-              <button className="btn secondary" style={{ marginTop: "0.5rem" }} onClick={() => { navigator.clipboard?.writeText(location.origin + location.pathname + `#/card/${sel.id}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => null); }}>
-                {copied ? "복사됨" : "카드 주소 복사"}
+            <div className="share-row">
+              <button className="btn secondary icon-btn" onClick={copyLink} title="카드 주소 복사">
+                {copied ? "복사됨" : "링크 복사"}
               </button>
+              <button className="btn" onClick={share} disabled={!png}>공유 / 저장</button>
             </div>
+            <p className="disclaimer">링크를 저장해두면 나중에 이 카드를 다시 열 수 있어요.</p>
           </div>
         )}
         <div className="section">
@@ -108,8 +109,3 @@ export default function Card({ status, focus }: { status: Status; focus?: string
   );
 }
 
-function TiltButton() {
-  const D = (window as Window & { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
-  if (!D?.requestPermission) return null;
-  return <button className="btn secondary" onClick={() => D.requestPermission!().catch(() => null)}>기울이기 효과 켜기 (iPhone)</button>;
-}

@@ -232,6 +232,8 @@ input, select, textarea { font: inherit; }
 .holo-moves b { font-family: "Jua", sans-serif; font-size: 0.8rem; }
 .holo-moves span { opacity: .8; }
 .holo-flavor { font-size: 0.62rem; opacity: .7; font-style: italic; border-top: 1px dashed rgba(0,0,0,.15); padding-top: 4px; margin-top: auto; }
+.holo-credit { display: flex; justify-content: space-between; align-items: center; font-size: 0.55rem; opacity: .6; letter-spacing: .01em; }
+.layout-fullart .holo-credit { opacity: .85; }
 .holo-bottom { display: flex; justify-content: space-between; align-items: center; font-size: 0.66rem; }
 .holo-rarity { font-family: "Jua", sans-serif; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--frame2) 30%, #fff); }
 .holo-site { opacity: .7; }
@@ -332,50 +334,58 @@ input, select, textarea { font: inherit; }
 .holo-galaxy .holo-inner { background: linear-gradient(160deg, #2b2d6b, #0b5c8a 60%, #1b1e4b); }
 .holo-galaxy .holo-frame { background: linear-gradient(180deg, #fff, #eef0ff); }
 
-/* ---- full art: 선명한 사진 + 에칭 결 + 강한 반사 ---- */
-.holo-fullart .holo-bleed img { filter: saturate(1.15) contrast(1.08); }
+/* ---- full art: 사진 유지 + 좁은 흰 광선만 screen (검은 영역 = 무변화) ---- */
+.holo-fullart .holo-bleed img { filter: brightness(.74) saturate(1.3) contrast(1.25); }
 .holo-fullart .holo-bleed .fx-art { display: block;
   background-image:
-    repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 2px, rgba(255,255,255,.22) 2px 3px, rgba(255,255,255,0) 3px 6px),
-    linear-gradient(115deg, transparent 38%, rgba(255,255,255,.6) 47%, rgba(200,230,255,.7) 50%, rgba(255,255,255,.6) 53%, transparent 62%);
-  background-size: 100% 100%, 320% 320%;
-  background-position: 0 0, var(--posx) var(--posy);
-  mix-blend-mode: overlay; opacity: calc(.4 + var(--hyp) * .5);
+    linear-gradient(115deg, #000 38%, rgba(190,235,255,.9) 47%, #fff 50%, rgba(190,235,255,.9) 53%, #000 62%),
+    repeating-linear-gradient(115deg, #000 0 5px, rgba(150,210,255,.35) 5px 6px, #000 6px 12px);
+  background-size: 320% 320%, 100% 100%;
+  background-position: var(--posx) var(--posy), 0 0;
+  background-blend-mode: screen;
+  mix-blend-mode: screen; opacity: calc(.45 + var(--hyp) * .45);
 }
-.holo-fullart .holo-bleed .fx-artglitter { display: block; opacity: calc(var(--hyp) * .3); }
-.holo-fullart .holo-inner { background: linear-gradient(160deg, #e8eef5, #a9c4de); }
+.holo-fullart .holo-bleed .fx-artglitter { display: block; background-size: 45% 45%, 26% 26%; mix-blend-mode: screen; filter: brightness(1.8); opacity: calc(.3 + var(--hyp) * .4); }
+.holo-fullart .holo-inner { background: linear-gradient(160deg, #e8eef5, #7fa8ca); }
 
-/* ---- rainbow rare: 진한 대각 무지개 워시 + 글리터 (TCG 레인보우) ---- */
-.holo-rainbow .holo-bleed img { filter: grayscale(.7) contrast(1.15) brightness(1.08); }
-.holo-rainbow .holo-bleed .fx-art { display: block;
-  background-image: var(--rainbow-diag), var(--bands);
-  background-size: 180% 180%, 200% 200%;
-  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) var(--posy);
-  background-blend-mode: normal, soft-light;
-  mix-blend-mode: screen; filter: saturate(1.6) contrast(1.1); opacity: calc(.25 + var(--hyp) * .35);
-}
+/* ---- rainbow rare: 사진 구조 유지 + 스펙트럼 색만 입히고 광택 띠 ---- */
+.holo-rainbow .holo-bleed img { filter: grayscale(.5) brightness(.76) contrast(1.35); }
 .holo-rainbow .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: var(--rainbow-diag); background-size: 130% 130%; background-position: var(--posx) var(--posy); mix-blend-mode: multiply; opacity: .92; }
-.holo-rainbow .holo-bleed .fx-artglitter { display: block; background-size: 57% 57%, 31% 31%; opacity: calc(.4 + var(--hyp) * .6); filter: brightness(1.7); }
-.holo-rainbow .holo-inner { background: conic-gradient(from 200deg, #ff7773, #ffed5f, #a8ff5f, #83fff7, #7894ff, #d875ff, #ff7773); }
-.holo-rainbow .holo-panel { background: rgba(8,20,36,.5); }
+  background-image: linear-gradient(115deg, #ff5a78 0%, #ffd750 17%, #78ff8c 34%, #5ae1ff 51%, #828cff 68%, #e66eff 85%, #ff5a78 100%);
+  background-size: 200% 200%; background-position: var(--posx) var(--posy);
+  mix-blend-mode: color; opacity: .88; }
+.holo-rainbow .holo-bleed .fx-art { display: block;
+  background-image:
+    linear-gradient(115deg, #000 35%, rgba(255,255,255,.75) 47%, #fff 50%, rgba(255,255,255,.75) 53%, #000 65%),
+    repeating-linear-gradient(115deg, #000 0 6px, rgba(255,255,255,.3) 6px 7px, #000 7px 14px);
+  background-size: 280% 280%, 100% 100%;
+  background-position: var(--posx) var(--posy), 0 0;
+  background-blend-mode: screen;
+  mix-blend-mode: screen; opacity: calc(.5 + var(--hyp) * .5);
+}
+.holo-rainbow .holo-bleed .fx-artglitter { display: block; background-size: 41% 41%, 23% 23%; mix-blend-mode: screen; filter: brightness(2.2) contrast(1.4); opacity: calc(.5 + var(--hyp) * .5); }
+.holo-rainbow .holo-inner { background: conic-gradient(from 200deg, #ff5a78, #ffd750, #78ff8c, #5ae1ff, #828cff, #e66eff, #ff5a78); }
+.holo-rainbow .holo-panel { background: rgba(8,20,36,.6); }
 
-/* ---- secret gold: 세피아 사진 위 금박 + 금 글리터 ---- */
-.holo-gold .holo-bleed img { filter: sepia(1) saturate(2.2) brightness(.85) contrast(1.25); }
-.holo-gold .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(160deg, rgba(90,60,0,.35), rgba(255,215,100,.05) 45%, rgba(90,60,0,.4)); }
+/* ---- secret gold: 세피아 사진 + 금색 입히고 금 광택 띠 ---- */
+.holo-gold .holo-bleed img { filter: sepia(1) saturate(2.6) brightness(.58) contrast(1.5); }
+.holo-gold .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(115deg, #8a6300, #ffd75e 35%, #fff3c4 50%, #ffd75e 65%, #8a6300);
+  background-size: 200% 200%; background-position: var(--posx) var(--posy);
+  mix-blend-mode: color; opacity: .9; }
 .holo-gold .holo-bleed .fx-art { display: block;
   background-image:
-    repeating-linear-gradient(115deg, rgba(120,80,0,.25) 0 2px, rgba(255,248,200,.55) 2px 3px, rgba(120,80,0,0) 3px 7px),
-    linear-gradient(115deg, rgba(120,80,0,.5) 0%, rgba(255,240,170,.2) 35%, rgba(255,255,235,1) 50%, rgba(255,240,170,.2) 65%, rgba(120,80,0,.5) 100%);
-  background-size: 100% 100%, 320% 320%;
-  background-position: 0 0, var(--posx) var(--posy);
-  mix-blend-mode: hard-light; opacity: calc(.55 + var(--hyp) * .45);
+    linear-gradient(115deg, #000 30%, rgba(255,230,140,.85) 45%, #fffbe8 50%, rgba(255,230,140,.85) 55%, #000 70%),
+    repeating-linear-gradient(115deg, #000 0 4px, rgba(255,240,180,.4) 4px 5px, #000 5px 10px);
+  background-size: 300% 300%, 100% 100%;
+  background-position: var(--posx) var(--posy), 0 0;
+  background-blend-mode: screen;
+  mix-blend-mode: screen; opacity: calc(.6 + var(--hyp) * .4);
 }
-.holo-gold .holo-bleed .fx-artglitter { display: block; background-size: 57% 57%, 31% 31%; filter: brightness(1.6) sepia(1) saturate(5); mix-blend-mode: screen; opacity: calc(.35 + var(--hyp) * .55); }
-.holo-gold .holo-inner { background: linear-gradient(160deg, #f6d675, #a67c00 45%, #ffe9a8 60%, #8a6300); }
+.holo-gold .holo-bleed .fx-artglitter { display: block; background-size: 43% 43%, 24% 24%; mix-blend-mode: screen; filter: brightness(2) sepia(1) saturate(6); opacity: calc(.45 + var(--hyp) * .45); }
+.holo-gold .holo-inner { background: linear-gradient(160deg, #f6d675, #8a6300 45%, #ffe9a8 60%, #6b4d00); }
 .holo-gold .holo-frame { color: #fff; }
-.holo-gold .holo-panel { background: rgba(60,40,0,.55); border-color: rgba(255,230,150,.45); }
+.holo-gold .holo-panel { background: rgba(50,34,0,.62); border-color: rgba(255,225,140,.45); }
 .holo-gold .holo-rarity { background: linear-gradient(90deg, #ffe27a, #b8860b); color: #3a2a00; }
 
 /* active state */
@@ -437,3 +447,43 @@ input, select, textarea { font: inherit; }
 
 .keep { background: var(--foam-2); border-radius: 14px; padding: 0.8rem 0.9rem; font-size: 0.82rem; color: var(--ink-2); }
 .keep b { display: block; color: var(--ink); font-size: 0.9rem; margin-bottom: 0.2rem; }
+
+/* 사진 고르기 */
+.pickbox { position: relative; width: 100%; border: 2px dashed var(--line); border-radius: 20px; background: var(--white); padding: 0; overflow: hidden; display: grid; place-items: center; min-height: 9rem; }
+.pickbox img { width: 100%; max-height: 16rem; object-fit: cover; display: block; }
+.pickbox-empty { display: grid; justify-items: center; gap: 0.4rem; padding: 2rem 1rem; color: var(--ink-3); font-weight: 700; }
+.pickbox-empty svg { width: 34px; height: 34px; }
+.pickbox-change { position: absolute; right: 0.6rem; bottom: 0.6rem; font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px; background: rgba(15,42,58,.72); color: #fff; }
+.autonote { font-size: 0.8rem; color: var(--ok); background: var(--ok-soft); border-radius: 10px; padding: 0.45rem 0.7rem; text-align: center; }
+.pickrow { display: grid; grid-template-columns: 4.6rem 1fr; align-items: center; gap: 0.5rem; background: var(--white); border: 1.5px solid var(--line); border-radius: 14px; padding: 0.55rem 0.8rem; }
+.pickrow .pl { font-size: 0.82rem; font-weight: 700; color: var(--ink-2); }
+.pickrow input, .pickrow select { border: 0; background: transparent; padding: 0.35rem 0; font-size: 0.95rem; font-weight: 700; color: var(--ink); width: 100%; appearance: none; -webkit-appearance: none; }
+.pickrow select { background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%237b909e' stroke-width='2'><path d='M4 6l4 4 4-4'/></svg>") no-repeat right center; padding-right: 1.2rem; }
+.pickrow input:focus, .pickrow select:focus { outline: none; }
+.btn-big { padding: 1.05rem; font-size: 1.08rem; border-radius: 18px; }
+
+/* 등급 9종 프로모 */
+.tiers-promo { background: linear-gradient(165deg, #10273a, #0b5c8a); border-radius: 20px; padding: 1rem; color: #fff; box-shadow: var(--shadow); }
+.tp-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.7rem; }
+.tp-head b { font-family: "Jua", sans-serif; font-weight: 400; font-size: 1.1rem; display: block; }
+.tp-head small { font-size: 0.75rem; opacity: .75; }
+.tp-more { font-size: 0.8rem; font-weight: 700; color: #fff; text-decoration: none; opacity: .9; }
+.tp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+.tp-cell { display: grid; justify-items: center; gap: 0.1rem; padding: 0.55rem 0.3rem; border-radius: 12px; text-decoration: none; color: #0f2a3a; position: relative; overflow: hidden; }
+.tp-sym { font-size: 1rem; line-height: 1; }
+.tp-name { font-size: 0.7rem; font-weight: 700; }
+.tp-odds { font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; opacity: .7; }
+.tp-common { background: linear-gradient(160deg, #cfeaf8, #a9d8ef); }
+.tp-uncommon { background: linear-gradient(160deg, #e6eef5, #b9d0e2); }
+.tp-rare { background: linear-gradient(115deg, #fff, #cfd8e3 45%, #fff 55%, #b8cde0); }
+.tp-holo { background: linear-gradient(115deg, #ffd1d0, #fff5b3, #d4ffc2, #c9fffb, #d0dbff, #f1cbff); }
+.tp-reverse { background: linear-gradient(115deg, #eef3f8, #ffd9f2, #d9ecff, #e8ecf3); }
+.tp-galaxy { background: radial-gradient(ellipse at 30% 35%, #a34bff, transparent 60%), radial-gradient(ellipse at 70% 65%, #00aaff, transparent 60%), #14143a; color: #fff; }
+.tp-galaxy .tp-odds { opacity: .85; }
+.tp-fullart { background: linear-gradient(115deg, #2d6f96, #bfe4f7 48%, #2d6f96); color: #fff; }
+.tp-rainbow { background: linear-gradient(115deg, #ff5a78, #ffd750, #78ff8c, #5ae1ff, #828cff, #e66eff); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.tp-gold { background: linear-gradient(115deg, #7a5a00, #ffe27a 30%, #fffbe8 50%, #ffe27a 70%, #7a5a00); color: #3a2a00; }
+
+/* 공유 줄 */
+.share-row { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; }
+.share-row .icon-btn { white-space: nowrap; padding-inline: 1rem; }

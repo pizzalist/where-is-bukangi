@@ -17,11 +17,7 @@ export default function Tiers() {
             </div>
           ))}
         </div>
-        <div className="section">
-          <div className="section-head"><h2>가중치</h2></div>
-          <div className="card" style={{ fontSize: "0.88rem", color: "var(--ink-2)" }}>목격 인증은 홀로 이상 확률 2배. 밤(22~06시) 촬영은 갤럭시 이상 3배. 6시간 넘게 "못 봄"이 이어진 뒤 첫 목격은 레인보우 또는 골드 확정. 컬렉션 칸과 전설 알림은 다음 버전.</div>
-        </div>
-      </motion.div>
+        </motion.div>
     </div>
   );
 }

@@ -1,28 +1,48 @@
 import { useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
 import { addSubmission, uid, nextOrdinal } from "../lib/store";
 import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
-import { nearestZone } from "../lib/zones";
+import { ZONES, nearestZone } from "../lib/zones";
 import Shark from "../components/Shark";
+
+function toLocalInput(d: Date) {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 
 export default function Certify({ status, onDone }: { status: Status; onDone: (s: Submission) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
+  const [photo, setPhoto] = useState<string | undefined>();
+  const [takenAt, setTakenAt] = useState(toLocalInput(new Date()));
+  const [zone, setZone] = useState<ZoneCode | "">("");
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
+  const [auto, setAuto] = useState<string[]>([]);
 
   async function onFile(f: File) {
-    setBusy(true);
-    const photo = await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(f); });
-    let takenAt = new Date().toISOString(); let zone: ZoneCode | null = null; let gps: { lat: number; lng: number } | null = null;
+    const url = await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(f); });
+    setPhoto(url);
+    const got: string[] = [];
     try {
       const [ex, g] = await Promise.all([exifr.parse(f, { pick: ["DateTimeOriginal"] }).catch(() => null), exifr.gps(f).catch(() => null)]);
-      if (ex?.DateTimeOriginal) takenAt = new Date(ex.DateTimeOriginal).toISOString();
-      if (g?.latitude && g?.longitude) { gps = { lat: g.latitude, lng: g.longitude }; zone = nearestZone(g.latitude, g.longitude); }
-    } catch { /* 없으면 기본값 */ }
+      if (ex?.DateTimeOriginal) { setTakenAt(toLocalInput(new Date(ex.DateTimeOriginal))); got.push("시각"); }
+      if (g?.latitude && g?.longitude) {
+        setGps({ lat: g.latitude, lng: g.longitude });
+        const z = nearestZone(g.latitude, g.longitude);
+        if (z) { setZone(z); got.push("위치"); }
+      }
+    } catch { /* 없으면 직접 고르기 */ }
+    setAuto(got);
+  }
+
+  function draw() {
+    if (!photo) return;
+    const iso = new Date(takenAt).toISOString();
     const s: Submission = {
-      id: uid(), type: "seen", zone: zone ?? undefined, takenAt, submittedAt: new Date().toISOString(), exifGps: gps, photoDataUrl: photo, status: "pending",
-      ordinal: nextOrdinal("seen", status.counters), rarity: rollRarity({ type: "seen", takenAt }),
+      id: uid(), type: "seen", zone: zone || undefined, takenAt: iso, submittedAt: new Date().toISOString(),
+      exifGps: gps, photoDataUrl: photo, status: "pending",
+      ordinal: nextOrdinal("seen", status.counters), rarity: rollRarity({ type: "seen", takenAt: iso }),
     };
     addSubmission(s);
     onDone(s);
@@ -30,34 +50,66 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
 
   return (
     <div className="page">
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ display: "grid", gap: "1.2rem", paddingTop: "2rem" }}>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ display: "grid", gap: "1rem", paddingTop: "1.6rem" }}>
         <div style={{ textAlign: "center" }}>
-          <Shark size={120} />
-          <h1 style={{ fontSize: "1.9rem", margin: "0.5rem 0 0.3rem" }}>사진 한 장이면 끝</h1>
-          <p style={{ color: "var(--ink-2)", margin: 0 }}>부캉이 사진을 올리면 카드가 바로 뽑혀요.<br />등급은 랜덤, 한 장에 한 번.</p>
+          <Shark size={photo ? 72 : 110} />
+          <h1 style={{ fontSize: "1.8rem", margin: "0.4rem 0 0.25rem" }}>{photo ? "언제, 어디서 봤어요?" : "사진 한 장이면 끝"}</h1>
+          <p style={{ color: "var(--ink-2)", margin: 0, fontSize: "0.95rem" }}>
+            {photo ? "사진에서 읽은 값이에요. 다르면 바꿔주세요." : "부캉이 사진을 올리면 카드가 바로 뽑혀요."}
+          </p>
         </div>
 
-        <button className="btn" style={{ padding: "1.1rem", fontSize: "1.1rem", borderRadius: 18 }} disabled={busy} onClick={() => fileRef.current?.click()}>
-          {busy ? "뽑는 중…" : "사진 올리고 카드 뽑기"}
+        <button className="pickbox" onClick={() => fileRef.current?.click()}>
+          {photo ? <img src={photo} alt="" /> : (
+            <span className="pickbox-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 7h3l2-3h6l2 3h3v12H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+              사진 고르기
+            </span>
+          )}
+          {photo && <span className="pickbox-change">바꾸기</span>}
         </button>
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
 
-        <div className="card" style={{ padding: "0.9rem 1rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <b style={{ fontFamily: "Jua", fontWeight: 400 }}>등급 9종</b>
-            <a href="#/tiers" style={{ fontSize: "0.82rem" }}>전부 보기</a>
+        <AnimatePresence>
+          {photo && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} style={{ display: "grid", gap: "0.6rem", overflow: "hidden" }}>
+              {auto.length > 0 && <div className="autonote">사진에서 {auto.join("과 ")}를 읽었어요</div>}
+              <label className="pickrow">
+                <span className="pl">본 시각</span>
+                <input type="datetime-local" value={takenAt} onChange={(e) => setTakenAt(e.target.value)} />
+              </label>
+              <label className="pickrow">
+                <span className="pl">본 곳</span>
+                <select value={zone} onChange={(e) => setZone(e.target.value as ZoneCode | "")}>
+                  <option value="">고르지 않음</option>
+                  {ZONES.map((z) => <option key={z.code} value={z.code}>{z.full}</option>)}
+                </select>
+              </label>
+              <button className="btn btn-big" onClick={draw}>카드 뽑기</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="tiers-promo">
+          <div className="tp-head">
+            <div>
+              <b>등급 9종</b>
+              <small>커먼부터 시크릿 골드까지</small>
+            </div>
+            <a href="#/tiers" className="tp-more">전부 보기 ›</a>
           </div>
-          <div className="tier-strip">
+          <div className="tp-grid">
             {RARITY_ORDER.map((r) => (
-              <a key={r} href="#/tiers" className={`tier-dot tier-dot-${r}`} title={RARITY_META[r].label}>
-                <span>{RARITY_META[r].symbol}</span>
-                <small>{RARITY_META[r].label}<br />{oddsPercent(r)}%</small>
+              <a key={r} href="#/tiers" className={`tp-cell tp-${r}`}>
+                <span className="tp-sym">{RARITY_META[r].symbol}</span>
+                <span className="tp-name">{RARITY_META[r].label}</span>
+                <span className="tp-odds">{oddsPercent(r)}%</span>
               </a>
             ))}
           </div>
         </div>
 
-        <p className="disclaimer">사진은 공개하지 않고 24시간 안에 지워요. 연락처는 안 받아요. 사진 속 시각·위치로 카드가 채워져요.</p>
+        <p className="disclaimer">올린 사진과 기록은 부캉이 소식으로 사람들에게 공유돼요.</p>
       </motion.div>
     </div>
   );

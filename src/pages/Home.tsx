@@ -66,7 +66,7 @@ export default function Home({ status }: { status: Status }) {
       <section className="section">
         <div className="section-head">
           <h2>어느 구역에서</h2>
-          <span className="more">탭하면 그 구역 기록</span>
+          
         </div>
         <ZoneMap hot={hotZone} active={pick} onPick={(z) => setPick(pick === z ? null : z)} />
         <div className="zone-list">
@@ -100,7 +100,7 @@ export default function Home({ status }: { status: Status }) {
       <section className="section">
         <div className="section-head">
           <h2>오늘의 기록</h2>
-          <span className="more">색이 곧 신뢰 등급</span>
+          
         </div>
         <ul className="timeline">
           {status.timeline.map((e, i) => (
@@ -123,7 +123,7 @@ export default function Home({ status }: { status: Status }) {
       <section className="section">
         <div className="section-head">
           <h2>안전 · 공지</h2>
-          <span className="more">원문 링크</span>
+          
         </div>
         <div style={{ display: "grid", gap: "0.5rem" }}>
           {status.notices.map((n, i) => (

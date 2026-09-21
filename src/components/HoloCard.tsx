@@ -13,6 +13,7 @@ export interface HoloCardProps {
   zoneName?: string;
   photoDataUrl?: string;
   rarity: Rarity;
+  credit?: string;
   interactive?: boolean;
   /** 고정 각도 (0~100). 예시용 */
   fixed?: { mx: number; my: number };
@@ -60,8 +61,15 @@ export default function HoloCard(p: HoloCardProps) {
   useEffect(() => {
     if (!p.interactive) return;
     const el = ref.current; if (!el) return;
+    let asked = false;
+    const askTilt = () => {
+      if (asked) return; asked = true;
+      const D = (window as Window & { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+      D?.requestPermission?.().catch(() => null); // iOS는 제스처 안에서만 허용, 안드로이드는 권한 자체가 없음
+    };
     const onMove = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
+      askTilt();
       touching.current = true;
       setPos(((e.clientX - r.left) / r.width) * 100, ((e.clientY - r.top) / r.height) * 100);
       setActive(true);
@@ -112,6 +120,7 @@ export default function HoloCard(p: HoloCardProps) {
               {stats.moves.map(([n, d]) => (<div key={n}><b>{n}</b><span>{d}</span></div>))}
             </div>
             <div className="holo-flavor">{fmtDate(p.takenAt)} {fmtTime(p.takenAt)} 부산 북항 친수공원 인증.</div>
+            <div className="holo-credit"><span>📷 {p.credit ?? "직접 촬영"}</span><span className="mono">{p.ordinal.toLocaleString()} · 부캉이 2026</span></div>
             <div className="holo-bottom">
               <span className="holo-rarity">{meta.symbol} {meta.label}</span>
               <span className="holo-site">bukang.kr · #부캉이</span>
