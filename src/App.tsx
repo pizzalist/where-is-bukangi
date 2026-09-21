@@ -39,7 +39,7 @@ export default function App() {
     return () => { clearInterval(t); removeEventListener("hashchange", onHash); };
   }, []);
 
-  function onCertified(s: Submission) { setFocusCard(s.id); location.hash = "#/card"; }
+  function onCertified(s: Submission) { setFocusCard(s.id); location.hash = `#/card/${s.id}`; }
 
   return (
     <div className="app">
@@ -54,6 +54,7 @@ export default function App() {
           </a>
           <span className="spacer" />
           {status?.control ? <span className="pill crit">출입통제</span> : <span className="pill">DRAFT</span>}
+          {nav.route === "admin" && <span className="pill est">운영자</span>}
         </div>
       </header>
 
@@ -61,16 +62,15 @@ export default function App() {
       {!status && !err && <div className="page" style={{ paddingTop: "3rem", textAlign: "center", color: "var(--ink-3)" }}><Shark size={90} /><div>불러오는 중</div></div>}
       {status && nav.route === "home" && <Home status={status} />}
       {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} />}
-      {status && nav.route === "card" && <Card status={status} focus={focusCard} />}
+      {status && nav.route === "card" && <Card status={status} focus={nav.param ?? focusCard} />}
       {status && nav.route === "admin" && <Admin status={status} />}
       {status && nav.route === "tiers" && <Tiers />}
 
       <nav className="nav">
-        <div className="nav-inner">
+        <div className="nav-inner nav-3">
           <a href="#/" className={nav.route === "home" ? "on" : ""}>{Icon.home}지금</a>
           <a href="#/certify" className={nav.route === "certify" ? "on" : ""}>{Icon.certify}카드 뽑기</a>
           <a href="#/card" className={nav.route === "card" ? "on" : ""}>{Icon.card}내 카드</a>
-          <a href="#/admin" className={nav.route === "admin" ? "on" : ""}>{Icon.admin}운영</a>
         </div>
       </nav>
     </div>

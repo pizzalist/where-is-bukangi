@@ -4,18 +4,8 @@ import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
 import { addSubmission, uid, nextOrdinal } from "../lib/store";
 import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
+import { nearestZone } from "../lib/zones";
 import Shark from "../components/Shark";
-
-/** 구역 중심 좌표 (초안). 가장 가까운 구역으로 조용히 배정, 멀면 F(불명). */
-const ZONE_CENTERS: Record<Exclude<ZoneCode, "F">, { lat: number; lng: number }> = {
-  A: { lat: 35.1035, lng: 129.0420 }, B: { lat: 35.1030, lng: 129.0400 }, C: { lat: 35.1027, lng: 129.0385 },
-  D: { lat: 35.1024, lng: 129.0368 }, E: { lat: 35.1020, lng: 129.0350 },
-};
-function nearestZone(lat: number, lng: number): ZoneCode {
-  let best: ZoneCode = "F", bd = Infinity;
-  for (const [code, c] of Object.entries(ZONE_CENTERS)) { const d = (c.lat - lat) ** 2 + (c.lng - lng) ** 2; if (d < bd) { bd = d; best = code as ZoneCode; } }
-  return bd > 0.004 ** 2 ? "F" : best;
-}
 
 export default function Certify({ status, onDone }: { status: Status; onDone: (s: Submission) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -24,14 +14,14 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
   async function onFile(f: File) {
     setBusy(true);
     const photo = await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(f); });
-    let takenAt = new Date().toISOString(); let zone: ZoneCode = "F"; let gps: { lat: number; lng: number } | null = null;
+    let takenAt = new Date().toISOString(); let zone: ZoneCode | null = null; let gps: { lat: number; lng: number } | null = null;
     try {
       const [ex, g] = await Promise.all([exifr.parse(f, { pick: ["DateTimeOriginal"] }).catch(() => null), exifr.gps(f).catch(() => null)]);
       if (ex?.DateTimeOriginal) takenAt = new Date(ex.DateTimeOriginal).toISOString();
       if (g?.latitude && g?.longitude) { gps = { lat: g.latitude, lng: g.longitude }; zone = nearestZone(g.latitude, g.longitude); }
     } catch { /* 없으면 기본값 */ }
     const s: Submission = {
-      id: uid(), type: "seen", zone, takenAt, submittedAt: new Date().toISOString(), exifGps: gps, photoDataUrl: photo, status: "pending",
+      id: uid(), type: "seen", zone: zone ?? undefined, takenAt, submittedAt: new Date().toISOString(), exifGps: gps, photoDataUrl: photo, status: "pending",
       ordinal: nextOrdinal("seen", status.counters), rarity: rollRarity({ type: "seen", takenAt }),
     };
     addSubmission(s);

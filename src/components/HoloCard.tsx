@@ -9,8 +9,8 @@ export interface HoloCardProps {
   type: CertType;
   ordinal: number;
   takenAt: string;
-  zone: ZoneCode;
-  zoneName: string;
+  zone?: ZoneCode;
+  zoneName?: string;
   photoDataUrl?: string;
   rarity: Rarity;
   interactive?: boolean;
@@ -106,7 +106,7 @@ export default function HoloCard(p: HoloCardProps) {
             <div className="holo-stats">
               <span>길이 <b className="mono">{stats.length}m</b></span>
               <span>출몰력 <b className="mono">{stats.power}</b></span>
-              <span>{p.zone}구역 · {p.zoneName}</span>
+              <span>{p.zone ? p.zoneName : "위치 미확인"}</span>
             </div>
             <div className="holo-moves">
               {stats.moves.map(([n, d]) => (<div key={n}><b>{n}</b><span>{d}</span></div>))}

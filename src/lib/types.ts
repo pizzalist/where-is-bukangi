@@ -29,7 +29,7 @@ export type CertType = "seen" | "visit";
 export interface Submission {
   id: string;
   type: CertType;
-  zone: ZoneCode;
+  zone?: ZoneCode;
   takenAt: string;      // 관측 시각 (EXIF 또는 수동)
   submittedAt: string;  // 접수 시각
   exifGps?: { lat: number; lng: number } | null;

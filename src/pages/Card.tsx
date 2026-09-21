@@ -10,6 +10,7 @@ const SITE = "bukang.kr";
 
 export default function Card({ status, focus }: { status: Status; focus?: string | null }) {
   const subs = loadSubmissions();
+  const [copied, setCopied] = useState(false);
   const mine = subs;
   const initial = focus ? subs.find((s) => s.id === focus) : mine[0];
   const [sel, setSel] = useState<Submission | undefined>(initial);
@@ -70,7 +71,13 @@ export default function Card({ status, focus }: { status: Status; focus?: string
               <button className="btn" onClick={share} disabled={!png}>공유 / 저장</button>
               <a className="btn secondary" href="#/certify">한 장 더</a>
             </div>
-            <p className="disclaimer">공유하면 이미지로 저장돼요. 홀로 효과는 이 페이지에서만 움직여요.</p>
+            <div className="keep">
+              <b>이 카드 주소를 저장해두세요</b>
+              <span>로그인이 없어서, 이 폰 브라우저를 지우면 목록이 사라져요. 주소를 복사해두면 나중에 다시 열 수 있어요. 이미지는 저장하면 영구 보관돼요.</span>
+              <button className="btn secondary" style={{ marginTop: "0.5rem" }} onClick={() => { navigator.clipboard?.writeText(location.origin + location.pathname + `#/card/${sel.id}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => null); }}>
+                {copied ? "복사됨" : "카드 주소 복사"}
+              </button>
+            </div>
           </div>
         )}
         <div className="section">

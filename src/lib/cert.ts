@@ -6,8 +6,8 @@ export interface CertInput {
   type: CertType;
   ordinal: number;
   takenAt: string;
-  zone: ZoneCode;
-  zoneName: string;
+  zone?: ZoneCode;
+  zoneName?: string;
   photoDataUrl?: string;
   siteUrl: string;
   rarity?: Rarity;
@@ -172,7 +172,7 @@ export async function drawCert(canvas: HTMLCanvasElement, input: CertInput) {
   ctx.font = "600 38px 'IBM Plex Mono', monospace";
   ctx.fillText(`${fmtDate(input.takenAt)} ${fmtTime(input.takenAt)}`, 72, 1228);
   ctx.font = "400 36px 'Jua', 'Noto Sans KR', sans-serif";
-  ctx.fillText(`${input.zone}구역 · ${input.zoneName}`, 72, 1280);
+  ctx.fillText(input.zone ? `${input.zoneName}` : "위치 미확인", 72, 1280);
 
   // 우하단 사이트·해시태그
   ctx.textAlign = "right";
