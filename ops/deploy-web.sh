@@ -8,4 +8,5 @@ npm run build
 HOST=${API#https://}
 grep -q "$HOST" dist/assets/app-*.js || { echo "FAIL: 빌드 결과에 $HOST 가 없다. 배포 중단"; exit 1; }
 echo "확인: $HOST 가 번들에 박힘"
+rm -rf .wrangler/deploy          # pages 명령이 남기는 리다이렉트 설정. 있으면 deploy가 실패한다
 npx --yes wrangler@latest deploy

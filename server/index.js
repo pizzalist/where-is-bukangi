@@ -162,7 +162,7 @@ function buildStatus() {
     },
     control: control ? { title: control.title, url: control.url } : null,
     last, zones: ZONES, timeline, notices,
-    counters: { seen: Number(qOrdinal.get()?.v || 1204), visit: 0 },
+    counters: { seen: Number(qOrdinal.get()?.v || 0), visit: 0 },
   };
 }
 let cache = { at: 0, body: "", etag: "" };

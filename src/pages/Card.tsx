@@ -58,6 +58,11 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
     setBusy(true); setErr(null);
     try {
       const r = await fetch(`${API_BASE}/api/cards/${encodeURIComponent(sel.id)}.png`);
+      if (r.status === 404) {
+        // 서버에서 지워진 카드(테스트 정리 등). 내 기기 목록에서도 뺀다
+        try { localStorage.setItem("bukang.submissions.v1", JSON.stringify(subs.filter((s) => s.id !== sel.id))); } catch { /* ignore */ }
+        throw new Error("이 카드는 서버에 없어요. 새로 뽑아주세요.");
+      }
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "카드 이미지를 만들지 못했어요.");
       const blob = await r.blob();
       const file = new File([blob], `bukangi-${sel.ordinal ?? 0}.png`, { type: "image/png" });

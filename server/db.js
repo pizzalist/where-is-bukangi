@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS visitors (
 
 export function nextOrdinal() {
   const row = db.prepare("SELECT v FROM meta WHERE k='ordinal'").get();
-  const n = (row ? Number(row.v) : 1204) + 1;
+  const n = (row ? Number(row.v) : 0) + 1;   // 첫 카드가 No.1
   db.prepare("INSERT INTO meta(k,v) VALUES('ordinal',?) ON CONFLICT(k) DO UPDATE SET v=excluded.v").run(String(n));
   return n;
 }
