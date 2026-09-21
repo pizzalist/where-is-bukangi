@@ -3,7 +3,7 @@ import type { CertType, ZoneCode } from "../lib/types";
 import { RARITY_META, cardStats, type Rarity } from "../lib/rarity";
 import { fmtDate, fmtTime } from "../lib/store";
 
-const SAMPLE = `${import.meta.env.BASE_URL}sample.svg`;
+const SAMPLE = `${import.meta.env.BASE_URL}sample.png`;
 
 export interface HoloCardProps {
   type: CertType;

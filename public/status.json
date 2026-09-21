@@ -5,7 +5,7 @@
   "last": {
     "kind": "seen",
     "at": "2026-09-21T14:32:00+09:00",
-    "zone": "D",
+    "zone": "B",
     "tier": "confirmed",
     "evidence": "현장 사진 2건 + 운영자 승인"
   },
@@ -16,41 +16,33 @@
   "zones": [
     {
       "code": "A",
-      "name": "마리나브릿지"
+      "name": "제4보도교"
     },
     {
       "code": "B",
-      "name": "팽나무숲"
+      "name": "제5보도교"
     },
     {
       "code": "C",
-      "name": "오페라브릿지"
+      "name": "제6보도교"
     },
     {
       "code": "D",
-      "name": "웨이브스탠드"
-    },
-    {
-      "code": "E",
-      "name": "하버블럭가든"
-    },
-    {
-      "code": "F",
-      "name": "오픈캐널"
+      "name": "자갈마당"
     }
   ],
   "timeline": [
     {
       "at": "2026-09-21T14:32:00+09:00",
       "kind": "seen",
-      "zone": "D",
+      "zone": "B",
       "tier": "confirmed",
       "note": "현장 사진 2건"
     },
     {
       "at": "2026-09-21T13:50:00+09:00",
       "kind": "seen",
-      "zone": "D",
+      "zone": "B",
       "tier": "est",
       "note": "인스타 클립 · 댓글 \"지금 보여요\""
     },
@@ -64,21 +56,21 @@
     {
       "at": "2026-09-21T11:00:00+09:00",
       "kind": "miss",
-      "zone": "D",
+      "zone": "B",
       "tier": "confirmed",
       "note": "10:30~11:00 관측, 미목격"
     },
     {
       "at": "2026-09-21T09:20:00+09:00",
       "kind": "seen",
-      "zone": "E",
+      "zone": "A",
       "tier": "auto",
       "note": "유튜브 영상 게시 · 미확인"
     },
     {
       "at": "2026-09-20T18:40:00+09:00",
       "kind": "seen",
-      "zone": "D",
+      "zone": "B",
       "tier": "confirmed",
       "note": "현장 사진 3건"
     }

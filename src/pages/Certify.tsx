@@ -4,7 +4,8 @@ import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
 import { addSubmission, uid, nextOrdinal } from "../lib/store";
 import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
-import { ZONES, nearestZone } from "../lib/zones";
+import { ZONES, ZONE_BY_CODE, inPark } from "../lib/zones";
+import ZoneMap from "../components/ZoneMap";
 import Shark from "../components/Shark";
 
 function toLocalInput(d: Date) {
@@ -29,8 +30,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
       if (ex?.DateTimeOriginal) { setTakenAt(toLocalInput(new Date(ex.DateTimeOriginal))); got.push("시각"); }
       if (g?.latitude && g?.longitude) {
         setGps({ lat: g.latitude, lng: g.longitude });
-        const z = nearestZone(g.latitude, g.longitude);
-        if (z) { setZone(z); got.push("위치"); }
+        if (inPark(g.latitude, g.longitude)) got.push("공원 안에서 찍은 사진");
       }
     } catch { /* 없으면 직접 고르기 */ }
     setAuto(got);
@@ -73,18 +73,25 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
         <AnimatePresence>
           {photo && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} style={{ display: "grid", gap: "0.6rem", overflow: "hidden" }}>
-              {auto.length > 0 && <div className="autonote">사진에서 {auto.join("과 ")}를 읽었어요</div>}
+              {auto.length > 0 && <div className="autonote">{auto.join(" · ")} 확인</div>}
               <label className="pickrow">
                 <span className="pl">본 시각</span>
                 <input type="datetime-local" value={takenAt} onChange={(e) => setTakenAt(e.target.value)} />
               </label>
-              <label className="pickrow">
-                <span className="pl">본 곳</span>
-                <select value={zone} onChange={(e) => setZone(e.target.value as ZoneCode | "")}>
-                  <option value="">고르지 않음</option>
-                  {ZONES.map((z) => <option key={z.code} value={z.code}>{z.full}</option>)}
-                </select>
-              </label>
+              <div className="pickmap">
+                <div className="pm-head">
+                  <span className="pl">본 곳</span>
+                  <b>{zone ? ZONE_BY_CODE[zone].full : "지도에서 골라주세요"}</b>
+                </div>
+                <ZoneMap active={zone || null} onPick={(z) => setZone(z)} />
+                <div className="pm-chips">
+                  {ZONES.map((z) => (
+                    <button key={z.code} type="button" className={`pm-chip${zone === z.code ? " on" : ""}`} onClick={() => setZone(z.code)}>
+                      <b>{z.code}</b>{z.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <button className="btn btn-big" onClick={draw}>카드 뽑기</button>
             </motion.div>
           )}

@@ -5,7 +5,7 @@ import { ageMinutes, fmtAge, fmtTime, DECAY_MIN } from "../lib/store";
 import Shark from "../components/Shark";
 import ZoneMap from "../components/ZoneMap";
 import { RARITY_ORDER, RARITY_META } from "../lib/rarity";
-import { ZONES, ZONE_BY_CODE, naverDirections } from "../lib/zones";
+import { ZONES, ZONE_BY_CODE, naverDirections, naverPlace, PARK } from "../lib/zones";
 
 type HeroState = "seen" | "miss" | "stale" | "none" | "crit";
 
@@ -75,17 +75,17 @@ export default function Home({ status }: { status: Status }) {
         </div>
         <div className="zone-list">
           {ZONES.map((z) => (
-            <div key={z.code} className={`zone-row${hotZone === z.code ? " hot" : ""}`}>
+            <button key={z.code} className={`zone-row${hotZone === z.code ? " hot" : ""}${pick === z.code ? " on" : ""}`} onClick={() => setPick(pick === z.code ? null : z.code)}>
               <span className="zc">{z.code}</span>
-              <button className="zn" style={{ textAlign: "left", background: "none", border: 0, padding: 0, color: "inherit" }} onClick={() => setPick(pick === z.code ? null : z.code)}>
-                {z.full}
+              <span className="zn">
+                {z.full}{z.main && <em className="zmain">주 목격</em>}
                 <small>{z.landmark}</small>
-              </button>
-              <a className="go" href={naverDirections(z)} target="_blank" rel="noreferrer">길찾기</a>
-            </div>
+              </span>
+            </button>
           ))}
         </div>
-        <p className="zone-note">구역 이름은 부산시설공단 공원 안내도의 시설명을 따랐어요. 길찾기 좌표는 안내도 기준 추정치라 현장에서 조금 다를 수 있어요.</p>
+        <a className="go go-wide" href={naverDirections()} target="_blank" rel="noreferrer">네이버 길찾기 · {PARK.name}</a>
+        <p className="zone-note">상어는 수로가 휜 구조 탓에 이 구간을 벗어나지 못하고 있어요. 구간 안 이동은 도보 몇 분이라 길찾기는 공원 한 곳으로만 안내해요.</p>
         <AnimatePresence>
           {pick && (
             <motion.div className="card" style={{ marginTop: "0.6rem" }} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
@@ -142,25 +142,25 @@ export default function Home({ status }: { status: Status }) {
         <div className="section">
           <div className="section-head"><h2>찾아가기</h2></div>
           <div style={{ display: "grid", gap: "0.5rem" }}>
-            <a className="notice" href="https://map.naver.com/p/search/%EB%B6%81%ED%95%AD%EC%B9%9C%EC%88%98%EA%B3%B5%EC%9B%90%20%EC%A3%BC%EC%B0%A8%EC%9E%A5" target="_blank" rel="noreferrer">
+            <a className="notice" href={naverPlace("북항친수공원 주차장")} target="_blank" rel="noreferrer">
               <div>
                 <div className="src">주차</div>
-                <div className="t">공원 부설주차장 (여객터미널 쪽)</div>
+                <div className="t">공원 부설주차장</div>
                 <div className="src">요금·잔여 면수는 지도에서 확인하세요. 주말에는 만차가 잦아요.</div>
               </div>
             </a>
-            <a className="notice" href="https://map.naver.com/p/search/%EB%B6%80%EC%82%B0%EC%97%AD" target="_blank" rel="noreferrer">
+            <a className="notice" href={naverPlace("부산역")} target="_blank" rel="noreferrer">
               <div>
                 <div className="src">지하철</div>
                 <div className="t">1호선 부산역 · 중앙역에서 도보</div>
-                <div className="src">부산역 쪽이 오픈캐널·하버블럭가든과 가까워요.</div>
+                <div className="src">부산역에서 도보로 공원 입구까지 갈 수 있어요.</div>
               </div>
             </a>
             <div className="notice">
               <div>
                 <div className="src">운영 시간</div>
                 <div className="t">05:00 ~ 24:00</div>
-                <div className="src">부산시설공단 운영. 통제 상황은 위 공지를 따르세요.</div>
+                <div className="src">부산시설공단 운영 · 주소 {PARK.address}</div>
               </div>
             </div>
           </div>
