@@ -63,9 +63,11 @@ export default function App() {
       } catch { /* 오프라인이면 다음에 */ }
     };
     const onVis = () => { if (document.visibilityState === "visible") check(); };
-    const t = setInterval(check, 5 * 60e3);
+    const t = setInterval(check, 60e3);                      // version.json은 정적 파일이라 1분마다 물어도 부담 없다
     addEventListener("visibilitychange", onVis);
-    return () => { clearInterval(t); removeEventListener("visibilitychange", onVis); };
+    addEventListener("pageshow", onVis);
+    setTimeout(check, 3000);
+    return () => { clearInterval(t); removeEventListener("visibilitychange", onVis); removeEventListener("pageshow", onVis); };
   }, []);
   useEffect(() => { if (stale.current && nav.route !== "certify") location.reload(); }, [nav.route]);
 
