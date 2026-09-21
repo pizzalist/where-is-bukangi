@@ -11,6 +11,7 @@ export interface CertInput {
   photoDataUrl?: string;
   siteUrl: string;
   rarity?: Rarity;
+  id?: string;
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

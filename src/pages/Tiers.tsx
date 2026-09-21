@@ -12,7 +12,7 @@ export default function Tiers() {
         <div className="tier-grid">
           {RARITY_ORDER.map((r, i) => (
             <div key={r}>
-              <HoloCard type="seen" ordinal={1200 + i} takenAt={at} zone="D" zoneName="웨이브스탠드" rarity={r} interactive sweep />
+              <HoloCard id={r} type="seen" ordinal={1200 + i} takenAt={at} zone="D" zoneName="웨이브스탠드" rarity={r} interactive sweep />
               <div className="tier-label">{RARITY_META[r].symbol} {RARITY_META[r].label} · {oddsPercent(r)}%<small>{RARITY_META[r].en} · {RARITY_META[r].how}</small></div>
             </div>
           ))}

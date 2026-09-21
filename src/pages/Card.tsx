@@ -64,7 +64,7 @@ export default function Card({ status, focus }: { status: Status; focus?: string
             <div className={`reveal${revealed ? " on" : ""}`}>
               <div className="reveal-back"><span style={{ fontFamily: "Jua", color: "#fff", fontSize: "1.4rem" }}>뽑는 중…</span></div>
               <div className="reveal-front">
-            <HoloCard type={sel.type} ordinal={sel.ordinal ?? 0} takenAt={sel.takenAt} zone={sel.zone} zoneName={status.zones.find((z) => z.code === sel.zone)?.name ?? ""} photoDataUrl={sel.photoDataUrl} rarity={sel.rarity ?? "common"} interactive />
+            <HoloCard id={sel.id} type={sel.type} ordinal={sel.ordinal ?? 0} takenAt={sel.takenAt} zone={sel.zone} zoneName={status.zones.find((z) => z.code === sel.zone)?.name ?? ""} photoDataUrl={sel.photoDataUrl} rarity={sel.rarity ?? "common"} interactive />
               </div>
             </div>
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={revealed ? { opacity: 1, scale: 1 } : {}} transition={{ type: "spring", stiffness: 300, damping: 18 }} style={{ textAlign: "center" }}>

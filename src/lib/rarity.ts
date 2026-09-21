@@ -48,21 +48,57 @@ export function oddsPercent(r: Rarity) {
   return p >= 10 ? p.toFixed(0) : p >= 1 ? p.toFixed(1) : p.toFixed(2);
 }
 
-/** 재미 스탯. 시각·순번에서 결정적으로 계산 (같은 카드는 항상 같은 값). */
-export function cardStats(ordinal: number, takenAt: string) {
-  const d = new Date(takenAt);
-  const seed = (ordinal * 9301 + d.getHours() * 49297 + d.getMinutes() * 233) % 233280;
-  const r = (n: number) => (seed * (n + 1)) % 100;
-  const length = (3.0 + (r(1) % 6) / 10).toFixed(1);
-  const power = 60 + (r(2) % 40);
-  const moves = [
-    ["수로 순찰", "천천히 한 바퀴 돌고 사라진다"],
-    ["무태 돌진", "먹잇감을 따라 순간 가속"],
-    ["잠수", "2시간 동안 아무도 못 본다"],
-    ["팬미팅", "인파가 몰리면 수면 위로 등장"],
-    ["출근길 등장", "아침 9시, 여객터미널 앞"],
-    ["야간 순항", "어두울수록 잘 보인다"],
-  ];
-  const m1 = moves[r(3) % moves.length], m2 = moves[(r(3) + 1 + (r(4) % (moves.length - 1))) % moves.length];
-  return { length, power, moves: [m1, m2] as [string, string][] };
+/** 문자열 해시 → 32bit */
+function hash(str: string) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+/** seed 기반 난수 (mulberry32) */
+function rng(seed: number) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** 기술 풀. 부캉이 소동에서 실제로 벌어진 일들. */
+export const MOVES: [string, string][] = [
+  ["수로 순찰", "천천히 한 바퀴 돌고 사라진다"],
+  ["무태 돌진", "먹잇감을 따라 순간 가속"],
+  ["잠수", "두 시간 동안 아무도 못 본다"],
+  ["야간 순항", "어두울수록 잘 보인다"],
+  ["팬미팅", "인파가 몰리면 수면 위로 등장"],
+  ["출근길 등장", "아침 아홉 시, 여객터미널 앞"],
+  ["고맙데이", "근처 사장님이 커피를 쏜다"],
+  ["풀매수", "핑크퐁 주가가 급등한다"],
+  ["3연승", "롯데가 그날 이긴다"],
+  ["상어맘 소집", "유모차 부대가 데크를 채운다"],
+  ["콜라보 제안", "돔구장에서 연락이 온다"],
+  ["굿즈화", "하루 만에 인형이 나온다"],
+  ["출산설", "새끼 낳았다는 소문이 돈다"],
+  ["당일치기", "서울에서 KTX를 타게 만든다"],
+  ["경비정 호출", "해경이 출동한다"],
+  ["유도 거부", "외해로 몰면 오히려 버틴다"],
+  ["매출 48%", "편의점 줄이 바깥까지 늘어난다"],
+  ["실검 점령", "하루 종일 검색어 1위"],
+  ["드론 금지", "항만 상공이 막혀 있다"],
+  ["지느러미 인증", "수면 위로 등지느러미만 슬쩍"],
+  ["3만 관중", "사흘 만에 3만 명을 불러 모은다"],
+  ["릴스 각", "찍는 순간 조회수가 터진다"],
+  ["부산 사투리", "'와 저기 봐라' 소리가 퍼진다"],
+  ["퇴근 저지", "다리 위 사람들이 안 흩어진다"],
+];
+
+/** 재미 스탯. 카드 id·순번·시각에서 결정적으로 계산 (같은 카드는 항상 같은 값). */
+export function cardStats(ordinal: number, takenAt: string, id = "") {
+  const r = rng(hash(`${id}|${ordinal}|${takenAt}`));
+  const length = (2.8 + r() * 0.9).toFixed(1);   // 2.8~3.7m
+  const power = 55 + Math.floor(r() * 45);        // 55~99
+  const a = Math.floor(r() * MOVES.length);
+  let b = Math.floor(r() * (MOVES.length - 1));
+  if (b >= a) b += 1;
+  return { length, power, moves: [MOVES[a], MOVES[b]] as [string, string][] };
 }

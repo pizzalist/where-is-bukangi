@@ -69,6 +69,10 @@ export default function Home({ status }: { status: Status }) {
           
         </div>
         <ZoneMap hot={hotZone} active={pick} onPick={(z) => setPick(pick === z ? null : z)} />
+        <div className="map-legend">
+          <span><i className="lg-hot" />마지막으로 목격이 확인된 구역</span>
+          <span><i className="lg-zone" />수로 구간 · 탭하면 그 구역 기록</span>
+        </div>
         <div className="zone-list">
           {ZONES.map((z) => (
             <div key={z.code} className={`zone-row${hotZone === z.code ? " hot" : ""}`}>
@@ -135,6 +139,33 @@ export default function Home({ status }: { status: Status }) {
             </a>
           ))}
         </div>
+        <div className="section">
+          <div className="section-head"><h2>찾아가기</h2></div>
+          <div style={{ display: "grid", gap: "0.5rem" }}>
+            <a className="notice" href="https://map.naver.com/p/search/%EB%B6%81%ED%95%AD%EC%B9%9C%EC%88%98%EA%B3%B5%EC%9B%90%20%EC%A3%BC%EC%B0%A8%EC%9E%A5" target="_blank" rel="noreferrer">
+              <div>
+                <div className="src">주차</div>
+                <div className="t">공원 부설주차장 (여객터미널 쪽)</div>
+                <div className="src">요금·잔여 면수는 지도에서 확인하세요. 주말에는 만차가 잦아요.</div>
+              </div>
+            </a>
+            <a className="notice" href="https://map.naver.com/p/search/%EB%B6%80%EC%82%B0%EC%97%AD" target="_blank" rel="noreferrer">
+              <div>
+                <div className="src">지하철</div>
+                <div className="t">1호선 부산역 · 중앙역에서 도보</div>
+                <div className="src">부산역 쪽이 오픈캐널·하버블럭가든과 가까워요.</div>
+              </div>
+            </a>
+            <div className="notice">
+              <div>
+                <div className="src">운영 시간</div>
+                <div className="t">05:00 ~ 24:00</div>
+                <div className="src">부산시설공단 운영. 통제 상황은 위 공지를 따르세요.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <p className="disclaimer">비공식 관람 정보입니다. 물가 접근 금지 등 해경·구청 안내를 따르세요. "확인 없음"은 "없음"이 아닙니다.</p>
       </section>
     </div>
