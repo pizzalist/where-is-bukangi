@@ -182,3 +182,39 @@ WebP는 iOS 14 이상 사파리를 포함해 거의 모든 브라우저가 인�
 - 읽기 요청을 맥미니로 보내기
 - Vercel·Netlify 무료 요금제에 트래픽 몰기 (대역폭 제한이 있어 터지면 과금되거나 막힌다)
 - 사진을 공개 버킷에 올리기
+
+## 7. 로컬에서 서버 돌리기
+
+```bash
+npm run build          # 프론트 빌드
+npm run seed           # 목 데이터 주입 (제보 9건, 관측 2건, 공지 2건)
+npm run server         # http://localhost:8787
+```
+
+데이터 위치는 `~/bukang`(환경변수 `BUKANG_DATA`로 변경). 사진은 `~/bukang/photos/연/월/일/`.
+
+### API
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/status` | 상황판 (타임라인·공지·마지막 목격). 15초 캐시 |
+| GET | `/api/hall` | 명예의 전당 (승인된 카드, 등급순) |
+| GET | `/photos/...` | 공개 사진 |
+| POST | `/api/submissions` | 제보. **서버가 등급과 순번을 정한다** |
+| GET | `/api/submissions/:id` | 카드 조회 |
+| GET | `/api/admin/queue` | 승인 대기 (Bearer 토큰) |
+| POST | `/api/admin/:id/approve\|reject` | 승인·반려 |
+| POST | `/api/admin/observation` | 현장 관측(`seen`/`miss`) 입력 |
+| POST | `/api/admin/notice` | 공지 추가 (`crit: true`면 출입통제로 최상단) |
+
+운영자 토큰은 환경변수 `ADMIN_TOKEN`(기본 `bukang-dev`). 배포 전 반드시 바꿀 것.
+
+### 등급을 서버가 정하는 이유
+클라이언트가 등급을 정하면 개발자 도구로 골드를 무한 발급할 수 있다.
+순번도 마찬가지다. 그래서 서버가 굴리고 결과만 돌려준다.
+서버가 없으면(아티팩트 데모 등) 앱이 자동으로 로컬 계산으로 떨어진다.
+
+### 남용 방지
+- IP당 시간 10건 제한 (메모리)
+- 사진 6MB 상한
+- 클라이언트 하루 3장 제한 (localStorage라 우회 가능. 서버 제한은 계정이 없어 IP 기준이 최선)

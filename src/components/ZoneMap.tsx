@@ -41,7 +41,6 @@ export default function ZoneMap({ hot, active, onPick }: { hot?: ZoneCode | null
       <text x="21" y="23" textAnchor="middle" className="label-sm">부산역</text>
       <text x="21" y="33" textAnchor="middle" className="landmark">1호선</text>
       <path d="M42 24 L52 24" className="walk" markerEnd="url(#arw)" />
-      <text x="47" y="18" textAnchor="middle" className="landmark">10분</text>
       <rect x="56" y="10" width="46" height="26" rx="5" className="plaza" />
       <text x="79" y="22" textAnchor="middle" className="label-sm">하늘광장</text>
       <text x="79" y="32" textAnchor="middle" className="landmark">공원 입구</text>

@@ -4,9 +4,10 @@ import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
 import { addSubmission, uid, nextOrdinal, drawsLeft, useDraw, DAILY_LIMIT } from "../lib/store";
 import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
+import { postSubmission } from "../lib/api";
 import { ZONES, ZONE_BY_CODE, inPark, DEFAULT_ZONE } from "../lib/zones";
 import ZoneMap from "../components/ZoneMap";
-const ONE = `${import.meta.env.BASE_URL}bukang-one.webp`;
+const SMILE = `${import.meta.env.BASE_URL}bukang-smile.webp`;
 import CropBox from "../components/CropBox";
 
 function toLocalInput(d: Date) {
@@ -41,17 +42,23 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
 
   function reset() { setRaw(undefined); setPhoto(undefined); setAuto([]); if (fileRef.current) fileRef.current.value = ""; }
 
-  function draw() {
-    if (!photo) return;
+  const [sending, setSending] = useState(false);
+
+  async function draw() {
+    if (!photo || sending) return;
+    setSending(true);
     const iso = new Date(takenAt).toISOString();
+    const r = await postSubmission({ photo, takenAt: iso, zone: zone || undefined, lat: gps?.lat, lng: gps?.lng });
     const s: Submission = {
-      id: uid(), type: "seen", zone: zone || undefined, takenAt: iso, submittedAt: new Date().toISOString(),
+      id: r?.id ?? uid(), type: "seen", zone: zone || undefined, takenAt: iso, submittedAt: new Date().toISOString(),
       exifGps: gps, photoDataUrl: photo, status: "pending",
-      ordinal: nextOrdinal("seen", status.counters), rarity: rollRarity({ type: "seen", takenAt: iso }),
+      ordinal: r?.ordinal ?? nextOrdinal("seen", status.counters),
+      rarity: r?.rarity ?? rollRarity({ type: "seen", takenAt: iso }),
     };
     addSubmission(s);
     useDraw();
     setLeft(drawsLeft());
+    setSending(false);
     onDone(s);
   }
 
@@ -59,7 +66,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
     <div className="page">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ display: "grid", gap: "1rem", paddingTop: "1.6rem" }}>
         <div style={{ textAlign: "center" }}>
-          <img src={ONE} alt="" width={photo ? 72 : 110} height={photo ? 72 : 110} />
+          <img src={SMILE} alt="" width={photo ? 72 : 110} height={photo ? 72 : 110} />
           <h1 style={{ fontSize: "1.8rem", margin: "0.4rem 0 0.25rem" }}>{photo ? "언제, 어디서 봤어요?" : "사진 한 장이면 끝"}</h1>
           <p style={{ color: "var(--ink-2)", margin: 0, fontSize: "0.95rem" }}>
             {photo ? "사진에서 읽은 값이에요. 다르면 바꿔주세요." : "부캉이 사진을 올리면 카드가 바로 뽑혀요."}
@@ -106,7 +113,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
                   ))}
                 </div>
               </div>
-              <button className="btn btn-big" onClick={draw} disabled={left <= 0}>{left > 0 ? "카드 뽑기" : "오늘 뽑기를 다 썼어요"}</button>
+              <button className="btn btn-big" onClick={draw} disabled={left <= 0 || sending}>{sending ? "보내는 중…" : left > 0 ? "카드 뽑기" : "오늘 뽑기를 다 썼어요"}</button>
               <p className="reportnote">이 카드는 <b>제보로도 들어가요.</b> 시각과 위치가 상황판 타임라인에 쌓여서 다음 사람이 "지금 있나"를 알 수 있어요.</p>
             </motion.div>
           )}
@@ -134,11 +141,10 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
         <details className="privacy">
           <summary>사진은 어떻게 쓰이나요?</summary>
           <ul>
-            <li>올린 사진의 <b>촬영 시각과 구역</b>이 상황판 타임라인에 올라가요.</li>
-            <li>사진 자체는 공개하지 않아요. 운영자가 확인용으로만 봐요.</li>
-            <li>사진과 기록은 <b>부캉이 기록으로 계속 보관</b>해요. 나중에 이 소동을 정리한 자료로 쓸 수 있어요.</li>
-            <li>이름·연락처 같은 개인정보는 받지 않아요.</li>
-            <li>사람이 크게 찍힌 사진은 상황판에 올리지 않고 반려해요.</li>
+            <li>올린 사진은 <b>운영자 확인 뒤 공개</b>돼요. 상황판 기록과 명예의 전당에 촬영 시각·구역과 함께 실려요.</li>
+            <li>사진과 기록은 <b>부캉이 기록으로 계속 보관</b>해요.</li>
+            <li>이름·연락처 같은 개인정보는 받지 않아요. 누가 올렸는지 저희도 몰라요.</li>
+            <li><b>사람이 알아볼 만큼 찍힌 사진은 공개하지 않고 반려</b>해요. 부캉이가 주인공인 사진만 올려주세요.</li>
           </ul>
         </details>
       </motion.div>

@@ -15,13 +15,13 @@ function deriveHero(s: Status, now: number): { state: HeroState; headline: strin
   const a = ageMinutes(s.last.at, now);
   if (s.last.kind === "miss") return { state: "miss", headline: `최근 관측 미목격 · ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
   if (a > DECAY_MIN) return { state: "stale", headline: `미확인 · 마지막 확인 ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · 2시간 넘게 새 확인이 없어요`, ageMin: a };
-  return { state: "seen", headline: `마지막 확인 목격 ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.evidence ?? ""}`, ageMin: a };
+  return { state: "seen", headline: `마지막 확인 목격 ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""}`, ageMin: a };
 }
 
 const TIER_LABEL = { confirmed: "확인됨", est: "SNS 추정", auto: "미확인" } as const;
 const TIER_CLASS = { confirmed: "ok", est: "est", auto: "auto" } as const;
 
-export default function Home({ status, onDraw }: { status: Status; onDraw?: () => void }) {
+export default function Home({ status, onDraw, onHall }: { status: Status; onDraw?: () => void; onHall?: () => void }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
   const hero = useMemo(() => deriveHero(status, now), [status, now]);
@@ -103,7 +103,7 @@ export default function Home({ status, onDraw }: { status: Status; onDraw?: () =
       <section className="section">
         <div className="section-head">
           <h2>오늘의 기록</h2>
-          
+          <button className="more" onClick={onHall}>명예의 전당 ›</button>
         </div>
         <ul className="timeline">
           {status.timeline.map((e, i) => (
@@ -113,6 +113,7 @@ export default function Home({ status, onDraw }: { status: Status; onDraw?: () =
               initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
             >
               <span className="time">{fmtTime(e.at)}</span>
+              {e.photo ? <img className="tl-photo" src={e.photo} alt="" loading="lazy" /> : <span className="tl-nophoto" />}
               <span className="body">
                 {e.kind === "miss" ? "관측했지만 못 봄" : `${ZONE_BY_CODE[e.zone]?.name ?? e.zone}에서 목격`}
                 <small>{e.note}</small>

@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import type { Status, Submission } from "./lib/types";
-import { loadStatus } from "./lib/store";
+import { fetchStatus } from "./lib/api";
 const ONE = `${import.meta.env.BASE_URL}bukang-one.webp`;
 import Home from "./pages/Home";
 import Certify from "./pages/Certify";
 import Card from "./pages/Card";
 import Admin from "./pages/Admin";
 import Tiers from "./pages/Tiers";
+import Hall from "./pages/Hall";
 
-type Route = "home" | "certify" | "card" | "admin" | "tiers";
+type Route = "home" | "certify" | "card" | "admin" | "tiers" | "hall";
 
 function parseHash(): { route: Route; param?: string } {
   const h = location.hash.replace(/^#\/?/, "");
   const [r, p] = h.split("/");
-  if (r === "certify" || r === "card" || r === "admin" || r === "tiers") return { route: r, param: p };
+  if (r === "certify" || r === "card" || r === "admin" || r === "tiers" || r === "hall") return { route: r, param: p };
   return { route: "home" };
 }
 
@@ -37,7 +38,7 @@ export default function App() {
   const [focusCard, setFocusCard] = useState<string | null>(null);
 
   useEffect(() => {
-    const load = () => loadStatus().then(setStatus).catch(() => setErr("상황 정보를 불러오지 못했어요. 마지막 화면이 오래됐을 수 있어요."));
+    const load = () => fetchStatus().then(setStatus).catch(() => setErr("상황 정보를 불러오지 못했어요. 마지막 화면이 오래됐을 수 있어요."));
     load();
     const t = setInterval(load, 30000);
     const onHash = () => setNav(parseHash());
@@ -66,11 +67,12 @@ export default function App() {
 
       {err && <div className="page"><div className="alert warn" style={{ marginTop: "1rem" }}>{err}</div></div>}
       {!status && !err && <div className="page" style={{ paddingTop: "3rem", textAlign: "center", color: "var(--ink-3)" }}><img src={ONE} alt="" width={90} height={90} /><div>불러오는 중</div></div>}
-      {status && nav.route === "home" && <Home status={status} onDraw={() => go("certify")} />}
+      {status && nav.route === "home" && <Home status={status} onDraw={() => go("certify")} onHall={() => go("hall")} />}
       {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} onTiers={() => go("tiers")} />}
       {status && nav.route === "card" && <Card status={status} focus={nav.param ?? focusCard} onTiers={() => go("tiers")} />}
       {status && nav.route === "admin" && <Admin status={status} />}
       {status && nav.route === "tiers" && <Tiers onBack={() => go("certify")} />}
+      {status && nav.route === "hall" && <Hall onBack={() => go("home")} />}
 
       <nav className="nav">
         <div className="nav-inner nav-3">

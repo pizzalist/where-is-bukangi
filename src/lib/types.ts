@@ -10,6 +10,8 @@ export interface Event {
   zone: ZoneCode;
   tier: Tier;
   note?: string;
+  photo?: string | null;
+  ordinal?: number;
 }
 
 export interface Notice { src: string; title: string; url: string; crit?: boolean }
