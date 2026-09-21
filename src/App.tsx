@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Status, Submission } from "./lib/types";
 import { loadStatus } from "./lib/store";
-import Shark from "./components/Shark";
+const ONE = `${import.meta.env.BASE_URL}bukang-one.webp`;
 import Home from "./pages/Home";
 import Certify from "./pages/Certify";
 import Card from "./pages/Card";
@@ -52,7 +52,7 @@ export default function App() {
       <header className="topbar">
         <div className="topbar-inner">
           <a className="brand" href="#/" onClick={(e) => { e.preventDefault(); go("home"); }}>
-            <Shark size={40} swim={false} />
+            <img className="brand-logo" src={ONE} alt="" width={40} height={40} />
             <span>
               <div className="display">부캉이 지금 있나</div>
               <small>북항 친수공원 · 비공식</small>
@@ -65,7 +65,7 @@ export default function App() {
       </header>
 
       {err && <div className="page"><div className="alert warn" style={{ marginTop: "1rem" }}>{err}</div></div>}
-      {!status && !err && <div className="page" style={{ paddingTop: "3rem", textAlign: "center", color: "var(--ink-3)" }}><Shark size={90} /><div>불러오는 중</div></div>}
+      {!status && !err && <div className="page" style={{ paddingTop: "3rem", textAlign: "center", color: "var(--ink-3)" }}><img src={ONE} alt="" width={90} height={90} /><div>불러오는 중</div></div>}
       {status && nav.route === "home" && <Home status={status} onDraw={() => go("certify")} />}
       {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} onTiers={() => go("tiers")} />}
       {status && nav.route === "card" && <Card status={status} focus={nav.param ?? focusCard} onTiers={() => go("tiers")} />}

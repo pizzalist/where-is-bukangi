@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Status, Event, ZoneCode } from "../lib/types";
 import { ageMinutes, fmtAge, fmtTime, DECAY_MIN } from "../lib/store";
-import Shark from "../components/Shark";
+const TWO = `${import.meta.env.BASE_URL}bukang-two.webp`;
 import ZoneMap from "../components/ZoneMap";
 import { RARITY_ORDER, RARITY_META } from "../lib/rarity";
 import { ZONES, ZONE_BY_CODE, naverDirections, naverPlace, PARK } from "../lib/zones";
@@ -52,7 +52,7 @@ export default function Home({ status, onDraw }: { status: Status; onDraw?: () =
           {status.last && hero.state === "seen" && <span className="pill">{TIER_LABEL[status.last.tier]}</span>}
           <span className="pill">갱신 <span className="age">{fmtAge(ageMinutes(status.updatedAt, now))}</span></span>
         </div>
-        <Shark className="shark" size={150} />
+        <img className="shark" src={TWO} alt="" width={150} height={150} />
       </motion.section>
 
       <button className="cta" onClick={onDraw}>

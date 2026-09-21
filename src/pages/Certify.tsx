@@ -6,7 +6,7 @@ import { addSubmission, uid, nextOrdinal, drawsLeft, useDraw, DAILY_LIMIT } from
 import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
 import { ZONES, ZONE_BY_CODE, inPark, DEFAULT_ZONE } from "../lib/zones";
 import ZoneMap from "../components/ZoneMap";
-import Shark from "../components/Shark";
+const ONE = `${import.meta.env.BASE_URL}bukang-one.webp`;
 import CropBox from "../components/CropBox";
 
 function toLocalInput(d: Date) {
@@ -59,7 +59,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
     <div className="page">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ display: "grid", gap: "1rem", paddingTop: "1.6rem" }}>
         <div style={{ textAlign: "center" }}>
-          <Shark size={photo ? 72 : 110} />
+          <img src={ONE} alt="" width={photo ? 72 : 110} height={photo ? 72 : 110} />
           <h1 style={{ fontSize: "1.8rem", margin: "0.4rem 0 0.25rem" }}>{photo ? "언제, 어디서 봤어요?" : "사진 한 장이면 끝"}</h1>
           <p style={{ color: "var(--ink-2)", margin: 0, fontSize: "0.95rem" }}>
             {photo ? "사진에서 읽은 값이에요. 다르면 바꿔주세요." : "부캉이 사진을 올리면 카드가 바로 뽑혀요."}
@@ -131,7 +131,16 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
           </div>
         </div>
 
-        <p className="disclaimer">올린 사진과 기록은 부캉이 소식으로 사람들에게 공유돼요.</p>
+        <details className="privacy">
+          <summary>사진은 어떻게 쓰이나요?</summary>
+          <ul>
+            <li>올린 사진의 <b>촬영 시각과 구역</b>이 상황판 타임라인에 올라가요.</li>
+            <li>사진 자체는 공개하지 않아요. 운영자가 확인용으로만 봐요.</li>
+            <li>사진과 기록은 <b>부캉이 기록으로 계속 보관</b>해요. 나중에 이 소동을 정리한 자료로 쓸 수 있어요.</li>
+            <li>이름·연락처 같은 개인정보는 받지 않아요.</li>
+            <li>사람이 크게 찍힌 사진은 상황판에 올리지 않고 반려해요.</li>
+          </ul>
+        </details>
       </motion.div>
     </div>
   );
