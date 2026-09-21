@@ -608,3 +608,12 @@ input, select, textarea { font: inherit; }
 .hall-rainbow { border-color: #d875ff; } .hall-rainbow .hall-rank { background: linear-gradient(90deg,#ff5a78,#ffd750,#78ff8c,#5ae1ff,#828cff,#e66eff); color: #fff; }
 .hall-fullart .hall-rank, .hall-galaxy .hall-rank { background: linear-gradient(135deg,#2b2d6b,#0b5c8a); color: #fff; }
 @media (max-width: 380px) { .hall-grid { grid-template-columns: 1fr; } }
+
+.ai-row { margin-top: 0.35rem; font-size: 0.74rem; line-height: 1.35; border-radius: 8px; padding: 0.35rem 0.5rem; display: grid; gap: 0.1rem; }
+.ai-row b { font-size: 0.76rem; }
+.ai-row small { opacity: .8; }
+.ai-wait { background: var(--mute-soft); color: var(--ink-3); }
+.ai-pass { background: var(--ok-soft); color: var(--ok); }
+.ai-reject { background: var(--crit-soft); color: var(--crit); }
+.ai-unsure { background: var(--warn-soft); color: var(--warn); }
+.ai-err { background: var(--crit-soft); color: var(--crit); }

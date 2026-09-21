@@ -65,7 +65,7 @@ export default function Admin() {
           <button className="more" onClick={() => { setToken(""); setAuthed(false); setTok(""); }}>나가기</button>
         </div>
         <p style={{ color: "var(--ink-2)", marginTop: 0, fontSize: "0.88rem" }}>
-          승인하면 <b>오늘의 기록</b>과 <b>명예의 전당</b>에 바로 올라가요. 사람이 찍힌 사진은 반려해주세요.
+          AI가 1차로 거르고, 애매한 것만 여기 남아요. 승인하면 <b>오늘의 기록</b>과 <b>명예의 전당</b>에 바로 올라가요.
         </p>
         {err && <div className="alert warn">{err}</div>}
 
@@ -94,6 +94,7 @@ export default function Admin() {
                     촬영 <span className="mono">{fmtDate(it.takenAt)} {fmtTime(it.takenAt)}</span>
                     {it.lat ? " · GPS 있음" : " · GPS 없음"}
                   </div>
+                  <AiBadge it={it} />
                   <div className="q-actions">
                     <select value={zoneOf[it.id] ?? it.zone ?? ""} onChange={(e) => setZoneOf((z) => ({ ...z, [it.id]: e.target.value as ZoneCode }))}>
                       <option value="">구역 없음</option>
@@ -108,6 +109,22 @@ export default function Admin() {
           </AnimatePresence>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function AiBadge({ it }: { it: QueueItem }) {
+  if (!it.aiVerdict) return <div className="ai-row ai-wait">AI 심사 대기</div>;
+  if (it.aiVerdict === "error") return <div className="ai-row ai-err">AI 심사 실패 · 직접 판단해주세요</div>;
+  const label = it.aiVerdict === "unsure" ? "AI 판단 보류" : it.aiVerdict === "reject" ? "AI 반려 의견" : "AI 통과 의견";
+  return (
+    <div className={`ai-row ai-${it.aiVerdict}`}>
+      <b>{label}</b>
+      <span>
+        상어 {it.aiShark ? "O" : "X"} · 사람 {it.aiPerson ? "O" : "X"}
+        {it.aiConf != null && ` · 확신 ${Math.round(it.aiConf * 100)}%`}
+      </span>
+      {it.aiReason && <small>{it.aiReason}</small>}
     </div>
   );
 }

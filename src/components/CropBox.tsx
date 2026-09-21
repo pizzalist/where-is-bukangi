@@ -18,7 +18,7 @@ function encode(c: HTMLCanvasElement) {
   return c.toDataURL("image/jpeg", QUALITY);
 }
 
-export default function CropBox({ src, onDone, onCancel }: { src: string; onDone: (dataUrl: string) => void; onCancel: () => void }) {
+export default function CropBox({ src, onDone, onCancel }: { src: string; onDone: (full: string, thumb: string) => void; onCancel: () => void }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [nat, setNat] = useState({ w: 0, h: 0 });
@@ -66,7 +66,11 @@ export default function CropBox({ src, onDone, onCancel }: { src: string; onDone
     const ctx = c.getContext("2d")!;
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(imgRef.current, sx, sy, sw, sh, 0, 0, c.width, c.height);
-    onDone(encode(c));
+    // AI 1차 심사용 작은 썸네일 (384px). 비용·속도를 위해 따로 만든다.
+    const tc = document.createElement("canvas");
+    tc.width = 384; tc.height = Math.round(384 / ASPECT);
+    tc.getContext("2d")!.drawImage(c, 0, 0, tc.width, tc.height);
+    onDone(encode(c), tc.toDataURL("image/jpeg", 0.7));
   }
 
   return (

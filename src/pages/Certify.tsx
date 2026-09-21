@@ -19,6 +19,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
   const fileRef = useRef<HTMLInputElement>(null);
   const [raw, setRaw] = useState<string | undefined>();
   const [photo, setPhoto] = useState<string | undefined>();
+  const [thumb, setThumb] = useState<string | undefined>();
   const [takenAt, setTakenAt] = useState(toLocalInput(new Date()));
   const [zone, setZone] = useState<ZoneCode | "">(DEFAULT_ZONE);
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
@@ -40,7 +41,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
     setAuto(got);
   }
 
-  function reset() { setRaw(undefined); setPhoto(undefined); setAuto([]); if (fileRef.current) fileRef.current.value = ""; }
+  function reset() { setRaw(undefined); setPhoto(undefined); setThumb(undefined); setAuto([]); if (fileRef.current) fileRef.current.value = ""; }
 
   const [sending, setSending] = useState(false);
 
@@ -48,7 +49,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
     if (!photo || sending) return;
     setSending(true);
     const iso = new Date(takenAt).toISOString();
-    const r = await postSubmission({ photo, takenAt: iso, zone: zone || undefined, lat: gps?.lat, lng: gps?.lng });
+    const r = await postSubmission({ photo, thumb, takenAt: iso, zone: zone || undefined, lat: gps?.lat, lng: gps?.lng });
     const s: Submission = {
       id: r?.id ?? uid(), type: "seen", zone: zone || undefined, takenAt: iso, submittedAt: new Date().toISOString(),
       exifGps: gps, photoDataUrl: photo, status: "pending",
@@ -75,7 +76,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
         </div>
 
         {raw && !photo && (
-          <CropBox src={raw} onDone={(d) => setPhoto(d)} onCancel={reset} />
+          <CropBox src={raw} onDone={(d, t) => { setPhoto(d); setThumb(t); }} onCancel={reset} />
         )}
 
         {!(raw && !photo) && (

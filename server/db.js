@@ -19,9 +19,19 @@ CREATE TABLE IF NOT EXISTS submissions (
   submitted_at TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
   photo TEXT,
-  lat REAL, lng REAL
+  lat REAL, lng REAL,
+  thumb TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_sub_status ON submissions(status, taken_at DESC);
+
+-- AI 1차 심사 결과
+CREATE TABLE IF NOT EXISTS screening (
+  id TEXT PRIMARY KEY,
+  verdict TEXT NOT NULL,      -- pass | reject | unsure | error
+  shark INTEGER, person INTEGER, confidence REAL,
+  reason TEXT, engine TEXT, ms INTEGER,
+  created_at TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS observations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,3 +60,7 @@ export function nextOrdinal() {
 }
 
 export function photoPath(name) { return path.join(PHOTOS, name); }
+
+// 기존 DB에 thumb 컬럼이 없으면 추가
+try { db.prepare("SELECT thumb FROM submissions LIMIT 1").get(); }
+catch { db.exec("ALTER TABLE submissions ADD COLUMN thumb TEXT"); }

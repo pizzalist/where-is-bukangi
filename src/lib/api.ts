@@ -18,7 +18,7 @@ export async function fetchStatus(): Promise<Status> {
 export interface DrawResult { id: string; ordinal: number; rarity: Submission["rarity"]; photo?: string }
 
 /** 제보 전송. 서버가 등급과 순번을 정한다. 실패하면 null을 돌려주고 로컬로 처리한다. */
-export async function postSubmission(body: { photo: string; takenAt: string; zone?: string; lat?: number; lng?: number }): Promise<DrawResult | null> {
+export async function postSubmission(body: { photo: string; thumb?: string; takenAt: string; zone?: string; lat?: number; lng?: number }): Promise<DrawResult | null> {
   if (serverUp === false) return null;
   try {
     const r = await fetch("/api/submissions", {

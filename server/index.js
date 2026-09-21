@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { db, PHOTOS, photoPath, nextOrdinal } from "./db.js";
 import { roll, isRevival } from "./rarity.js";
+import { startScreener } from "./screener.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -141,7 +142,7 @@ const SIG = [
   { ext: "png",  test: (b) => b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
 ];
 const qLastSeen = db.prepare(`SELECT taken_at FROM submissions WHERE status='approved' ORDER BY taken_at DESC LIMIT 1`);
-const insSub = db.prepare(`INSERT INTO submissions (id, ordinal, rarity, zone, taken_at, submitted_at, status, photo, lat, lng) VALUES (?,?,?,?,?,?,'pending',?,?,?)`);
+const insSub = db.prepare(`INSERT INTO submissions (id, ordinal, rarity, zone, taken_at, submitted_at, status, photo, lat, lng, thumb) VALUES (?,?,?,?,?,?,'pending',?,?,?,?)`);
 const ZONE_CODES = new Set(ZONES.map((z) => z.code));
 
 app.post("/api/submissions",
@@ -151,7 +152,7 @@ app.post("/api/submissions",
   async (req, res) => {
     try { await acquire(); } catch { return res.status(503).json({ error: "지금 사람이 몰려요. 잠시 뒤 다시 시도해주세요." }); }
     try {
-      const { photo, takenAt, zone, lat, lng } = req.body || {};
+      const { photo, thumb, takenAt, zone, lat, lng } = req.body || {};
       if (typeof photo !== "string" || typeof takenAt !== "string") return res.status(400).json({ error: "사진과 시각이 필요해요." });
 
       const t = Date.parse(takenAt);
@@ -174,10 +175,21 @@ app.post("/api/submissions",
       const name = path.join(relDir, `${id}.${sig.ext}`);
       await fsp.writeFile(photoPath(name), buf);
 
+      // 심사용 썸네일 (있으면 저장. 없으면 원본으로 심사)
+      let thumbName = null;
+      const tm = typeof thumb === "string" && /^data:image\/(webp|jpeg|png);base64,([A-Za-z0-9+/=]+)$/.exec(thumb);
+      if (tm && tm[2].length * 0.75 < 400 * 1024) {
+        const tbuf = Buffer.from(tm[2], "base64");
+        if (SIG.find((s2) => s2.test(tbuf))) {
+          thumbName = path.join(relDir, `${id}.t.${tm[1] === "jpeg" ? "jpg" : tm[1]}`);
+          await fsp.writeFile(photoPath(thumbName), tbuf);
+        }
+      }
+
       const rarity = roll({ takenAt, revival: isRevival(qLastSeen.get()?.taken_at) });
       const ordinal = nextOrdinal();
       insSub.run(id, ordinal, rarity, zone || null, new Date(t).toISOString(), new Date().toISOString(), name,
-        Number.isFinite(lat) ? lat : null, Number.isFinite(lng) ? lng : null);
+        Number.isFinite(lat) ? lat : null, Number.isFinite(lng) ? lng : null, thumbName);
 
       res.json({ id, ordinal, rarity, photo: `/photos/${name}` });
     } catch (e) {
@@ -205,7 +217,11 @@ function auth(req, res, next) {
 }
 const adminGuard = [limiter({ windowMs: 15 * 60e3, max: 60, key: clientIp }), auth, express.json({ limit: "64kb" })];
 
-const qQueue = db.prepare(`SELECT id, ordinal, rarity, zone, taken_at AS takenAt, submitted_at AS submittedAt, photo, lat, lng FROM submissions WHERE status='pending' ORDER BY submitted_at DESC LIMIT 100`);
+const qQueue = db.prepare(`
+  SELECT s.id, s.ordinal, s.rarity, s.zone, s.taken_at AS takenAt, s.submitted_at AS submittedAt, s.photo, s.lat, s.lng,
+         c.verdict AS aiVerdict, c.shark AS aiShark, c.person AS aiPerson, c.confidence AS aiConf, c.reason AS aiReason
+  FROM submissions s LEFT JOIN screening c ON c.id = s.id
+  WHERE s.status='pending' ORDER BY s.submitted_at DESC LIMIT 100`);
 app.get("/api/admin/queue", limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), auth, (_req, res) => {
   res.set("Cache-Control", "no-store");
   res.json(qQueue.all().map((r) => ({ ...r, photo: r.photo ? `/photos/${r.photo}` : null })));
@@ -258,6 +274,8 @@ app.use((err, _req, res, _next) => {
   console.error("에러:", err?.message);
   res.status(500).json({ error: "서버 오류" });
 });
+
+startScreener(() => { cache.at = 0; hallCache.at = 0; });
 
 const server = app.listen(PORT, HOST, () =>
   console.log(`부캉이 서버 http://${HOST}:${PORT}  데이터=${PHOTOS}  정적서빙=${SERVE_STATIC ? "on" : "off"}`));

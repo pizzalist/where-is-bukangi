@@ -18,6 +18,8 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 export interface QueueItem {
   id: string; ordinal: number; rarity: Rarity; zone: ZoneCode | null;
   takenAt: string; submittedAt: string; photo: string | null; lat: number | null; lng: number | null;
+  aiVerdict?: "pass" | "reject" | "unsure" | "error" | null;
+  aiShark?: number | null; aiPerson?: number | null; aiConf?: number | null; aiReason?: string | null;
 }
 
 export const adminApi = {
