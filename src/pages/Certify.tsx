@@ -7,6 +7,7 @@ import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarit
 import { ZONES, ZONE_BY_CODE, inPark, DEFAULT_ZONE } from "../lib/zones";
 import ZoneMap from "../components/ZoneMap";
 import Shark from "../components/Shark";
+import CropBox from "../components/CropBox";
 
 function toLocalInput(d: Date) {
   const p = (n: number) => String(n).padStart(2, "0");
@@ -15,6 +16,7 @@ function toLocalInput(d: Date) {
 
 export default function Certify({ status, onDone, onTiers }: { status: Status; onDone: (s: Submission) => void; onTiers?: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const [raw, setRaw] = useState<string | undefined>();
   const [photo, setPhoto] = useState<string | undefined>();
   const [takenAt, setTakenAt] = useState(toLocalInput(new Date()));
   const [zone, setZone] = useState<ZoneCode | "">(DEFAULT_ZONE);
@@ -24,7 +26,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
 
   async function onFile(f: File) {
     const url = await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(f); });
-    setPhoto(url);
+    setRaw(url);
     const got: string[] = [];
     try {
       const [ex, g] = await Promise.all([exifr.parse(f, { pick: ["DateTimeOriginal"] }).catch(() => null), exifr.gps(f).catch(() => null)]);
@@ -36,6 +38,8 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
     } catch { /* 없으면 직접 고르기 */ }
     setAuto(got);
   }
+
+  function reset() { setRaw(undefined); setPhoto(undefined); setAuto([]); if (fileRef.current) fileRef.current.value = ""; }
 
   function draw() {
     if (!photo) return;
@@ -63,7 +67,12 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
           <div className="quota">오늘 <b>{left}</b>장 남음 <span>· 매일 {DAILY_LIMIT}장, 자정에 채워져요</span></div>
         </div>
 
-        <button className="pickbox" onClick={() => left > 0 && fileRef.current?.click()} disabled={left <= 0}>
+        {raw && !photo && (
+          <CropBox src={raw} onDone={(d) => setPhoto(d)} onCancel={reset} />
+        )}
+
+        {!(raw && !photo) && (
+        <button className="pickbox" onClick={() => { if (left > 0) { reset(); fileRef.current?.click(); } }} disabled={left <= 0}>
           {photo ? <img src={photo} alt="" /> : (
             <span className="pickbox-empty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 7h3l2-3h6l2 3h3v12H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
@@ -72,6 +81,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
           )}
           {photo && <span className="pickbox-change">바꾸기</span>}
         </button>
+        )}
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
 
         <AnimatePresence>
