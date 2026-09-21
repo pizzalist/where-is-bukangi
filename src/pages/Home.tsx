@@ -66,12 +66,12 @@ export default function Home({ status }: { status: Status }) {
       <section className="section">
         <div className="section-head">
           <h2>어느 구역에서</h2>
-          
         </div>
+        <a className="go go-wide" href={naverDirections()} target="_blank" rel="noreferrer">네이버 길찾기 · {PARK.name}</a>
         <ZoneMap hot={hotZone} active={pick} onPick={(z) => setPick(pick === z ? null : z)} />
         <div className="map-legend">
           <span><i className="lg-hot" />마지막으로 목격이 확인된 구역</span>
-          <span><i className="lg-zone" />수로 구간 · 탭하면 그 구역 기록</span>
+          <span><i className="lg-zone" />수로 구간 · 탭하면 기록</span><span><i className="lg-bw" />방파제</span>
         </div>
         <div className="zone-list">
           {ZONES.map((z) => (
@@ -84,7 +84,6 @@ export default function Home({ status }: { status: Status }) {
             </button>
           ))}
         </div>
-        <a className="go go-wide" href={naverDirections()} target="_blank" rel="noreferrer">네이버 길찾기 · {PARK.name}</a>
         <p className="zone-note">상어는 수로가 휜 구조 탓에 이 구간을 벗어나지 못하고 있어요. 구간 안 이동은 도보 몇 분이라 길찾기는 공원 한 곳으로만 안내해요.</p>
         <AnimatePresence>
           {pick && (

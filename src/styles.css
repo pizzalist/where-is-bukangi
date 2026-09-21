@@ -116,6 +116,12 @@ input, select, textarea { font: inherit; }
 .zone-map .bldg { fill: #e3dccb; }
 .zone-map .pier { fill: #d8d2c4; }
 .zone-map .green { fill: #d9ead0; }
+.zone-map .green2 { fill: #cfe4c2; }
+.zone-map .ship { fill: #f4f6f8; stroke: #9fb3c2; stroke-width: 1; }
+.zone-map .breakwater line { stroke: #8a8172; stroke-width: 4; stroke-linecap: round; }
+.zone-map .bridge line { stroke: #cfc6b2; stroke-width: 5; stroke-linecap: round; }
+.map-legend .lg-bw { background: #8a8172; height: 4px; border-radius: 2px; align-self: center; }
+.pm-def { margin-left: 0.4rem; font-size: 0.7rem; color: var(--ok); background: var(--ok-soft); padding: 0.1rem 0.45rem; border-radius: 999px; }
 .zone-map .station { fill: #f6d7d3; stroke: #e0a9a1; stroke-width: 1; }
 .zone-map .plaza { fill: #ece5d3; stroke: #d6cdb8; stroke-width: 1; }
 .zone-map .walk { stroke: #7b909e; stroke-width: 1.5; stroke-dasharray: 3 3; fill: none; }
@@ -247,6 +253,8 @@ input, select, textarea { font: inherit; }
 /* full-art layout */
 .holo-bleed { position: absolute; inset: 0; z-index: 0; background: linear-gradient(160deg, #5fcdf6, #0b5c8a); }
 .holo-bleed img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.holo-bleed .bleed-bg { position: absolute; inset: 0; filter: blur(14px) brightness(.7) saturate(1.2); transform: scale(1.15); }
+.holo-bleed .bleed-fg { position: absolute; left: 0; right: 0; top: 0; height: 68%; object-fit: contain; object-position: center 45%; }
 .holo-bleed .holo-photo-ph { height: 100%; }
 .layout-fullart .holo-frame { inset: 0; background: transparent; padding: 3.5cqw 3.5cqw 3cqw; text-shadow: 0 1px 2px rgba(0,0,0,.45); }
 .layout-fullart .holo-spacer { flex: 1; }
@@ -355,7 +363,8 @@ input, select, textarea { font: inherit; }
 .holo-galaxy .holo-photo .fx-artglitter { display: none; }
 
 /* ---- full art: 사진 유지 + 좁은 흰 광선만 screen (검은 영역 = 무변화) ---- */
-.holo-fullart .holo-bleed img { filter: brightness(.74) saturate(1.3) contrast(1.25); }
+.holo-fullart .holo-bleed .bleed-bg { filter: blur(14px) brightness(.55) saturate(1.3); }
+.holo-fullart .holo-bleed .bleed-fg { filter: brightness(.92) saturate(1.2) contrast(1.12); }
 .holo-fullart .holo-bleed .fx-art { display: block;
   background-image:
     linear-gradient(115deg, #000 38%, rgba(190,235,255,.9) 47%, #fff 50%, rgba(190,235,255,.9) 53%, #000 62%),
@@ -369,7 +378,8 @@ input, select, textarea { font: inherit; }
 .holo-fullart .holo-inner { background: linear-gradient(160deg, #e8eef5, #7fa8ca); }
 
 /* ---- rainbow rare: 사진 구조 유지 + 스펙트럼 색만 입히고 광택 띠 ---- */
-.holo-rainbow .holo-bleed img { filter: grayscale(.5) brightness(.76) contrast(1.35); }
+.holo-rainbow .holo-bleed .bleed-bg { filter: blur(14px) grayscale(.5) brightness(.5); }
+.holo-rainbow .holo-bleed .bleed-fg { filter: grayscale(.5) brightness(.85) contrast(1.3); }
 .holo-rainbow .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
   background-image: linear-gradient(115deg, #ff5a78 0%, #ffd750 17%, #78ff8c 34%, #5ae1ff 51%, #828cff 68%, #e66eff 85%, #ff5a78 100%);
   background-size: 200% 200%; background-position: var(--posx) var(--posy);
@@ -388,7 +398,8 @@ input, select, textarea { font: inherit; }
 .holo-rainbow .holo-panel { background: rgba(8,20,36,.6); }
 
 /* ---- secret gold: 세피아 사진 + 금색 입히고 금 광택 띠 ---- */
-.holo-gold .holo-bleed img { filter: sepia(1) saturate(2.6) brightness(.58) contrast(1.5); }
+.holo-gold .holo-bleed .bleed-bg { filter: blur(14px) sepia(1) saturate(2.4) brightness(.4); }
+.holo-gold .holo-bleed .bleed-fg { filter: sepia(1) saturate(2.6) brightness(.68) contrast(1.4); }
 .holo-gold .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
   background: linear-gradient(115deg, #8a6300, #ffd75e 35%, #fff3c4 50%, #ffd75e 65%, #8a6300);
   background-size: 200% 200%; background-position: var(--posx) var(--posy);

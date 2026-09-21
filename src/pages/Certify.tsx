@@ -4,7 +4,7 @@ import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
 import { addSubmission, uid, nextOrdinal } from "../lib/store";
 import { rollRarity, RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
-import { ZONES, ZONE_BY_CODE, inPark } from "../lib/zones";
+import { ZONES, ZONE_BY_CODE, inPark, DEFAULT_ZONE } from "../lib/zones";
 import ZoneMap from "../components/ZoneMap";
 import Shark from "../components/Shark";
 
@@ -17,7 +17,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
   const fileRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | undefined>();
   const [takenAt, setTakenAt] = useState(toLocalInput(new Date()));
-  const [zone, setZone] = useState<ZoneCode | "">("");
+  const [zone, setZone] = useState<ZoneCode | "">(DEFAULT_ZONE);
   const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null);
   const [auto, setAuto] = useState<string[]>([]);
 
@@ -81,7 +81,7 @@ export default function Certify({ status, onDone }: { status: Status; onDone: (s
               <div className="pickmap">
                 <div className="pm-head">
                   <span className="pl">본 곳</span>
-                  <b>{zone ? ZONE_BY_CODE[zone].full : "지도에서 골라주세요"}</b>
+                  <b>{zone ? ZONE_BY_CODE[zone].full : "지도에서 골라주세요"}</b>{zone === DEFAULT_ZONE && <small className="pm-def">처음 나타난 곳</small>}
                 </div>
                 <ZoneMap active={zone || null} onPick={(z) => setZone(z)} />
                 <div className="pm-chips">

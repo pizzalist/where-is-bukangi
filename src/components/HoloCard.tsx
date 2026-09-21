@@ -93,7 +93,8 @@ export default function HoloCard(p: HoloCardProps) {
       <div className="holo-inner">
         {meta.layout === "fullart" && (
           <div className="holo-bleed">
-            <img src={p.photoDataUrl ?? SAMPLE} alt="" draggable={false} />
+            <img className="bleed-bg" src={p.photoDataUrl ?? SAMPLE} alt="" draggable={false} />
+            <img className="bleed-fg" src={p.photoDataUrl ?? SAMPLE} alt="" draggable={false} />
             <div className="fx fx-art" /><div className="fx fx-artglitter" />
           </div>
         )}
