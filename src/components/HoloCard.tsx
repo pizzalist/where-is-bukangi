@@ -20,6 +20,8 @@ export interface HoloCardProps {
   fixed?: { mx: number; my: number };
   /** 손 안 댈 때 자동으로 천천히 도는 데모 */
   sweep?: boolean;
+  /** 카드 하단에 찍을 사이트 주소. 서버 렌더에서 넘겨준다 (기본은 접속 주소) */
+  site?: string;
 }
 
 /**
@@ -127,7 +129,7 @@ export default function HoloCard(p: HoloCardProps) {
             <div className="holo-flavor">{fmtDate(p.takenAt)} {fmtTime(p.takenAt)} 부산 북항 친수공원 인증.</div>
             <div className="holo-bottom">
               <span className="holo-rarity">{meta.symbol} {meta.label}</span>
-              <span className="holo-site mono">{p.ordinal.toLocaleString()} · {SITE_HOST}</span>
+              <span className="holo-site mono">{p.ordinal.toLocaleString()} · {p.site || SITE_HOST}</span>
             </div>
           </div>
         </div>

@@ -1,23 +1,35 @@
-# ~/.cloudflared/config.yml
-# 터널이 노출하는 경로를 최소로 제한한다. 이 파일에 없는 건 밖에서 못 본다.
-tunnel: CHANGE_ME_TUNNEL_ID
-credentials-file: /Users/CHANGE_ME/.cloudflared/CHANGE_ME_TUNNEL_ID.json
+# 부캉이 터널. 밖으로 내보내는 경로를 최소로 제한한다. 여기에 없는 건 밖에서 못 본다.
+tunnel: 851dc359-a40b-41fe-a094-8d5e927644ad
+credentials-file: /Users/teamlab/.cloudflared/851dc359-a40b-41fe-a094-8d5e927644ad.json
+protocol: http2          # 집 회선에서 QUIC(UDP 7844)이 막혀 있어 http2로 고정
 
 ingress:
-  # 제보 API
-  - hostname: api.CHANGE_ME.kr
+  # ---- 공개 API (api.bukangi.com) ----
+  - hostname: api.bukangi.com
     path: ^/api/(status|hall|submissions)
     service: http://127.0.0.1:8787
-  # 공개 사진
-  - hostname: api.CHANGE_ME.kr
+  - hostname: api.bukangi.com
     path: ^/photos/
     service: http://127.0.0.1:8787
+  # 카드 저장용 PNG (서버가 그린다)
+  - hostname: api.bukangi.com
+    path: ^/api/cards/
+    service: http://127.0.0.1:8787
   # 디스코드 알림의 공개/반려 서명 링크
-  - hostname: api.CHANGE_ME.kr
+  - hostname: api.bukangi.com
     path: ^/r/
     service: http://127.0.0.1:8787
-  # 운영자 API — Cloudflare Access로 한 번 더 막는 걸 권장
-  - hostname: admin.CHANGE_ME.kr
+  - hostname: api.bukangi.com
+    path: ^/healthz$
     service: http://127.0.0.1:8787
-  # 그 외 전부 차단
+  # api 호스트의 나머지 경로는 차단 (운영자 API가 여기로 새지 않게)
+  - hostname: api.bukangi.com
+    service: http_status:404
+
+  # ---- 운영자 (admin.bukangi.com) ----
+  # Zero Trust > Access로 이메일 인증을 한 겹 더 씌우는 걸 권장
+  - hostname: admin.bukangi.com
+    service: http://127.0.0.1:8787
+
+  # ---- 그 외 전부 차단 ----
   - service: http_status:404

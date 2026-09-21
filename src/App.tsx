@@ -8,13 +8,14 @@ import Card from "./pages/Card";
 import Admin from "./pages/Admin";
 import Tiers from "./pages/Tiers";
 import Hall from "./pages/Hall";
+import Shot from "./pages/Shot";
 
-type Route = "home" | "certify" | "card" | "admin" | "tiers" | "hall";
+type Route = "home" | "certify" | "card" | "admin" | "tiers" | "hall" | "shot";
 
 function parseHash(): { route: Route; param?: string } {
   const h = location.hash.replace(/^#\/?/, "");
   const [r, p] = h.split("/");
-  if (r === "certify" || r === "card" || r === "admin" || r === "tiers" || r === "hall") return { route: r, param: p };
+  if (r === "certify" || r === "card" || r === "admin" || r === "tiers" || r === "hall" || r === "shot") return { route: r, param: p };
   return { route: "home" };
 }
 
@@ -47,6 +48,9 @@ export default function App() {
   }, []);
 
   function onCertified(s: Submission) { setFocusCard(s.id); go("card", s.id); }
+
+  // 카드 PNG 렌더용 화면: 카드 하나만 (서버의 헤드리스 브라우저가 연다)
+  if (nav.route === "shot") return <Shot id={nav.param} />;
 
   return (
     <div className="app">

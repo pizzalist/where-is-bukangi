@@ -632,3 +632,10 @@ input, select, textarea { font: inherit; }
 .statbar span { font-size: 0.68rem; color: var(--ink-3); white-space: nowrap; }
 
 .demobar { background: var(--warn-soft); color: var(--warn); font-size: 0.82rem; text-align: center; padding: 0.55rem 1rem; }
+
+/* ---- 카드 PNG 렌더 모드 (서버의 헤드리스 브라우저가 #/shot/<id> 로 연다) ---- */
+html.shot, html.shot body { background: transparent !important; overflow: visible; }
+html.shot #root { display: block; }
+.shot-wrap { width: 420px; padding: 30px 36px 44px; box-sizing: content-box; }
+.shot-wrap .holo { width: 420px; max-width: none; }
+.shot-wrap .holo-inner { transform: none !important; }   /* 기울이지 않고 반사광 위치만 고정 */

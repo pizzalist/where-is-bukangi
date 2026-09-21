@@ -42,3 +42,9 @@ export interface HallItem { id: string; ordinal: number; rarity: NonNullable<Sub
 export async function fetchHall(): Promise<HallItem[]> {
   try { const r = await fetch(`${API_BASE}/api/hall`); return r.ok ? await r.json() : []; } catch { return []; }
 }
+
+export interface CardInfo { id: string; ordinal: number; rarity: NonNullable<Submission["rarity"]>; zone?: string | null; zoneName?: string; takenAt: string; status: Submission["status"]; photo?: string | null }
+/** 공유 링크로 들어온 카드. 내 기기에 없으면 서버에서 가져온다. */
+export async function fetchCard(id: string): Promise<CardInfo | null> {
+  try { const r = await fetch(`${API_BASE}/api/submissions/${encodeURIComponent(id)}`); return r.ok ? await r.json() : null; } catch { return null; }
+}

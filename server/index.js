@@ -8,6 +8,7 @@ import { db, PHOTOS, photoPath, nextOrdinal } from "./db.js";
 import { roll, isRevival } from "./rarity.js";
 import { startScreener } from "./screener.js";
 import { verify as verifyAction, enabled as notifyEnabled, notifyText } from "./notify.js";
+import { cardPng, cardKey, cardStats } from "./cards.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -45,7 +46,7 @@ app.use((_req, res, next) => {
 /* ---------- CORS (화면이 Pages 같은 다른 주소에 있을 때) ----------
    공개 읽기(/api/status, /api/hall, /api/submissions/:id, /photos)는 누구나.
    제보·운영자 API는 SITE_URL(+ALLOWED_ORIGINS)에서 온 화면만. 쿠키를 안 쓰니 토큰 탈취 경로는 없다 */
-const PUBLIC_READ = /^\/(api\/(status|hall)|api\/submissions\/[^/]+|photos\/)/;
+const PUBLIC_READ = /^\/(api\/(status|hall)|api\/submissions\/[^/]+|api\/cards\/[^/]+|photos\/)/;
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (!origin) return next();                                   // 같은 주소에서 온 요청은 CORS 무관
@@ -269,6 +270,25 @@ app.get("/api/submissions/:id", limiter({ windowMs: 60e3, max: 60, key: clientIp
   res.json({ ...r, photo: photoUrl(r.photo) });
 });
 
+/* ---------- 카드 PNG (저장·공유용). 화면의 홀로 카드를 서버가 그대로 찍는다 ---------- */
+const qCardRow = db.prepare(`SELECT id, ordinal, rarity, zone, taken_at, photo FROM submissions WHERE id=?`);
+const ZONE_NAME = Object.fromEntries(ZONES.map((z) => [z.code, z.name]));
+app.get(/^\/api\/cards\/([A-Za-z0-9_-]{6,32})\.png$/, limiter({ windowMs: 15 * 60e3, max: 90, key: clientIp }), async (req, res) => {
+  const r = qCardRow.get(req.params[0]);
+  if (!r) return res.status(404).json({ error: "없는 카드예요." });
+  if (!SERVE_STATIC) return res.status(503).json({ error: "이 서버는 카드 이미지를 만들 수 없어요 (SERVE_STATIC=0)." });
+  try {
+    const file = await cardPng(r, r.zone ? ZONE_NAME[r.zone] || "" : "", `http://127.0.0.1:${PORT}`);
+    res.set("Cache-Control", "public, max-age=300, s-maxage=300");
+    res.set("ETag", `"${cardKey(r)}"`);
+    res.type("png").sendFile(file);
+  } catch (e) {
+    if (e.message === "BUSY") return res.status(503).json({ error: "지금 카드를 만드는 요청이 많아요. 잠시 뒤 다시 눌러주세요." });
+    console.error("[카드] 실패:", e.message);
+    res.status(500).json({ error: "카드 이미지를 만들지 못했어요. 잠시 뒤 다시 눌러주세요." });
+  }
+});
+
 /* ---------- 운영자 ---------- */
 const TOKEN_BUF = Buffer.from(`Bearer ${ADMIN_TOKEN}`);
 function auth(req, res, next) {
@@ -364,7 +384,7 @@ app.post("/r/:id/:action/:sig", actionLimiter, (req, res) => {
 });
 
 /* ---------- 상태 점검 ---------- */
-app.get("/healthz", (_req, res) => res.json({ ok: true, uploads: running, queued: waiting.length }));
+app.get("/healthz", (_req, res) => res.json({ ok: true, uploads: running, queued: waiting.length, cards: cardStats() }));
 
 /* ---------- 정적 (개발용) ---------- */
 if (SERVE_STATIC && fs.existsSync(DIST)) {
