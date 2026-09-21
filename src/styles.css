@@ -364,58 +364,77 @@ input, select, textarea { font: inherit; }
 }
 .holo-galaxy .holo-photo .fx-artglitter { display: none; }
 
-/* ---- full art: 사진 유지 + 좁은 흰 광선만 screen (검은 영역 = 무변화) ---- */
-.holo-fullart .holo-bleed img { filter: brightness(.8) saturate(1.25) contrast(1.18); }
+/* ================= 풀아트 계열 공통 =================
+   참고: 실제 TCG 풀아트·레인보우는 "테두리가 있고, 아트는 보인다".
+   그래서 (1) 프레임을 살리고 (2) 색은 overlay/soft-light로 얹어
+   사진의 명암을 죽이지 않는다. multiply·color는 피사체를 지워버린다. */
+.layout-fullart .holo-inner { padding: 0; }
+.layout-fullart .holo-bleed { inset: 3cqw; border-radius: 3cqw; overflow: hidden; }
+.layout-fullart .holo-frame { inset: 0; padding: 4.5cqw 4.5cqw 4cqw; }
+/* 안쪽 테두리 (뮤츠 카드의 금속 프레임 느낌) */
+.layout-fullart .holo-inner::after {
+  content: ""; position: absolute; inset: 3cqw; border-radius: 3cqw; z-index: 2; pointer-events: none;
+  border: 0.9cqw solid rgba(255,255,255,.85);
+  box-shadow: 0 0 0 0.5cqw rgba(0,0,0,.25) inset, 0 0 3cqw rgba(0,0,0,.35) inset;
+}
+.layout-fullart .holo-name, .layout-fullart .holo-no { text-shadow: 0 0.4cqw 0.8cqw rgba(0,0,0,.75), 0 0 0.3cqw rgba(0,0,0,.6); }
+.layout-fullart .holo-top { background: none; margin: 0; padding: 0 0 1cqw; }
+
+/* ---- full art: 사진 그대로 + 대각 광선 ---- */
+.holo-fullart .holo-bleed img { filter: saturate(1.15) contrast(1.1); }
 .holo-fullart .holo-bleed .fx-art { display: block;
   background-image:
-    linear-gradient(115deg, #000 38%, rgba(190,235,255,.9) 47%, #fff 50%, rgba(190,235,255,.9) 53%, #000 62%),
-    repeating-linear-gradient(115deg, #000 0 5px, rgba(150,210,255,.35) 5px 6px, #000 6px 12px);
-  background-size: 320% 320%, 100% 100%;
+    linear-gradient(115deg, transparent 36%, rgba(255,255,255,.85) 47%, rgba(200,240,255,.95) 50%, rgba(255,255,255,.85) 53%, transparent 64%),
+    repeating-linear-gradient(115deg, transparent 0 5px, rgba(190,230,255,.28) 5px 6px, transparent 6px 12px);
+  background-size: 220% 220%, 100% 100%;
   background-position: var(--posx) var(--posy), 0 0;
-  background-blend-mode: screen;
-  mix-blend-mode: screen; opacity: calc(.45 + var(--hyp) * .45);
+  mix-blend-mode: overlay; opacity: calc(.75 + var(--hyp) * .25);
 }
-.holo-fullart .holo-bleed .fx-artglitter { display: block; background-size: 45% 45%, 26% 26%; mix-blend-mode: screen; filter: brightness(1.8); opacity: calc(.3 + var(--hyp) * .4); }
-.holo-fullart .holo-inner { background: linear-gradient(160deg, #e8eef5, #7fa8ca); }
+.holo-fullart .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(115deg, rgba(10,40,70,.5), rgba(120,220,255,.35) 42%, rgba(255,255,255,.5) 50%, rgba(120,220,255,.35) 58%, rgba(10,40,70,.5));
+  background-size: 150% 150%; background-position: var(--posx) var(--posy); mix-blend-mode: overlay; opacity: .85; }
+.holo-fullart .holo-bleed .fx-artglitter { display: block; background-size: 45% 45%, 26% 26%; mix-blend-mode: screen; filter: brightness(1.7); opacity: calc(.3 + var(--hyp) * .35); }
+.holo-fullart .holo-inner { background: linear-gradient(160deg, #cfe0ee, #6f9ec2 50%, #e8f1f7); }
+.holo-fullart .holo-inner::after { border-color: rgba(230,245,255,.9); }
 
-/* ---- rainbow rare: 사진 구조 유지 + 스펙트럼 색만 입히고 광택 띠 ---- */
-.holo-rainbow .holo-bleed img { filter: grayscale(.5) brightness(.8) contrast(1.3); }
+/* ---- rainbow rare: 무지개는 얹되 명암은 살린다 ---- */
+.holo-rainbow .holo-bleed img { filter: saturate(.5) contrast(1.3) brightness(1.05); }
 .holo-rainbow .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background-image: linear-gradient(115deg, #ff5a78 0%, #ffd750 17%, #78ff8c 34%, #5ae1ff 51%, #828cff 68%, #e66eff 85%, #ff5a78 100%);
-  background-size: 200% 200%; background-position: var(--posx) var(--posy);
-  mix-blend-mode: color; opacity: .88; }
+  background-image: linear-gradient(115deg, #ff7aa2 0%, #ffe066 16%, #8cff9e 33%, #6ee7ff 50%, #9aa6ff 67%, #e79aff 84%, #ff7aa2 100%);
+  background-size: 125% 125%; background-position: var(--posx) var(--posy);
+  mix-blend-mode: overlay; opacity: .8; }
 .holo-rainbow .holo-bleed .fx-art { display: block;
   background-image:
-    linear-gradient(115deg, #000 35%, rgba(255,255,255,.75) 47%, #fff 50%, rgba(255,255,255,.75) 53%, #000 65%),
-    repeating-linear-gradient(115deg, #000 0 6px, rgba(255,255,255,.3) 6px 7px, #000 7px 14px);
+    linear-gradient(115deg, transparent 34%, rgba(255,255,255,.9) 47%, #fff 50%, rgba(255,255,255,.9) 53%, transparent 66%),
+    repeating-linear-gradient(115deg, transparent 0 6px, rgba(255,255,255,.3) 6px 7px, transparent 7px 14px);
   background-size: 280% 280%, 100% 100%;
   background-position: var(--posx) var(--posy), 0 0;
-  background-blend-mode: screen;
-  mix-blend-mode: screen; opacity: calc(.5 + var(--hyp) * .5);
+  mix-blend-mode: soft-light; opacity: calc(.55 + var(--hyp) * .45);
 }
-.holo-rainbow .holo-bleed .fx-artglitter { display: block; background-size: 41% 41%, 23% 23%; mix-blend-mode: screen; filter: brightness(2.2) contrast(1.4); opacity: calc(.5 + var(--hyp) * .5); }
-.holo-rainbow .holo-inner { background: conic-gradient(from 200deg, #ff5a78, #ffd750, #78ff8c, #5ae1ff, #828cff, #e66eff, #ff5a78); }
-.holo-rainbow .holo-panel { background: rgba(8,20,36,.6); }
+.holo-rainbow .holo-bleed .fx-artglitter { display: block; background-size: 41% 41%, 23% 23%; mix-blend-mode: screen; filter: brightness(2) contrast(1.3); opacity: calc(.4 + var(--hyp) * .45); }
+.holo-rainbow .holo-inner { background: conic-gradient(from 200deg, #ff7aa2, #ffe066, #8cff9e, #6ee7ff, #9aa6ff, #e79aff, #ff7aa2); }
+.holo-rainbow .holo-inner::after { border-color: rgba(255,255,255,.9); }
+.holo-rainbow .holo-panel { background: rgba(10,16,34,.62); }
 
-/* ---- secret gold: 세피아 사진 + 금색 입히고 금 광택 띠 ---- */
-.holo-gold .holo-bleed img { filter: sepia(1) saturate(2.6) brightness(.62) contrast(1.45); }
+/* ---- secret gold: 금은 테두리·광택에만. 사진은 살짝만 금기 ---- */
+.holo-gold .holo-bleed img { filter: sepia(.6) saturate(1.9) contrast(1.35) brightness(.92); }
 .holo-gold .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: linear-gradient(115deg, #8a6300, #ffd75e 35%, #fff3c4 50%, #ffd75e 65%, #8a6300);
-  background-size: 200% 200%; background-position: var(--posx) var(--posy);
-  mix-blend-mode: color; opacity: .9; }
+  background: linear-gradient(115deg, rgba(74,50,0,.85) 0%, rgba(255,214,90,.55) 32%, rgba(255,252,225,.75) 48%, rgba(255,214,90,.55) 64%, rgba(74,50,0,.85) 100%);
+  background-size: 150% 150%; background-position: var(--posx) var(--posy);
+  mix-blend-mode: overlay; opacity: .95; }
 .holo-gold .holo-bleed .fx-art { display: block;
   background-image:
-    linear-gradient(115deg, #000 30%, rgba(255,230,140,.85) 45%, #fffbe8 50%, rgba(255,230,140,.85) 55%, #000 70%),
-    repeating-linear-gradient(115deg, #000 0 4px, rgba(255,240,180,.4) 4px 5px, #000 5px 10px);
+    linear-gradient(115deg, transparent 32%, rgba(255,242,190,.9) 46%, #fffdf0 50%, rgba(255,242,190,.9) 54%, transparent 68%),
+    repeating-linear-gradient(115deg, transparent 0 4px, rgba(255,240,180,.3) 4px 5px, transparent 5px 10px);
   background-size: 300% 300%, 100% 100%;
   background-position: var(--posx) var(--posy), 0 0;
-  background-blend-mode: screen;
-  mix-blend-mode: screen; opacity: calc(.6 + var(--hyp) * .4);
+  mix-blend-mode: soft-light; opacity: calc(.65 + var(--hyp) * .35);
 }
-.holo-gold .holo-bleed .fx-artglitter { display: block; background-size: 43% 43%, 24% 24%; mix-blend-mode: screen; filter: brightness(2) sepia(1) saturate(6); opacity: calc(.45 + var(--hyp) * .45); }
-.holo-gold .holo-inner { background: linear-gradient(160deg, #f6d675, #8a6300 45%, #ffe9a8 60%, #6b4d00); }
+.holo-gold .holo-bleed .fx-artglitter { display: block; background-size: 43% 43%, 24% 24%; mix-blend-mode: screen; filter: brightness(1.9) sepia(1) saturate(5); opacity: calc(.45 + var(--hyp) * .4); }
+.holo-gold .holo-inner { background: linear-gradient(160deg, #ffe9a8, #a67c00 42%, #fff3c4 55%, #8a6300); }
+.holo-gold .holo-inner::after { border-color: rgba(255,236,170,.95); box-shadow: 0 0 0 0.5cqw rgba(90,60,0,.4) inset, 0 0 3cqw rgba(90,60,0,.45) inset; }
 .holo-gold .holo-frame { color: #fff; }
-.holo-gold .holo-panel { background: rgba(50,34,0,.62); border-color: rgba(255,225,140,.45); }
+.holo-gold .holo-panel { background: rgba(48,32,0,.66); border-color: rgba(255,230,150,.5); }
 .holo-gold .holo-rarity { background: linear-gradient(90deg, #ffe27a, #b8860b); color: #3a2a00; }
 
 /* active state */
