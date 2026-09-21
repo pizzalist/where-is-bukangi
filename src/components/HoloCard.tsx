@@ -3,6 +3,8 @@ import type { CertType, ZoneCode } from "../lib/types";
 import { RARITY_META, cardStats, type Rarity } from "../lib/rarity";
 import { fmtDate, fmtTime } from "../lib/store";
 
+const SAMPLE = `${import.meta.env.BASE_URL}sample.svg`;
+
 export interface HoloCardProps {
   type: CertType;
   ordinal: number;
@@ -82,7 +84,10 @@ export default function HoloCard(p: HoloCardProps) {
     <div ref={ref} className={`holo holo-${p.rarity} layout-${meta.layout}${active ? " active" : ""}`} style={style}>
       <div className="holo-inner">
         {meta.layout === "fullart" && (
-          <div className="holo-bleed">{p.photoDataUrl ? <img src={p.photoDataUrl} alt="" draggable={false} /> : <div className="holo-photo-ph"><SharkSil /></div>}</div>
+          <div className="holo-bleed">
+            <img src={p.photoDataUrl ?? SAMPLE} alt="" draggable={false} />
+            <div className="fx fx-art" /><div className="fx fx-artglitter" />
+          </div>
         )}
         <div className="holo-frame">
           <div className="holo-top">
@@ -91,7 +96,8 @@ export default function HoloCard(p: HoloCardProps) {
           </div>
           {meta.layout === "normal" && (
             <div className="holo-photo">
-              {p.photoDataUrl ? <img src={p.photoDataUrl} alt="" draggable={false} /> : <div className="holo-photo-ph"><SharkSil /></div>}
+              <img src={p.photoDataUrl ?? SAMPLE} alt="" draggable={false} />
+              <div className="fx fx-art" /><div className="fx fx-artglitter" />
               <span className="holo-stamp">부캉이 인증</span>
             </div>
           )}
@@ -117,16 +123,5 @@ export default function HoloCard(p: HoloCardProps) {
         <div className="fx fx-glare" />
       </div>
     </div>
-  );
-}
-
-function SharkSil() {
-  return (
-    <svg viewBox="0 0 200 124" width="70%" aria-hidden="true">
-      <path d="M150 62 L192 30 L182 62 L192 94 Z" fill="rgba(255,255,255,.55)" />
-      <path d="M20 66 C40 30, 110 22, 160 62 C110 100, 40 96, 20 66 Z" fill="rgba(255,255,255,.7)" />
-      <path d="M92 36 L112 6 L126 40 Z" fill="rgba(255,255,255,.55)" />
-      <circle cx="46" cy="58" r="6" fill="#0f2a3a" />
-    </svg>
   );
 }

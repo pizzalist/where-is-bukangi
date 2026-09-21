@@ -26,7 +26,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; }
+html, body { margin: 0; overflow-x: hidden; }
 body {
   background: var(--foam);
   color: var(--ink);
@@ -43,7 +43,8 @@ button { font: inherit; cursor: pointer; }
 input, select, textarea { font: inherit; }
 
 .app { min-height: 100dvh; display: flex; flex-direction: column; }
-.page { flex: 1; width: 100%; max-width: 32rem; margin: 0 auto; padding: 0 1rem calc(6rem + env(safe-area-inset-bottom, 0px)); }
+.page { flex: 1; width: 100%; max-width: 32rem; margin: 0 auto; padding: 0 1rem calc(6rem + env(safe-area-inset-bottom, 0px)); min-width: 0; }
+.page > *, .page .card, .tier-strip { min-width: 0; max-width: 100%; }
 
 /* top bar */
 .topbar {
@@ -190,7 +191,7 @@ input, select, textarea { font: inherit; }
 /* ===== Holo card (TCG style, 9 rarities) ===== */
 .holo {
   --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --posx: 50%; --posy: 50%; --hyp: 0;
-  --glitter: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 22 0 0 0 -15'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>");
+  --glitter: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 34 0 0 0 -26'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>");
   --galaxy: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='turbulence' baseFrequency='0.012' numOctaves='4' seed='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='2.2'/><feComponentTransfer><feFuncA type='linear' slope='1.4' intercept='-0.15'/></feComponentTransfer></filter><rect width='400' height='400' filter='url(%23n)'/></svg>");
   --rainbow: repeating-linear-gradient(0deg, rgb(255,119,115) 5%, rgb(255,237,95) 10%, rgb(168,255,95) 15%, rgb(131,255,247) 20%, rgb(120,148,255) 25%, rgb(216,117,255) 30%, rgb(255,119,115) 35%);
   --bands: repeating-linear-gradient(133deg, #0e152e 0%, hsl(180,10%,60%) 3.8%, hsl(180,29%,66%) 4.5%, hsl(180,10%,60%) 5.2%, #0e152e 10%, #0e152e 12%);
@@ -214,7 +215,7 @@ input, select, textarea { font: inherit; }
 .holo-name { font-family: "Jua", sans-serif; font-size: 1.15rem; }
 .holo-name small { font-size: 0.7rem; opacity: .7; margin-left: 4px; font-family: "Noto Sans KR", sans-serif; font-weight: 700; }
 .holo-no { font-size: 0.72rem; opacity: .7; font-weight: 600; }
-.holo-photo { position: relative; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; border: 3px solid var(--frame2); background: linear-gradient(160deg, #5fcdf6, #0b5c8a); z-index: 2; }
+.holo-photo { position: relative; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; contain: paint; border: 3px solid var(--frame2); background: linear-gradient(160deg, #5fcdf6, #0b5c8a); z-index: 2; }
 .holo-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .holo-photo-ph { width: 100%; height: 100%; display: grid; place-items: center; }
 .holo-stamp { position: absolute; right: 6px; top: 6px; font-family: "Jua", sans-serif; font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.92); color: #e5483a; border: 1.5px solid #e5483a; transform: rotate(-6deg); }
@@ -242,54 +243,50 @@ input, select, textarea { font: inherit; }
 .layout-fullart .holo-rarity { background: rgba(255,255,255,.2); }
 
 /* effect layers */
-.fx { position: absolute; inset: 0; pointer-events: none; border-radius: 18px; z-index: 3; opacity: 0; transition: opacity 250ms; will-change: background-position, opacity; }
+.fx { position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: 0; transition: opacity 250ms; will-change: background-position, opacity; }
 .fx-glare {
+  border-radius: 18px;
   background: radial-gradient(farthest-corner circle at var(--mx) var(--my), rgba(255,255,255,.8) 10%, rgba(255,255,255,.65) 20%, rgba(0,0,0,.5) 90%);
   mix-blend-mode: overlay; opacity: calc(var(--hyp) * .55 + .1);
 }
-.fx-shine {
+.fx-shine, .fx-glitter { border-radius: 18px; display: none; }
+/* 사진 영역 전용 레이어 (정확히 사진 상자 안에서만) */
+.holo-photo, .holo-bleed { isolation: isolate; }
+.holo-photo .fx-art, .holo-photo .fx-artglitter, .holo-bleed .fx-art, .holo-bleed .fx-artglitter { z-index: 2; display: none; }
+.holo-stamp { z-index: 3; }
+.fx-artglitter {
+  background-image: var(--glitter), var(--glitter);
+  background-size: 26% 26%, 15% 15%;
+  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) calc(100% - var(--posy));
+  mix-blend-mode: screen; filter: brightness(1.2);
+}
+.holo.active .fx-glare { opacity: calc(var(--hyp) * .7 + .15); }
+
+/* ---- common ---- */
+.holo-common .fx-glare { opacity: calc(var(--hyp) * .35 + .05); }
+
+/* ---- uncommon: 얇은 은선 프레임 ---- */
+.holo-uncommon .holo-inner { background: linear-gradient(160deg, #e6eef5, #b9d0e2 40%, #f4f8fb 55%, #a8c3d9); }
+
+/* ---- rare: 테두리 은박 (프레임 배경이 각도 따라 흐름) ---- */
+.holo-rare .holo-inner {
+  background-image: linear-gradient(115deg, #c9d6e3 0%, #f7fafd 30%, #9fc3e6 50%, #ffffff 62%, #b8cde0 100%);
+  background-size: 250% 250%; background-position: var(--posx) var(--posy);
+}
+
+/* ---- holo: 사진 창에 무지개 띠 (클래식) ---- */
+.holo-holo .holo-photo .fx-art { display: block;
   background-image: var(--rainbow), var(--bands), var(--vignette);
   background-size: 50% 50%, 200% 200%, 200% 200%;
   background-position: 0% var(--posy), var(--posx) var(--posy), var(--mx) var(--my);
   background-blend-mode: exclusion, hue, hard-light;
   filter: brightness(calc((var(--hyp) * .3) + .5)) contrast(2) saturate(1.5);
-  mix-blend-mode: color-dodge;
+  mix-blend-mode: color-dodge; opacity: calc(.45 + var(--hyp) * .45);
 }
-.fx-glitter {
-  background-image: var(--glitter), var(--glitter);
-  background-size: 22% 22%, 12% 12%;
-  background-position: var(--posx) var(--posy), calc(100% - var(--posx)) calc(100% - var(--posy));
-  mix-blend-mode: color-dodge; filter: brightness(1.4) contrast(1.2);
-}
-.holo.active .fx-glare { opacity: calc(var(--hyp) * .7 + .15); }
-
-/* ---- common: 반사광만 ---- */
-.holo-common .fx-shine, .holo-common .fx-glitter { display: none; }
-.holo-common .fx-glare { opacity: calc(var(--hyp) * .35 + .05); }
-
-/* ---- uncommon: 얇은 은선 ---- */
-.holo-uncommon .fx-shine, .holo-uncommon .fx-glitter { display: none; }
-.holo-uncommon .holo-inner { background: linear-gradient(160deg, #e6eef5, #b9d0e2 40%, #f4f8fb 55%, #a8c3d9); }
-
-/* ---- rare: 테두리 은박 (사진·본문 제외) ---- */
-.holo-rare .fx-glitter { display: none; }
-.holo-rare .fx-shine {
-  background-image: linear-gradient(115deg, transparent 25%, #dfe9f5 38%, #ffffff 46%, #9cc8ff 52%, #ffffff 58%, transparent 74%);
-  background-size: 300% 300%; background-position: var(--posx) var(--posy); background-blend-mode: normal;
-  filter: brightness(.95) contrast(1.2); mix-blend-mode: normal;
-  padding: 10px; -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: calc(.45 + var(--hyp) * .55);
-}
-
-/* ---- holo: 사진 창에 무지개 띠 ---- */
-.holo-holo .fx-shine, .holo-holo .fx-glitter { --art-top: 15.2%; --art-h: 38.5%; --art-x: 6%; --art-w: 88%;
-  -webkit-mask: linear-gradient(#000 0 0) var(--art-x) var(--art-top) / var(--art-w) var(--art-h) no-repeat; mask: linear-gradient(#000 0 0) var(--art-x) var(--art-top) / var(--art-w) var(--art-h) no-repeat; }
-.holo-holo .fx-shine { opacity: calc(.5 + var(--hyp) * .5); }
-.holo-holo .fx-glitter { opacity: calc(var(--hyp) * .6); }
+.holo-holo .holo-photo .fx-artglitter { display: block; opacity: calc(var(--hyp) * .5); }
 .holo-holo .holo-inner { background: linear-gradient(160deg, #d9e2ec, #98b5d3); }
 
 /* ---- reverse holo: 사진 빼고 전부 포일 ---- */
-.holo-reverse .fx-shine { display: none; }
 .holo-reverse .holo-frame { background: linear-gradient(160deg, #dbe6f0, #c3d3e2); overflow: hidden; }
 .holo-reverse .holo-frame::before {
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
@@ -302,67 +299,66 @@ input, select, textarea { font: inherit; }
 }
 .holo-reverse .holo-frame > * { position: relative; z-index: 1; }
 .holo-reverse .holo-moves div { background: rgba(255,255,255,.55); }
-.holo-reverse .fx-glitter { opacity: calc(var(--hyp) * .35); }
 
 /* ---- galaxy: 사진 창에 은하수 ---- */
-.holo-galaxy .fx-shine, .holo-galaxy .fx-glitter { --art-top: 15.2%; --art-h: 38.5%; --art-x: 6%; --art-w: 88%;
-  -webkit-mask: linear-gradient(#000 0 0) var(--art-x) var(--art-top) / var(--art-w) var(--art-h) no-repeat; mask: linear-gradient(#000 0 0) var(--art-x) var(--art-top) / var(--art-w) var(--art-h) no-repeat; }
-.holo-galaxy .fx-shine {
-  background-image: var(--galaxy), var(--rainbow), var(--vignette);
-  background-size: 180% 180%, 60% 60%, 200% 200%;
-  background-position: var(--posx) var(--posy), 0% var(--posy), var(--mx) var(--my);
-  background-blend-mode: screen, hue, hard-light;
-  filter: brightness(calc((var(--hyp) * .4) + .6)) contrast(1.8) saturate(1.6);
-  mix-blend-mode: color-dodge; opacity: calc(.55 + var(--hyp) * .45);
+.holo-galaxy .holo-photo .fx-art { display: block;
+  background-image: var(--galaxy), var(--rainbow);
+  background-size: 180% 180%, 60% 60%;
+  background-position: var(--posx) var(--posy), 0% var(--posy);
+  background-blend-mode: screen, hue;
+  filter: brightness(calc((var(--hyp) * .4) + .6)) contrast(1.6) saturate(1.5);
+  mix-blend-mode: color-dodge; opacity: calc(.45 + var(--hyp) * .45);
 }
-.holo-galaxy .fx-glitter { background-size: 10% 10%, 6% 6%; opacity: calc(.3 + var(--hyp) * .7); }
+.holo-galaxy .holo-photo .fx-artglitter { display: block; background-size: 12% 12%, 7% 7%; opacity: calc(.25 + var(--hyp) * .6); }
 .holo-galaxy .holo-inner { background: linear-gradient(160deg, #2b2d6b, #0b5c8a 60%, #1b1e4b); }
 .holo-galaxy .holo-frame { background: linear-gradient(180deg, #fff, #eef0ff); }
 
-/* ---- full art: 세로 결 포일, 사진 끝까지 ---- */
-.holo-fullart .fx-shine {
-  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 2px, rgba(255,255,255,.28) 2px 3px, rgba(255,255,255,0) 3px 7px), var(--rainbow), var(--vignette);
-  background-size: 100% 100%, 60% 60%, 200% 200%;
-  background-position: 0 0, var(--posx) var(--posy), var(--mx) var(--my);
-  background-blend-mode: overlay, hue, hard-light;
-  filter: brightness(calc((var(--hyp) * .3) + .6)) contrast(1.6) saturate(1.2);
-  mix-blend-mode: color-dodge; opacity: calc(.35 + var(--hyp) * .45);
+/* ---- full art: 사진 끝까지 + 세로 결 포일 (사진이 보여야 함) ---- */
+.holo-fullart .holo-bleed .fx-art { display: block;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0) 0 3px, rgba(255,255,255,.5) 3px 4px, rgba(255,255,255,0) 4px 9px),
+    linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, rgba(180,220,255,.5) 50%, rgba(255,255,255,.55) 55%, transparent 70%);
+  background-size: 100% 100%, 300% 300%;
+  background-position: 0 0, var(--posx) var(--posy);
+  mix-blend-mode: overlay; opacity: calc(.35 + var(--hyp) * .5);
 }
-.holo-fullart .fx-glitter { opacity: calc(var(--hyp) * .5); }
+.holo-fullart .holo-bleed .fx-artglitter { display: block; opacity: calc(var(--hyp) * .35); }
 .holo-fullart .holo-inner { background: linear-gradient(160deg, #e8eef5, #a9c4de); }
 
-/* ---- rainbow rare: 카드 전체 무지개 + 글리터 ---- */
-.holo-rainbow .fx-shine {
-  background-image: var(--rainbow), var(--bands), var(--vignette);
-  background-size: 200% 700%, 200% 200%, 200% 200%;
-  background-position: var(--posx) var(--posy), var(--posx) var(--posy), var(--mx) var(--my);
-  background-blend-mode: exclusion, hue, hard-light;
-  filter: brightness(calc((var(--hyp) * .35) + .55)) contrast(1.9) saturate(1.7);
-  mix-blend-mode: color-dodge; opacity: calc(.5 + var(--hyp) * .5);
+/* ---- rainbow rare: 사진 위 무지개 광택 + 글리터 ---- */
+.holo-rainbow .holo-bleed .fx-art { display: block;
+  background-image:
+    linear-gradient(115deg, #ff7773, #ffed5f, #a8ff5f, #83fff7, #7894ff, #d875ff, #ff7773),
+    radial-gradient(farthest-corner circle at var(--mx) var(--my), rgba(255,255,255,.9) 0%, rgba(255,255,255,.2) 35%, transparent 70%);
+  background-size: 400% 400%, 100% 100%;
+  background-position: var(--posx) var(--posy), 0 0;
+  background-blend-mode: normal, overlay;
+  mix-blend-mode: soft-light; opacity: calc(.7 + var(--hyp) * .3);
 }
-.holo-rainbow .fx-glitter { background-size: 14% 14%, 8% 8%; opacity: calc(.35 + var(--hyp) * .65); }
+.holo-rainbow .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,119,115,.35), rgba(255,237,95,.35), rgba(168,255,95,.35), rgba(131,255,247,.35), rgba(120,148,255,.35), rgba(216,117,255,.35));
+  background-size: 300% 300%; background-position: var(--posx) var(--posy); mix-blend-mode: screen; }
+.holo-rainbow .holo-bleed .fx-artglitter { display: block; background-size: 18% 18%, 10% 10%; opacity: calc(.25 + var(--hyp) * .5); }
 .holo-rainbow .holo-inner { background: conic-gradient(from 200deg, #ff7773, #ffed5f, #a8ff5f, #83fff7, #7894ff, #d875ff, #ff7773); }
-.holo-rainbow .holo-panel { background: rgba(8,20,36,.5); }
+.holo-rainbow .holo-panel { background: rgba(8,20,36,.55); }
 
-/* ---- secret gold: 금박 + 글리터 ---- */
-.holo-gold .fx-shine {
-  background-image: linear-gradient(115deg, #7a5a00 0%, #ffe27a 22%, #b8860b 38%, #fff2b0 52%, #c49a1a 66%, #ffe27a 80%, #7a5a00 100%), var(--vignette);
-  background-size: 300% 300%, 200% 200%;
-  background-position: var(--posx) var(--posy), var(--mx) var(--my);
-  background-blend-mode: normal, hard-light;
-  filter: brightness(calc((var(--hyp) * .3) + .7)) contrast(1.3) saturate(1.2);
-  mix-blend-mode: overlay; opacity: calc(.55 + var(--hyp) * .45);
+/* ---- secret gold: 금박 광택 + 금 글리터 ---- */
+.holo-gold .holo-bleed::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(160deg, rgba(120,90,0,.45), rgba(255,220,120,.2) 50%, rgba(120,90,0,.45)); mix-blend-mode: multiply; }
+.holo-gold .holo-bleed .fx-art { display: block;
+  background-image: linear-gradient(115deg, rgba(122,90,0,0) 0%, rgba(255,226,122,.9) 22%, rgba(184,134,11,.6) 38%, rgba(255,242,176,.95) 52%, rgba(196,154,26,.6) 66%, rgba(255,226,122,.9) 80%, rgba(122,90,0,0) 100%);
+  background-size: 300% 300%; background-position: var(--posx) var(--posy);
+  mix-blend-mode: overlay; opacity: calc(.6 + var(--hyp) * .4);
 }
-.holo-gold .fx-glitter { background-size: 16% 16%, 9% 9%; filter: brightness(1.6) sepia(1) saturate(3); opacity: calc(.3 + var(--hyp) * .7); }
+.holo-gold .holo-bleed .fx-artglitter { display: block; background-size: 20% 20%, 11% 11%; filter: brightness(1.4) sepia(1) saturate(4); mix-blend-mode: screen; opacity: calc(.25 + var(--hyp) * .5); }
 .holo-gold .holo-inner { background: linear-gradient(160deg, #f6d675, #a67c00 45%, #ffe9a8 60%, #8a6300); }
-.holo-gold .holo-bleed::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(120,90,0,.35), rgba(255,220,120,.15)); mix-blend-mode: multiply; }
 .holo-gold .holo-frame { color: #fff; }
 .holo-gold .holo-panel { background: rgba(60,40,0,.62); }
 .holo-gold .holo-rarity { background: linear-gradient(90deg, #ffe27a, #b8860b); color: #3a2a00; }
 
 /* active state */
-.holo.active .fx-shine, .holo.active .fx-glitter { transition: opacity 120ms; }
-.holo:not(.active) .fx-shine, .holo:not(.active) .fx-glitter { opacity: 0 !important; }
+.holo.active .fx { transition: opacity 120ms; }
+.holo:not(.active) .fx-art, .holo:not(.active) .fx-artglitter { opacity: 0 !important; }
 .holo:not(.active) .fx-glare { opacity: .08 !important; }
 
 .tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
