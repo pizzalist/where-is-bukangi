@@ -1,0 +1,19 @@
+# ~/.cloudflared/config.yml
+# 터널이 노출하는 경로를 최소로 제한한다. 이 파일에 없는 건 밖에서 못 본다.
+tunnel: CHANGE_ME_TUNNEL_ID
+credentials-file: /Users/CHANGE_ME/.cloudflared/CHANGE_ME_TUNNEL_ID.json
+
+ingress:
+  # 제보 API
+  - hostname: api.CHANGE_ME.kr
+    path: ^/api/(status|hall|submissions)
+    service: http://127.0.0.1:8787
+  # 공개 사진
+  - hostname: api.CHANGE_ME.kr
+    path: ^/photos/
+    service: http://127.0.0.1:8787
+  # 운영자 API — Cloudflare Access로 한 번 더 막는 걸 권장
+  - hostname: admin.CHANGE_ME.kr
+    service: http://127.0.0.1:8787
+  # 그 외 전부 차단
+  - service: http_status:404

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.bukang.server</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/CHANGE_ME/Projects/bukang/server/index.js</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/CHANGE_ME/Projects/bukang</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PORT</key><string>8787</string>
+    <key>HOST</key><string>127.0.0.1</string>
+    <key>SERVE_STATIC</key><string>0</string>
+    <key>ADMIN_TOKEN</key><string>CHANGE_ME_32자_이상_무작위</string>
+    <key>BUKANG_DATA</key><string>/Users/CHANGE_ME/bukang</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/CHANGE_ME/bukang/server.log</string>
+  <key>StandardErrorPath</key><string>/Users/CHANGE_ME/bukang/server.err.log</string>
+</dict>
+</plist>

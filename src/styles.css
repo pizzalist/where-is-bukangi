@@ -184,12 +184,14 @@ input, select, textarea { font: inherit; }
 .queue-item { display: grid; grid-template-columns: 72px 1fr; gap: 0.7rem; background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 0.7rem; }
 .queue-item img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; background: var(--foam-2); }
 .queue-item .q-meta { font-size: 0.82rem; color: var(--ink-2); }
-.queue-item .q-actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
+.queue-item .q-actions { display: flex; gap: 0.4rem; margin-top: 0.4rem; flex-wrap: wrap; align-items: center; }
+.queue-item .q-actions select { border-radius: 10px; border: 1.5px solid var(--line); padding: 0.3rem 0.4rem; font-size: 0.8rem; background: var(--white); }
 .queue-item .q-actions button { padding: 0.4rem 0.7rem; border-radius: 10px; border: 1.5px solid var(--line); background: var(--white); font-size: 0.82rem; font-weight: 700; }
 .queue-item .q-actions .ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
 .queue-item .q-actions .no { background: var(--crit-soft); color: var(--crit); border-color: transparent; }
 .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
 .stat { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 0.7rem; text-align: center; }
+.stat-row { grid-template-columns: repeat(2, 1fr); }
 .stat b { display: block; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 1.3rem; color: var(--sky-deep); }
 .stat span { font-size: 0.75rem; color: var(--ink-3); }
 

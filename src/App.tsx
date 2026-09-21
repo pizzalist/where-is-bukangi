@@ -70,7 +70,7 @@ export default function App() {
       {status && nav.route === "home" && <Home status={status} onDraw={() => go("certify")} onHall={() => go("hall")} />}
       {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} onTiers={() => go("tiers")} />}
       {status && nav.route === "card" && <Card status={status} focus={nav.param ?? focusCard} onTiers={() => go("tiers")} />}
-      {status && nav.route === "admin" && <Admin status={status} />}
+      {nav.route === "admin" && <Admin />}
       {status && nav.route === "tiers" && <Tiers onBack={() => go("certify")} />}
       {status && nav.route === "hall" && <Hall onBack={() => go("home")} />}
 

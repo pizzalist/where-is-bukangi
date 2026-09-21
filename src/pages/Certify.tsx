@@ -144,7 +144,7 @@ export default function Certify({ status, onDone, onTiers }: { status: Status; o
             <li>올린 사진은 <b>운영자 확인 뒤 공개</b>돼요. 상황판 기록과 명예의 전당에 촬영 시각·구역과 함께 실려요.</li>
             <li>사진과 기록은 <b>부캉이 기록으로 계속 보관</b>해요.</li>
             <li>이름·연락처 같은 개인정보는 받지 않아요. 누가 올렸는지 저희도 몰라요.</li>
-            <li><b>사람이 알아볼 만큼 찍힌 사진은 공개하지 않고 반려</b>해요. 부캉이가 주인공인 사진만 올려주세요.</li>
+            <li><b>부캉이만 나온 사진을 올려주세요.</b> 사람이 찍힌 사진은 반려돼요.</li>
           </ul>
         </details>
       </motion.div>
