@@ -74,7 +74,7 @@ export default function Certify({ onDone, onTiers }: { status: Status; onDone: (
           <img src={SMILE} alt="" width={photo ? 72 : 110} height={photo ? 72 : 110} />
           <h1 style={{ fontSize: "1.8rem", margin: "0.4rem 0 0.25rem" }}>{photo ? "언제, 어디서 봤어요?" : "사진 한 장이면 끝"}</h1>
           <p style={{ color: "var(--ink-2)", margin: 0, fontSize: "0.95rem" }}>
-            {photo ? "사진에서 읽은 값이에요. 다르면 바꿔주세요." : "부캉이 사진을 올리면 카드가 바로 뽑혀요."}
+            {photo ? "사진에서 읽은 값이에요. 다르면 바꿔주세요." : "내 사진이 그대로 카드가 돼요. 등급은 랜덤으로 뽑혀요."}
           </p>
           <div className="quota">오늘 <b>{left}</b>장 남음 <span>· 매일 {DAILY_LIMIT}장, 자정에 채워져요</span></div>
         </div>

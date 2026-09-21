@@ -55,17 +55,21 @@ export default function CropBox({ src, onDone, onCancel }: { src: string; onDone
   function onUp() { drag.current = null; }
 
   function apply() {
-    const b = boxRef.current?.getBoundingClientRect();
-    if (!b || !imgRef.current) return;
-    // 화면 좌표 → 원본 좌표
-    const sx = (b.width / 2 - off.x) / scale - (b.width / scale) / 2;
-    const sy = (b.height / 2 - off.y) / scale - (b.height / scale) / 2;
-    const sw = b.width / scale, sh = b.height / scale;
+    const box = boxRef.current, img = imgRef.current;
+    if (!box || !img || !nat.w) return;
+    // 실제로 화면에 그려진 위치로 계산한다. CSS가 이미지를 어디에 놓든(가운데 정렬 등) 보이는 그대로 잘린다.
+    const b = box.getBoundingClientRect(), r = img.getBoundingClientRect();
+    const s = r.width / nat.w;                                  // 화면 px → 원본 px
+    let sx = (b.left - r.left) / s, sy = (b.top - r.top) / s;
+    let sw = b.width / s, sh = b.height / s;
+    // 원본 밖으로 나가면(반올림 오차) 안으로 밀어 넣는다. 검은 띠 방지
+    sx = Math.max(0, Math.min(nat.w - sw, sx)); sy = Math.max(0, Math.min(nat.h - sh, sy));
+    sw = Math.min(sw, nat.w); sh = Math.min(sh, nat.h);
     const c = document.createElement("canvas");
     c.width = OUT_W; c.height = Math.round(OUT_W / ASPECT);
     const ctx = c.getContext("2d")!;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(imgRef.current, sx, sy, sw, sh, 0, 0, c.width, c.height);
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
     // 작은 썸네일 (480px). AI 1차 심사와 목록(타임라인·명예의 전당)에 쓴다. 원본은 카드에서만.
     const tc = document.createElement("canvas");
     tc.width = 480; tc.height = Math.round(480 / ASPECT);

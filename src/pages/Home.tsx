@@ -105,6 +105,9 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
           <h2>오늘의 기록</h2>
           <button className="more" onClick={onHall}>명예의 전당 ›</button>
         </div>
+        {status.timeline.length === 0 && (
+          <div className="card" style={{ color: "var(--ink-3)" }}>아직 오늘 기록이 없어요. 부캉이를 봤다면 사진 한 장 올려주세요. 첫 기록의 주인공이 돼요.</div>
+        )}
         <ul className="timeline">
           {status.timeline.map((e, i) => (
             <motion.li
