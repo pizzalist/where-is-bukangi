@@ -29,7 +29,10 @@ export interface QueueItem {
   aiShark?: number | null; aiPerson?: number | null; aiConf?: number | null; aiReason?: string | null;
 }
 
+export interface HourRow { hour: string; view: number; uniq: number; report: number; ping_seen: number; ping_miss: number; card: number }
+
 export const adminApi = {
+  hourly: (hours = 24) => call<HourRow[]>(`/api/admin/hourly?hours=${hours}`),
   queue: () => call<QueueItem[]>("/api/admin/queue"),
   decide: (id: string, action: "approve" | "reject", zone?: ZoneCode | null) =>
     call<{ ok: true }>(`/api/admin/${id}/${action}`, { method: "POST", body: JSON.stringify({ zone }) }),

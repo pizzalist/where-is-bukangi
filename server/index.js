@@ -104,12 +104,17 @@ const qVisitsAll = db.prepare(`SELECT kind, SUM(n) n FROM visits GROUP BY kind`)
 const insVisitor = db.prepare(`INSERT OR IGNORE INTO visitors (day, h) VALUES (?,?)`);
 const delOldVisitors = db.prepare(`DELETE FROM visitors WHERE day < ?`);
 function today() { const d = new Date(Date.now() + 9 * 3600e3); return d.toISOString().slice(0, 10); }
+/** 한국 시간 기준 시간 키. 기본은 지금 */
+function hourKey(at) { return new Date((at ? new Date(at).getTime() : Date.now()) + 9 * 3600e3).toISOString().slice(0, 13); }
+const bumpHour = db.prepare(`INSERT INTO stats_hourly (hour, kind, n) VALUES (?,?,1) ON CONFLICT(hour,kind) DO UPDATE SET n = n + 1`);
+/** 집계는 부가 기능이라 실패해도 본 동작을 막지 않는다 */
+function tally(kind, at) { try { bumpHour.run(hourKey(at), kind); } catch { /* 무시 */ } }
 function daysAgo(n) { const d = new Date(Date.now() + 9 * 3600e3 - n * 864e5); return d.toISOString().slice(0, 10); }
 
 // 방문 집계는 DB에 남겨 서버를 재시작해도 순방문자가 어긋나지 않는다.
-const countVisitTx = db.transaction((day, h) => {
-  bumpVisit.run(day, "view");
-  if (insVisitor.run(day, h).changes > 0) bumpVisit.run(day, "uniq");
+const countVisitTx = db.transaction((day, h, hr) => {
+  bumpVisit.run(day, "view"); bumpHour.run(hr, "view");
+  if (insVisitor.run(day, h).changes > 0) { bumpVisit.run(day, "uniq"); bumpHour.run(hr, "uniq"); }
 });
 function countVisit(req) {
   const day = today();
@@ -117,7 +122,7 @@ function countVisit(req) {
   const h = crypto.createHash("sha256")
     .update(`${day}|${clientIp(req)}|${req.headers["user-agent"] || ""}`)
     .digest("base64url").slice(0, 22);
-  countVisitTx(day, h);
+  countVisitTx(day, h, hourKey());
 }
 setInterval(() => { try { delOldVisitors.run(daysAgo(7)); } catch { /* 무시 */ } }, 6 * 3600e3).unref();
 
@@ -127,7 +132,7 @@ const ZONES = [
   { code: "C", name: "제6보도교" }, { code: "D", name: "방파제" },
 ];
 /* 현장 탭 설정. 탭 하나는 약한 신호라, 모아서 보여주고 금방 사라지게 한다 */
-const PARK = { lat: 35.1144, lng: 129.0464, radius: 700 };   // 공원 좌표 (src/lib/zones.ts와 같은 값)
+const PARK = { lat: 35.1144, lng: 129.0464, radius: Number(process.env.PARK_RADIUS || 700) };   // 공원 좌표 (src/lib/zones.ts와 같은 값). 반경은 환경변수로 즉시 조정 가능
 const LIVE_MIN = Number(process.env.LIVE_MIN || 15);         // 이 시간 안의 탭만 "지금"으로 친다
 const PING_COOLDOWN_MIN = Number(process.env.PING_COOLDOWN_MIN || 10);   // 같은 기기 재탭 간격
 const MAX_ACC = 1500;    // 기지국 기반 위치는 오차가 크다. 이만큼까지만 봐준다
@@ -213,7 +218,12 @@ app.post("/api/ping", limiter({ windowMs: 10 * 60e3, max: 12, key: clientIp }), 
   if (!["seen", "miss"].includes(kind)) return res.status(400).json({ error: "kind는 seen 또는 miss" });
   if (zone != null && zone !== "" && !ZONE_CODES.has(zone)) return res.status(400).json({ error: "구역이 이상해요." });
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return res.status(400).json({ error: "위치를 확인할 수 없어요." });
-  if (!inPark(lat, lng, Number(acc) || 0)) return res.status(403).json({ error: "공원 근처에서만 누를 수 있어요." });
+  if (!inPark(lat, lng, Number(acc) || 0)) {
+    // 반경이 실제로 걸림돌인지 보려면 거절 기록이 있어야 한다. 좌표는 남기지 않고 거리만
+    console.log(`[탭] 반경 밖 거절 ${Math.round(distToPark(lat, lng))}m (오차 ${Math.round(Number(acc) || 0)}m, 기준 ${PARK.radius}m)`);
+    tally("ping_far");
+    return res.status(403).json({ error: "공원 근처에서만 누를 수 있어요." });
+  }
 
   const h = crypto.createHash("sha256").update(`ping|${clientIp(req)}|${req.headers["user-agent"] || ""}`).digest("base64url").slice(0, 22);
   const since = new Date(Date.now() - PING_COOLDOWN_MIN * 60e3).toISOString();
@@ -221,6 +231,7 @@ app.post("/api/ping", limiter({ windowMs: 10 * 60e3, max: 12, key: clientIp }), 
 
   const now = new Date().toISOString();
   insPing.run(now, kind, zone || null, h, now);
+  tally(kind === "seen" ? "ping_seen" : "ping_miss");
   cache.at = 0;                                    // 상황판 즉시 갱신
   res.json({ ok: true });
 });
@@ -302,6 +313,7 @@ app.post("/api/submissions",
 
       const rarity = roll({ takenAt, revival: isRevival(qLastSeen.get()?.taken_at) });
       const ordinal = nextOrdinal();
+      tally("report");
       insSub.run(id, ordinal, rarity, zone || null, new Date(t).toISOString(), new Date().toISOString(), name,
         Number.isFinite(lat) ? lat : null, Number.isFinite(lng) ? lng : null, thumbName);
 
@@ -409,8 +421,25 @@ app.post("/api/admin/:id/:action", adminGuard, (req, res) => {
   if (zone != null && zone !== "" && !ZONE_CODES.has(zone)) return res.status(400).json({ error: "구역이 이상해요." });
   const r = updSub.run(action === "approve" ? "approved" : "rejected", zone || null, String(id).slice(0, 32));
   cache.at = 0; hallCache.at = 0;                        // 캐시 즉시 무효화
-  if (action === "approve") warmCard(String(id).slice(0, 32));
+  if (action === "approve") { tally("card"); warmCard(String(id).slice(0, 32)); }
   res.json({ ok: r.changes > 0 });
+});
+
+/* 시간대별 통계. 기본 24시간, 최대 7일 */
+const qHourly = db.prepare(`SELECT hour, kind, n FROM stats_hourly WHERE hour >= ? ORDER BY hour`);
+app.get("/api/admin/hourly", limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), auth, (req, res) => {
+  const hours = Math.min(Math.max(Number(req.query.hours) || 24, 6), 24 * 7);
+  const from = hourKey(Date.now() - (hours - 1) * 3600e3);
+  const rows = qHourly.all(from);
+  const by = {};
+  for (const r of rows) (by[r.hour] ||= {})[r.kind] = r.n;
+  const out = [];
+  for (let i = hours - 1; i >= 0; i--) {
+    const h = hourKey(Date.now() - i * 3600e3);
+    out.push({ hour: h, ...{ view: 0, uniq: 0, report: 0, ping_seen: 0, ping_miss: 0, card: 0 }, ...(by[h] || {}) });
+  }
+  res.set("Cache-Control", "no-store");
+  res.json(out);
 });
 
 const insObs = db.prepare(`INSERT INTO observations (kind, zone, at, note, created_at) VALUES (?,?,?,?,?)`);

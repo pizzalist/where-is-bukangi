@@ -59,6 +59,15 @@ CREATE TABLE IF NOT EXISTS visits (
   PRIMARY KEY (day, kind)
 );
 
+-- 시간대별 집계. 어드민 그래프용. 한국 시간 기준 "YYYY-MM-DDTHH" 키.
+-- kind: view(페이지뷰) uniq(순방문) report(사진 제보) ping_seen ping_miss card(공개된 카드)
+CREATE TABLE IF NOT EXISTS stats_hourly (
+  hour TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  n INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (hour, kind)
+);
+
 -- 현장 탭("보여요"/"안 보여요"). 지금 상태 표시에만 쓰고 오래된 건 지운다.
 -- 위치가 공원 안일 때만 들어오고, 같은 기기는 일정 시간에 한 번만.
 CREATE TABLE IF NOT EXISTS pings (

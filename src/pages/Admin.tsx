@@ -5,6 +5,7 @@ import { fmtDate, fmtTime } from "../lib/store";
 import { RARITY_META } from "../lib/rarity";
 import { ZONES } from "../lib/zones";
 import { adminApi, getToken, setToken, type QueueItem } from "../lib/admin";
+import HourChart from "../components/HourChart";
 import { fetchStatus } from "../lib/api";
 import { API_BASE } from "../lib/site";
 import type { Stats } from "../lib/types";
@@ -105,6 +106,11 @@ export default function Admin() {
             <div><b>{stats.reportsTotal.toLocaleString()}</b><span>누적 제보</span></div>
           </div>
         )}
+
+        <div className="section">
+          <div className="section-head"><h2>시간대별</h2></div>
+          <HourChart />
+        </div>
 
         <ObservationForm onDone={load} />
 
