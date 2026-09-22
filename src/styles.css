@@ -678,6 +678,9 @@ html.shot-og, html.shot-og body { background: transparent !important; }
 .live-msg p { margin: 0; color: var(--ink-2); }
 .live-copy { margin-top: 0.6rem; width: 100%; border: 0; border-radius: 10px; padding: 0.7rem; font-family: inherit; font-size: 0.92rem; font-weight: 700; background: var(--sky-deep); color: #fff; }
 .live-hint { font-size: 0.78rem; color: var(--ink-3); line-height: 1.4; margin-top: -0.3rem; }
+.hero-live { display: inline-block; margin-top: 0.55rem; padding: 0.42rem 0.9rem; border-radius: 16px; font-size: 0.86rem; font-weight: 700; line-height: 1.4; position: relative; z-index: 1; max-width: calc(100% - 6.6rem); word-break: keep-all; }
+.hero-live.yes { background: rgba(255,255,255,.95); color: var(--sky-deep); }
+.hero-live.no { background: rgba(255,255,255,.2); color: #fff; }
 .hero-ask { margin: 0.5rem 0 0; font-size: 0.85rem; line-height: 1.45; color: rgba(255,255,255,.92); position: relative; z-index: 1; padding-right: 7.2rem; }
 
 /* ---- 어드민 시간대별 그래프 ---- */

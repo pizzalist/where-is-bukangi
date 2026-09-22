@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { sendPing, track } from "../lib/api";
-import type { Status } from "../lib/types";
 
 /**
  * 현장 탭. 사진 없이 "지금 보이는지"만 한 번에 알린다.
@@ -10,8 +8,6 @@ import type { Status } from "../lib/types";
  *  3) 한 명이면 작게, 3명 이상이면 크게  4) 15분 지나면 사라진다
  * 카드도 안 나오고 타임라인에도 안 들어간다. 히어로의 "지금" 한 줄만 바꾼다.
  */
-const STRONG = 3;
-
 /** 앱 안에 내장된 브라우저인가. 여기선 위치가 막히거나 아주 느린 경우가 많다.
     UA는 앱·기기마다 달라 놓치는 경우가 있으니, 실패했을 때는 이 판정과 무관하게 같은 안내를 준다 */
 function inAppBrowser() {
@@ -50,7 +46,7 @@ async function pos(): Promise<GeolocationPosition> {
   }
 }
 
-export default function LiveBar({ live, onDone }: { live: Status["live"]; onDone: () => void }) {
+export default function LiveBar({ onDone }: { onDone: () => void }) {
   const [busy, setBusy] = useState<"seen" | "miss" | null>(null);
   const [fail, setFail] = useState<null | { kind: "denied" | "unavailable" | "other"; text: string }>(null);
   const [copied, setCopied] = useState(false);
@@ -83,23 +79,8 @@ export default function LiveBar({ live, onDone }: { live: Status["live"]; onDone
     } finally { setBusy(null); }
   }
 
-  const seen = live?.seen ?? 0, miss = live?.miss ?? 0;
-  const strong = seen >= STRONG;
-
   return (
     <section className="livebar">
-      <AnimatePresence>
-        {live && (seen > 0 || miss > 0) && (
-          <motion.div className={`live-state${strong ? " strong" : ""}`} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            {strong
-              ? <><b>지금 보이는 중</b><span>{live.windowMin}분 안에 {seen}명이 확인</span></>
-              : seen > 0
-                ? <><b>방금 목격 신호</b><span>{live.windowMin}분 안에 {seen}명{miss > 0 ? ` · 안 보인다는 사람 ${miss}명` : ""}</span></>
-                : <><b>지금은 안 보이나 봐요</b><span>{live.windowMin}분 안에 {miss}명이 못 봤다고 했어요</span></>}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {done ? (
         <div className="live-thanks">알려줘서 고마워요. 다른 사람들 화면에 바로 반영됐어요.</div>
       ) : (

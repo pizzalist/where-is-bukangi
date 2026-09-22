@@ -14,9 +14,20 @@ function deriveHero(s: Status, now: number): { state: HeroState; headline: strin
   if (s.control) return { state: "crit", headline: "출입통제 중", sub: s.control.title, ageMin: 0 };
   if (!s.last) return { state: "none", headline: "아직 제보가 없어요", sub: "부캉이를 봤다면 사진 한 장 올려주세요. 첫 주인공이 돼요", ageMin: 0 };
   const a = ageMinutes(s.last.at, now);
-  if (s.last.kind === "miss") return { state: "miss", headline: `최근 관측 미목격 · ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
-  // 시간이 오래 지나도 "미확인"으로 바꾸지 않는다. 마지막 목격을 그대로 보여주고, 얼마나 됐는지는 옆 배지로 알린다
-  return { state: "seen", headline: `마지막 확인 목격 ${fmtTime(s.last.at)}`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""}`, ageMin: a };
+  if (s.last.kind === "miss") return { state: "miss", headline: `${fmtTime(s.last.at)} 관측 · 못 봄`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
+  // 큰 글씨는 "언제 나왔나". 근거(사진 인증·현장 관측)와 구역은 바로 아래 줄에.
+  // 시간이 오래 지나도 "미확인"으로 바꾸지 않는다. 얼마나 됐는지는 옆 배지로 알린다
+  const via = s.last.photo ? "사진 인증" : "현장 관측";
+  return { state: "seen", headline: `${fmtTime(s.last.at)} 출몰`, sub: `${via} · ${ZONE_BY_CODE[s.last.zone]?.full ?? ""}`, ageMin: a };
+}
+
+/** 지금 몇 명이 보인다/안 보인다고 했는지. 히어로 안에 한 줄로 */
+function liveLine(live: Status["live"]): { text: string; tone: "yes" | "no" } | null {
+  if (!live) return null;
+  const { seen, miss, windowMin } = live;
+  if (seen > 0) return { text: `지금 ${seen}명이 보인다고 했어요${miss > 0 ? ` · 못 봤다는 사람 ${miss}명` : ""}`, tone: "yes" };
+  if (miss > 0) return { text: `최근 ${windowMin}분 안에 ${miss}명이 못 봤다고 했어요`, tone: "no" };
+  return null;
 }
 
 const TIER_LABEL = { confirmed: "확인됨", est: "SNS 추정", auto: "미확인" } as const;
@@ -26,6 +37,7 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
   const hero = useMemo(() => deriveHero(status, now), [status, now]);
+  const live = useMemo(() => liveLine(status.live), [status.live]);
   const hotZone = hero.state === "seen" ? status.last!.zone : null;
   const [pick, setPick] = useState<ZoneCode | null>(null);
 
@@ -50,16 +62,17 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
         <p className="sub">{hero.sub}</p>
         <div className="meta">
           {hero.state !== "none" && hero.state !== "crit" && <span className="pill"><span className="age">{fmtAge(hero.ageMin)}</span></span>}
-          {status.last && hero.state === "seen" && <span className="pill">{TIER_LABEL[status.last.tier]}</span>}
+          
           <span className="pill">갱신 <span className="age">{fmtAge(ageMinutes(status.updatedAt, now))}</span></span>
         </div>
-        {hero.state === "seen" && hero.ageMin > 120 && (
+        {live && <div className={`hero-live ${live.tone}`}>{live.text}</div>}
+        {!live && hero.state === "seen" && hero.ageMin > 120 && (
           <p className="hero-ask">이 화면은 여러분의 제보로만 갱신돼요. 지금 상태를 알려주세요.</p>
         )}
         <img className="shark" src={TWO} alt="" width={150} height={150} />
       </motion.section>
 
-      <LiveBar live={status.live} onDone={() => onRefresh?.()} />
+      <LiveBar onDone={() => onRefresh?.()} />
 
       <button className="cta" onClick={onDraw}>
         <div>

@@ -157,7 +157,7 @@ const ZONES = [
 ];
 /* 현장 탭 설정. 탭 하나는 약한 신호라, 모아서 보여주고 금방 사라지게 한다 */
 const PARK = { lat: 35.1144, lng: 129.0464, radius: Number(process.env.PARK_RADIUS || 700) };   // 공원 좌표 (src/lib/zones.ts와 같은 값). 반경은 환경변수로 즉시 조정 가능
-const LIVE_MIN = Number(process.env.LIVE_MIN || 15);         // 이 시간 안의 탭만 "지금"으로 친다
+const LIVE_MIN = Number(process.env.LIVE_MIN || 30);         // 이 시간 안의 탭만 "지금"으로 친다
 const PING_COOLDOWN_MIN = Number(process.env.PING_COOLDOWN_MIN || 10);   // 같은 기기 재탭 간격
 const MAX_ACC = 1500;    // 기지국 기반 위치는 오차가 크다. 이만큼까지만 봐준다
 const distToPark = (lat, lng) => Math.hypot((PARK.lat - lat) * 111000, (PARK.lng - lng) * 91000);
