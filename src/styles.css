@@ -642,3 +642,17 @@ html.shot #root { display: block; }
 .shot-wrap { width: 420px; padding: 30px 36px 44px; box-sizing: content-box; }
 .shot-wrap .holo { width: 420px; max-width: none; }
 .shot-wrap .holo-inner { transform: none !important; }   /* 기울이지 않고 반사광 위치만 고정 */
+
+/* ---- 링크 미리보기용 가로 구성 (og=1). 1200x630 ---- */
+html.shot-og, html.shot-og body { background: transparent !important; }
+.shot-og-wrap { width: 1200px; height: 630px; padding: 0; display: flex; align-items: center; gap: 40px;
+  background: linear-gradient(135deg, #6fdcff 0%, #2fb5e8 45%, #0b5c8a 100%); color: #fff; overflow: hidden; position: relative; }
+.shot-og-wrap .og-text { flex: 1; padding: 0 0 0 64px; position: relative; z-index: 1; }
+.og-kicker { font-size: 26px; font-weight: 700; background: rgba(255,255,255,.22); display: inline-block; padding: 8px 22px; border-radius: 999px; }
+.og-title { font-family: "Jua", sans-serif; font-size: 64px; line-height: 1.1; margin-top: 18px; text-shadow: 0 6px 22px rgba(0,40,70,.35); }
+.og-no { font-family: "Jua", sans-serif; font-size: 96px; line-height: 1; margin-top: 4px; text-shadow: 0 6px 22px rgba(0,40,70,.35); }
+.og-rarity { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font-size: 30px; font-weight: 700; padding: 10px 28px; border-radius: 999px; }
+.og-site { font-size: 34px; font-weight: 900; margin-top: 30px; letter-spacing: -0.5px; }
+.og-mascot { position: absolute; right: 30px; bottom: -34px; width: 155px; filter: drop-shadow(0 12px 22px rgba(0,30,60,.35)); }
+.shot-og-wrap .og-card { flex: none; width: 360px; margin-right: 70px; transform: rotate(-4deg); filter: drop-shadow(0 24px 44px rgba(0,20,50,.45)); }
+.shot-og-wrap .og-card .holo { width: 360px; }

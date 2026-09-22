@@ -44,15 +44,16 @@ function slot() {
 function release() { active--; const n = waiting.shift(); if (n) n(); }
 
 export function cardKey(row, fmt = "png") {
-  return crypto.createHash("sha1").update(JSON.stringify([row.ordinal, row.rarity, row.zone, row.taken_at, row.photo, SITE_HOST, fmt, 3])).digest("base64url").slice(0, 10);
+  return crypto.createHash("sha1").update(JSON.stringify([row.ordinal, row.rarity, row.zone, row.taken_at, row.photo, SITE_HOST, fmt, 6])).digest("base64url").slice(0, 10);
 }
 
 /** 저장용(png)은 크고 선명하게, 링크 미리보기용(jpg)은 작고 가볍게 */
 const FMT = {
-  png: { scale: 3, type: "png", opts: { omitBackground: true } },
-  jpg: { scale: 1.5, type: "jpeg", opts: { quality: 86 } },   // 약 740x990, 150KB 안팎. 카톡·스레드가 읽는 크기
+  png: { scale: 3, type: "png", opts: { omitBackground: true }, og: 0, w: WIDTH + 80 },
+  // 링크 미리보기: 가로 1200x630. 세로 이미지는 메신저마다 제멋대로 잘려서 카드가 안 보인다
+  jpg: { scale: 1, type: "jpeg", opts: { quality: 88 }, og: 1, w: 1240 },
 };
-export const CARD_SIZE = { png: { w: 1476, h: 1983 }, jpg: { w: 738, h: 992 } };
+export const CARD_SIZE = { png: { w: 1476, h: 1983 }, jpg: { w: 1200, h: 630 } };
 
 /**
  * row: { id, ordinal, rarity, zone, taken_at, photo }  zoneName: 표시용 구역 이름
@@ -70,7 +71,7 @@ export async function cardPng(row, zoneName, localBase, fmt = "png") {
   try {
     if (fs.existsSync(file)) return file;                 // 기다리는 사이 다른 요청이 만들었을 수 있다
     const b = await getBrowser();
-    const ctx = await b.newContext({ viewport: { width: WIDTH + 80, height: 900 }, deviceScaleFactor: f.scale });
+    const ctx = await b.newContext({ viewport: { width: f.w, height: f.og ? 700 : 900 }, deviceScaleFactor: f.scale });
     try {
       const page = await ctx.newPage();
       const d = Buffer.from(JSON.stringify({
@@ -78,7 +79,7 @@ export async function cardPng(row, zoneName, localBase, fmt = "png") {
         takenAt: row.taken_at, photo: row.photo ? `${localBase}/photos/${row.photo}` : null,
         site: SITE_HOST,                                    // 카드 하단 주소. 없으면 127.0.0.1이 찍힌다
       })).toString("base64url");
-      await page.goto(`${localBase}/?d=${d}&bg=${fmt === "jpg" ? 1 : 0}#/shot/${row.id}`, { waitUntil: "load", timeout: 20000 });
+      await page.goto(`${localBase}/?d=${d}&bg=${f.og ? 0 : 0}&og=${f.og}#/shot/${row.id}`, { waitUntil: "load", timeout: 20000 });
       await page.waitForSelector('.shot-wrap[data-ready="1"]', { timeout: 20000 });
       await page.waitForTimeout(120);                       // 마지막 페인트 한 프레임
       const buf = await page.locator(".shot-wrap").screenshot({ type: f.type, timeout: 15000, ...f.opts });

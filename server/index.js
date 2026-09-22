@@ -300,6 +300,16 @@ app.get(/^\/api\/cards\/([A-Za-z0-9_-]{6,32})\.(png|jpg)$/, limiter({ windowMs: 
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+/** 공개되면 링크 미리보기 이미지를 미리 구워둔다. 카톡·스레드 크롤러가 찬 상태로 기다리면 미리보기를 포기한다 */
+function warmCard(id) {
+  if (!SERVE_STATIC) return;
+  const r = qCardRow.get(id);
+  if (!r) return;
+  cardPng(r, r.zone ? ZONE_NAME[r.zone] || "" : "", `http://127.0.0.1:${PORT}`, "jpg")
+    .then(() => console.log(`[카드] 미리보기 예열 ${id}`))
+    .catch((e) => console.warn("[카드] 예열 실패:", e.message));
+}
+
 /* ---------- 카드 공유 링크 /c/:id ----------
    카톡·인스타 봇이 읽는 OG 태그(이 카드의 가벼운 jpg)를 주고, 사람은 바로 앱의 카드 화면으로 보낸다 */
 const RARITY_LABEL = { common: "커먼", uncommon: "언커먼", rare: "레어", holo: "홀로", reverse: "리버스 홀로", galaxy: "갤럭시", fullart: "풀아트", rainbow: "레인보우", gold: "시크릿 골드" };
@@ -356,6 +366,7 @@ app.post("/api/admin/:id/:action", adminGuard, (req, res) => {
   if (zone != null && zone !== "" && !ZONE_CODES.has(zone)) return res.status(400).json({ error: "구역이 이상해요." });
   const r = updSub.run(action === "approve" ? "approved" : "rejected", zone || null, String(id).slice(0, 32));
   cache.at = 0; hallCache.at = 0;                        // 캐시 즉시 무효화
+  if (action === "approve") warmCard(String(id).slice(0, 32));
   res.json({ ok: r.changes > 0 });
 });
 

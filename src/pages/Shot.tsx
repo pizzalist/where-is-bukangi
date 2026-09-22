@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import HoloCard from "../components/HoloCard";
 import { fetchCard } from "../lib/api";
-import type { Rarity } from "../lib/rarity";
+import { RARITY_META, type Rarity } from "../lib/rarity";
 import type { ZoneCode } from "../lib/types";
 
 interface ShotData { id: string; ordinal: number; rarity: Rarity; zone?: ZoneCode | null; zoneName?: string; takenAt: string; photo?: string | null; site?: string }
+const MASCOT = `${import.meta.env.BASE_URL}bukang-one.webp`;
 
 /**
  * 서버가 카드 PNG를 만들 때 여는 화면. 카드 하나만, 투명 배경, 고정 각도.
@@ -17,8 +18,11 @@ export default function Shot({ id }: { id?: string }) {
 
   useEffect(() => {
     document.documentElement.classList.add("shot");
+    const p0 = new URLSearchParams(location.search);
     // jpg는 투명 배경이 안 되니 카드 밖을 흰색 대신 옅은 하늘색으로 (bg=1)
-    if (new URLSearchParams(location.search).get("bg") === "1") document.documentElement.classList.add("shot-bg");
+    if (p0.get("bg") === "1") document.documentElement.classList.add("shot-bg");
+    // og=1: 링크 미리보기용 가로 1200x630 구성 (카드 + 문구). 메신저마다 세로 이미지를 이상하게 자른다
+    if (p0.get("og") === "1") document.documentElement.classList.add("shot-og");
     const q = new URLSearchParams(location.search).get("d");
     if (q) {
       try { setD(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(q.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0))))); return; } catch { /* 아래로 */ }
@@ -45,9 +49,21 @@ export default function Shot({ id }: { id?: string }) {
   }, [d]);
 
   if (!d) return null;
+  const og = typeof location !== "undefined" && new URLSearchParams(location.search).get("og") === "1";
+  const card = <HoloCard id={d.id} type="seen" ordinal={d.ordinal} takenAt={d.takenAt} zone={d.zone ?? undefined} zoneName={d.zoneName ?? ""} photoDataUrl={d.photo ?? undefined} rarity={d.rarity} site={d.site} fixed={{ mx: 36, my: 30 }} />;
+  if (!og) return <div className="shot-wrap" data-ready={ready ? "1" : "0"}>{card}</div>;
+  const meta = RARITY_META[d.rarity];
   return (
-    <div className="shot-wrap" data-ready={ready ? "1" : "0"}>
-      <HoloCard id={d.id} type="seen" ordinal={d.ordinal} takenAt={d.takenAt} zone={d.zone ?? undefined} zoneName={d.zoneName ?? ""} photoDataUrl={d.photo ?? undefined} rarity={d.rarity} site={d.site} fixed={{ mx: 36, my: 30 }} />
+    <div className="shot-wrap shot-og-wrap" data-ready={ready ? "1" : "0"}>
+      <div className="og-text">
+        <div className="og-kicker">부산 북항 친수공원</div>
+        <div className="og-title">부캉이 인증 카드</div>
+        <div className="og-no">No.{d.ordinal.toLocaleString()}</div>
+        <div className={`og-rarity tier-dot-${d.rarity}`}>{meta.symbol} {meta.label}</div>
+        <div className="og-site">{d.site || "bukangi.com"}</div>
+        <img className="og-mascot" src={MASCOT} alt="" />
+      </div>
+      <div className="og-card">{card}</div>
     </div>
   );
 }
