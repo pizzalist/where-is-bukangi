@@ -311,7 +311,9 @@ function warmCard(id) {
 }
 
 /* ---------- 카드 공유 링크 /c/:id ----------
-   카톡·인스타 봇이 읽는 OG 태그(이 카드의 가벼운 jpg)를 주고, 사람은 바로 앱의 카드 화면으로 보낸다 */
+   카톡·스레드 봇이 읽는 OG 태그(이 카드 이미지)를 주고, 사람은 바로 앱의 카드 화면으로 보낸다.
+   이동은 반드시 자바스크립트로만. <meta http-equiv="refresh">를 쓰면 메타(스레드·페북) 크롤러가
+   그걸 따라가서 앱 첫 화면의 OG(사이트 공용 이미지)를 읽어버린다. 봇은 JS를 안 돌리니 카드 OG가 남는다. */
 const RARITY_LABEL = { common: "커먼", uncommon: "언커먼", rare: "레어", holo: "홀로", reverse: "리버스 홀로", galaxy: "갤럭시", fullart: "풀아트", rainbow: "레인보우", gold: "시크릿 골드" };
 const SITE_URL = (process.env.SITE_URL || "").replace(/\/$/, "");
 app.get(/^\/c\/([A-Za-z0-9_-]{6,32})$/, limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), (req, res) => {
@@ -332,9 +334,8 @@ app.get(/^\/c\/([A-Za-z0-9_-]{6,32})$/, limiter({ windowMs: 15 * 60e3, max: 120,
 <meta property="og:url" content="${esc(site)}/c/${esc(r.id)}">
 <meta property="og:image" content="${esc(img)}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="${CARD_SIZE.jpg.w}"><meta property="og:image:height" content="${CARD_SIZE.jpg.h}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(img)}">
-<meta http-equiv="refresh" content="0;url=${esc(app)}">
 <script>location.replace(${JSON.stringify(app)})</script>
-</head><body style="font-family:sans-serif;padding:24px"><a href="${esc(app)}">${esc(title)} 보기</a></body></html>`);
+</head><body style="font-family:-apple-system,system-ui,sans-serif;padding:32px;text-align:center"><p style="color:#567">카드를 여는 중…</p><a href="${esc(app)}" style="display:inline-block;padding:14px 26px;background:#0b5c8a;color:#fff;border-radius:12px;text-decoration:none;font-weight:700">${esc(title)} 보기</a></body></html>`);
 });
 
 /* ---------- 운영자 ---------- */
