@@ -59,6 +59,14 @@ CREATE TABLE IF NOT EXISTS visits (
   PRIMARY KEY (day, kind)
 );
 
+-- 시간별 순방문 판별용 해시. 일 단위(visitors)와 따로 둔다.
+-- "그 시간에 온 사람 수"를 세야 해서, 하루 단위 첫 방문 기준으로는 시간별 값이 안 나온다.
+CREATE TABLE IF NOT EXISTS visitors_hourly (
+  hour TEXT NOT NULL,
+  h TEXT NOT NULL,
+  PRIMARY KEY (hour, h)
+);
+
 -- 시간대별 집계. 어드민 그래프용. 한국 시간 기준 "YYYY-MM-DDTHH" 키.
 -- kind: view(페이지뷰) uniq(순방문) report(사진 제보) ping_seen ping_miss card(공개된 카드)
 CREATE TABLE IF NOT EXISTS stats_hourly (

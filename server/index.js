@@ -102,6 +102,8 @@ const bumpVisit = db.prepare(`INSERT INTO visits (day, kind, n) VALUES (?,?,1) O
 const qVisits = db.prepare(`SELECT kind, n FROM visits WHERE day = ?`);
 const qVisitsAll = db.prepare(`SELECT kind, SUM(n) n FROM visits GROUP BY kind`);
 const insVisitor = db.prepare(`INSERT OR IGNORE INTO visitors (day, h) VALUES (?,?)`);
+const insVisitorHour = db.prepare(`INSERT OR IGNORE INTO visitors_hourly (hour, h) VALUES (?,?)`);
+const delOldVisitorsHour = db.prepare(`DELETE FROM visitors_hourly WHERE hour < ?`);
 const delOldVisitors = db.prepare(`DELETE FROM visitors WHERE day < ?`);
 function today() { const d = new Date(Date.now() + 9 * 3600e3); return d.toISOString().slice(0, 10); }
 /** 한국 시간 기준 시간 키. 기본은 지금 */
@@ -114,7 +116,8 @@ function daysAgo(n) { const d = new Date(Date.now() + 9 * 3600e3 - n * 864e5); r
 // 방문 집계는 DB에 남겨 서버를 재시작해도 순방문자가 어긋나지 않는다.
 const countVisitTx = db.transaction((day, h, hr) => {
   bumpVisit.run(day, "view"); bumpHour.run(hr, "view");
-  if (insVisitor.run(day, h).changes > 0) { bumpVisit.run(day, "uniq"); bumpHour.run(hr, "uniq"); }
+  if (insVisitor.run(day, h).changes > 0) bumpVisit.run(day, "uniq");          // 하루 기준 순방문
+  if (insVisitorHour.run(hr, h).changes > 0) bumpHour.run(hr, "uniq");         // 시간 기준 순방문 (그래프용)
 });
 function countVisit(req) {
   const day = today();
@@ -124,7 +127,7 @@ function countVisit(req) {
     .digest("base64url").slice(0, 22);
   countVisitTx(day, h, hourKey());
 }
-setInterval(() => { try { delOldVisitors.run(daysAgo(7)); } catch { /* 무시 */ } }, 6 * 3600e3).unref();
+setInterval(() => { try { delOldVisitors.run(daysAgo(7)); delOldVisitorsHour.run(hourKey(Date.now() - 8 * 864e5)); } catch { /* 무시 */ } }, 6 * 3600e3).unref();
 
 /* ---------- 공개: 상황판 (메모리 캐시) ---------- */
 const ZONES = [
@@ -439,7 +442,7 @@ app.get("/api/admin/hourly", limiter({ windowMs: 15 * 60e3, max: 120, key: clien
     out.push({ hour: h, ...{ view: 0, uniq: 0, report: 0, ping_seen: 0, ping_miss: 0, card: 0 }, ...(by[h] || {}) });
   }
   res.set("Cache-Control", "no-store");
-  res.json(out);
+  res.json({ rows: out, since: (db.prepare("SELECT MIN(hour) m FROM stats_hourly WHERE kind='view'").get() || {}).m || null });
 });
 
 const insObs = db.prepare(`INSERT INTO observations (kind, zone, at, note, created_at) VALUES (?,?,?,?,?)`);

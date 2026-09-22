@@ -17,13 +17,14 @@ const hh = (h: string) => Number(h.slice(11, 13));
 
 export default function HourChart() {
   const [rows, setRows] = useState<HourRow[] | null>(null);
+  const [since, setSince] = useState<string | null>(null);
   const [hours, setHours] = useState(24);
   const [key, setKey] = useState<Key>("uniq");
   const [err, setErr] = useState("");
 
   useEffect(() => {
     let alive = true;
-    adminApi.hourly(hours).then((r) => alive && setRows(r)).catch(() => alive && setErr("불러오지 못했어요"));
+    adminApi.hourly(hours).then((r) => { if (!alive) return; setRows(r.rows); setSince(r.since); }).catch(() => alive && setErr("불러오지 못했어요"));
     return () => { alive = false; };
   }, [hours]);
 
@@ -58,6 +59,9 @@ export default function HourChart() {
         합계 <b>{total.toLocaleString()}</b>
         {total > 0 && <> · 가장 많던 시각 <b>{hh(peak.hour)}시</b> ({val(peak, key).toLocaleString()})</>}
       </div>
+      {since && rows[0].hour < since && (
+        <div className="hc-note">시간별 집계는 {since.slice(5, 10).replace("-", "/")} {hh(since)}시부터예요. 그 전 기록은 하루 단위로만 남아 있어요.</div>
+      )}
 
       <svg className="hc-svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="시간대별 추이">
         {rows.map((r, i) => {
