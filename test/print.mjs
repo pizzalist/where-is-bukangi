@@ -3,9 +3,12 @@ import { chromium } from 'playwright';
 import QRCode from 'qrcode';
 import fs from 'node:fs';
 const OUT = process.argv[2];
-const URL = 'https://bukangi.com';
-const qr = await QRCode.toString(URL, { type: 'svg', errorCorrectionLevel: 'M', margin: 1, color: { dark: '#0b2b40', light: '#ffffff' } });
-const qrData = 'data:image/svg+xml;base64,' + Buffer.from(qr).toString('base64');
+// 추적 링크. 포스터·팻말과 명함을 따로 세서 어느 쪽이 먹히는지 본다
+const URL = 'https://bukangi.com/?s=qr';
+const URL_CARD = 'https://bukangi.com/?s=card';
+const mkQR = async (u) => 'data:image/svg+xml;base64,' + Buffer.from(await QRCode.toString(u, { type: 'svg', errorCorrectionLevel: 'M', margin: 1, color: { dark: '#0b2b40', light: '#ffffff' } })).toString('base64');
+const qrData = await mkQR(URL);
+const qrCard = await mkQR(URL_CARD);
 const im = (f) => 'data:image/webp;base64,' + fs.readFileSync(f).toString('base64');
 const two = im('public/bukang-two.webp'), one = im('public/bukang-one.webp'), smile = im('public/bukang-smile.webp');
 const head = `<meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet">
@@ -44,7 +47,7 @@ await wait(sign); await sign.pdf({ path: `${OUT}/sign-a4-landscape.pdf`, width: 
 
 // 3) 명함 크기 카드 (90x50mm) 10장 시트. 가게 카운터·손에 쥐어주기용
 const card = `<div style="width:90mm;height:50mm;border:0.3mm dashed #bcd;border-radius:3mm;display:flex;align-items:center;gap:4mm;padding:4mm;background:linear-gradient(135deg,#eaf6ff,#fff)">
-  <img src="${qrData}" style="width:38mm;height:38mm;flex:none">
+  <img src="${qrCard}" style="width:38mm;height:38mm;flex:none">
   <div><div class="jua" style="font-size:8.5mm;line-height:1.1;color:#0b5c8a">부캉이<br>지금 있나?</div>
   <div style="font-size:3.6mm;color:#345;margin-top:2mm;line-height:1.4">마지막 목격 시각·구역<br>사진 올리면 홀로 카드</div>
   <div style="font-size:4.6mm;font-weight:900;margin-top:2mm;color:#0b2b40">bukangi.com</div></div>

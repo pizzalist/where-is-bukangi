@@ -5,7 +5,9 @@ import { adminApi, type Breakdown as B } from "../lib/admin";
 const SRC_LABEL: Record<string, string> = {
   threads: "스레드", instagram: "인스타", kakao: "카카오", facebook: "페이스북",
   naver: "네이버", google: "구글", youtube: "유튜브", twitter: "엑스(트위터)",
-  card_link: "카드 링크", direct: "직접·QR", internal: "사이트 내부", other: "기타",
+  card_link: "카드 링크", direct: "직접·기타", internal: "새로고침", other: "기타",
+  qr: "현장 QR", namecard: "명함", openchat: "오픈채팅", naver_blog: "네이버 블로그",
+  press: "기사", discord: "디스코드", slack: "슬랙",
 };
 const ROUTE_LABEL: Record<string, string> = {
   home: "지금(홈)", certify: "제보하기", card: "내 카드", hall: "명예의 전당", tiers: "등급 설명", admin: "운영", shot: "카드 렌더", other: "기타",

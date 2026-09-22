@@ -128,6 +128,14 @@ function classifySource(ref, ua) {
   return "direct";                                  // 주소 직접 입력, QR, 메모 앱 등
 }
 const ROUTES = new Set(["home", "certify", "card", "hall", "tiers", "admin", "shot"]);
+/* 추적 링크 ?s= 코드. 링크를 복사해 여는 경우는 참조 주소가 없어 출처를 알 수 없다.
+   채널마다 다른 코드를 붙여 배포하면 정확히 갈린다 */
+const SRC_CODES = {
+  qr: "qr", poster: "qr", ps: "qr",            // 현장 포스터·팻말 QR
+  card: "namecard", nc: "namecard",            // 명함
+  th: "threads", ig: "instagram", kk: "kakao", oc: "openchat",
+  nv: "naver_blog", yt: "youtube", pr: "press", dc: "discord", sl: "slack",
+};
 /** 클라이언트가 보낼 수 있는 이벤트만 허용. 아무 이름이나 받지 않는다 */
 const EVENTS = new Set(["share", "save", "geo_fail", "card_view"]);
 /** 집계는 부가 기능이라 실패해도 본 동작을 막지 않는다 */
@@ -234,7 +242,8 @@ app.post("/api/visit", limiter({ windowMs: 60e3, max: 30, key: clientIp }), expr
   try {
     countVisit(req);
     const day = today();
-    bumpSource.run(day, classifySource(req.body?.ref || req.headers.referer, ua));
+    const tag = SRC_CODES[String(req.body?.s || "").toLowerCase()];
+    bumpSource.run(day, tag || classifySource(req.body?.ref || req.headers.referer, ua));
     const r = String(req.body?.route || "home");
     bumpRoute.run(day, ROUTES.has(r) ? r : "other");
   } catch { /* 집계 실패는 무시 */ }

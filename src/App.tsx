@@ -43,10 +43,19 @@ export default function App() {
     const load = () => fetchStatus().then(setStatus).catch(() => setErr("상황 정보를 불러오지 못했어요. 마지막 화면이 오래됐을 수 있어요."));
     load();
     // 방문 집계: 페이지를 연 순간 한 번만. 화면 이동이나 30초 갱신은 안 센다. 카드 렌더용 화면과 자동화 브라우저도 제외
+    // 유입 출처: ?s= 코드를 첫 진입에 기억해둔다. 새 버전 자동 새로고침 때 원래 출처를 잃지 않게.
+    // 기록한 뒤에는 주소에서 지운다 (공유된 링크가 남의 출처를 달고 다니지 않게)
+    let src = "";
+    try {
+      const q = new URLSearchParams(location.search).get("s") || "";
+      if (q) { sessionStorage.setItem("bukang.src", q); history.replaceState(null, "", location.pathname + location.hash); }
+      src = sessionStorage.getItem("bukang.src") || "";
+    } catch { /* 저장 막혀도 집계만 덜 정확해진다 */ }
+
     if (parseHash().route !== "shot" && !(navigator as Navigator & { webdriver?: boolean }).webdriver) {
       fetch(`${API_BASE}/api/visit`, {
         method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
-        body: JSON.stringify({ ref: document.referrer || "", route: parseHash().route }),
+        body: JSON.stringify({ ref: document.referrer || "", route: parseHash().route, s: src }),
       }).catch(() => null);
     }
     const t = setInterval(load, 30000);
