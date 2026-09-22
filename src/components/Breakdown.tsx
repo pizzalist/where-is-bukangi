@@ -5,7 +5,7 @@ import { adminApi, type Breakdown as B } from "../lib/admin";
 const SRC_LABEL: Record<string, string> = {
   threads: "스레드", instagram: "인스타", kakao: "카카오", facebook: "페이스북",
   naver: "네이버", google: "구글", youtube: "유튜브", twitter: "엑스(트위터)",
-  card_link: "카드 링크", direct: "직접·기타", internal: "새로고침", other: "기타",
+  card_link: "카드 링크", direct: "직접·QR·기타", other: "기타",
   qr: "현장 QR", namecard: "명함", openchat: "오픈채팅", naver_blog: "네이버 블로그",
   press: "기사", discord: "디스코드", slack: "슬랙",
 };
@@ -47,13 +47,13 @@ export default function Breakdown() {
   return (
     <div className="hourchart">
       <div className="hc-head">
-        <b style={{ fontSize: "0.9rem" }}>유입 경로</b>
+        <b style={{ fontSize: "0.9rem" }}>유입 경로 <span style={{ fontWeight: 400, color: "var(--ink-3)", fontSize: "0.78rem" }}>· 처음 온 사람 기준</span></b>
         <select className="hc-range" value={days} onChange={(e) => setDays(Number(e.target.value))}>
           <option value={1}>오늘</option><option value={3}>3일</option><option value={7}>7일</option><option value={30}>30일</option>
         </select>
       </div>
       <Bars rows={d.sources.map((s) => ({ k: s.src, n: s.n }))} labels={SRC_LABEL} />
-      <div className="hc-head" style={{ marginTop: "1rem" }}><b style={{ fontSize: "0.9rem" }}>화면별 첫 진입</b></div>
+      <div className="hc-head" style={{ marginTop: "1rem" }}><b style={{ fontSize: "0.9rem" }}>화면별 첫 진입 <span style={{ fontWeight: 400, color: "var(--ink-3)", fontSize: "0.78rem" }}>· 처음 온 사람 기준</span></b></div>
       <Bars rows={d.routes.map((r) => ({ k: r.route, n: r.n }))} labels={ROUTE_LABEL} />
     </div>
   );
