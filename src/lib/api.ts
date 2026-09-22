@@ -48,3 +48,11 @@ export interface CardInfo { id: string; ordinal: number; rarity: NonNullable<Sub
 export async function fetchCard(id: string): Promise<CardInfo | null> {
   try { const r = await fetch(`${API_BASE}/api/submissions/${encodeURIComponent(id)}`); return r.ok ? await r.json() : null; } catch { return null; }
 }
+
+/** 현장 탭. 공원 안에서만 통한다. 실패 사유를 그대로 올려 호출부가 보여준다 */
+export async function sendPing(body: { kind: "seen" | "miss"; zone?: string; lat: number; lng: number }): Promise<void> {
+  const r = await fetch(`${API_BASE}/api/ping`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "지금은 보낼 수 없어요.");
+}

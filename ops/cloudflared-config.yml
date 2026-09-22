@@ -6,7 +6,7 @@ protocol: http2          # 집 회선에서 QUIC(UDP 7844)이 막혀 있어 http
 ingress:
   # ---- 공개 API (api.bukangi.com) ----
   - hostname: api.bukangi.com
-    path: ^/api/(status|hall|submissions|visit)
+    path: ^/api/(status|hall|submissions|visit|ping)
     service: http://127.0.0.1:8787
   - hostname: api.bukangi.com
     path: ^/photos/

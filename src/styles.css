@@ -656,3 +656,20 @@ html.shot-og, html.shot-og body { background: transparent !important; }
 .og-mascot { position: absolute; right: 30px; bottom: -34px; width: 155px; filter: drop-shadow(0 12px 22px rgba(0,30,60,.35)); }
 .shot-og-wrap .og-card { flex: none; width: 360px; margin-right: 70px; transform: rotate(-4deg); filter: drop-shadow(0 24px 44px rgba(0,20,50,.45)); }
 .shot-og-wrap .og-card .holo { width: 360px; }
+
+/* ---- 현장 탭 (사진 없이 "지금 보이는지"만) ---- */
+.livebar { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 0.9rem 1rem; margin-bottom: 0.8rem; display: grid; gap: 0.6rem; }
+.live-state { display: grid; gap: 0.1rem; padding: 0.55rem 0.8rem; border-radius: 12px; background: var(--foam); }
+.live-state b { font-size: 1rem; }
+.live-state span { font-size: 0.82rem; color: var(--ink-2); }
+.live-state.strong { background: linear-gradient(135deg, #d8f2ff, #b6e6fb); }
+.live-state.strong b { color: var(--sky-deep); }
+.live-q { font-size: 0.88rem; color: var(--ink-2); }
+.live-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.live-btns button { border: 0; border-radius: 14px; padding: 0.85rem 0.5rem; font-size: 1rem; font-weight: 700; font-family: inherit; }
+.live-btns button:disabled { opacity: .6; }
+.live-yes { background: var(--sky-deep); color: #fff; }
+.live-no { background: #eef3f7; color: var(--ink-2); }
+.live-thanks { font-size: 0.9rem; color: var(--sky-deep); font-weight: 700; }
+.live-msg { font-size: 0.85rem; color: #b4453a; line-height: 1.45; }
+.hero-ask { margin: 0.5rem 0 0; font-size: 0.85rem; line-height: 1.45; color: rgba(255,255,255,.92); position: relative; z-index: 1; padding-right: 7.2rem; }

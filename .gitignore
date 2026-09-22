@@ -36,3 +36,6 @@ dist-ssr
 
 # 스크린샷용 빌드
 dist-test/
+
+# 검수본 표시
+.staged-build

@@ -27,6 +27,8 @@ export interface Status {
   demo?: boolean;
   stats?: Stats;
   control: null | { title: string; url?: string };
+  /** 현장 탭 집계. 최근 windowMin분 안에 "보여요"/"안 보여요"를 누른 사람 수 */
+  live?: null | { seen: number; miss: number; at: string; zone: string | null; windowMin: number };
   last: (Event & { evidence?: string }) | null;
   counters: { seen: number; visit: number };
   zones: Zone[];

@@ -20,7 +20,7 @@
     <key>PUBLIC_URL</key><string>https://api.CHANGE_ME.kr</string>
     <key>SITE_URL</key><string>https://CHANGE_ME.kr</string>
     <!-- 제보를 받을 화면 주소 추가 (쉼표 구분, 선택) -->
-    <key>ALLOWED_ORIGINS</key><string></string>
+    <key>ALLOWED_ORIGINS</key><string>https://admin.CHANGE_ME.kr</string>
     <key>BUKANG_DATA</key><string>/Users/CHANGE_ME/bukang</string>
   </dict>
   <key>RunAtLoad</key><true/>

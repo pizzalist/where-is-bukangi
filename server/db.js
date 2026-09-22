@@ -59,6 +59,18 @@ CREATE TABLE IF NOT EXISTS visits (
   PRIMARY KEY (day, kind)
 );
 
+-- 현장 탭("보여요"/"안 보여요"). 지금 상태 표시에만 쓰고 오래된 건 지운다.
+-- 위치가 공원 안일 때만 들어오고, 같은 기기는 일정 시간에 한 번만.
+CREATE TABLE IF NOT EXISTS pings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  at TEXT NOT NULL,
+  kind TEXT NOT NULL,          -- seen | miss
+  zone TEXT,
+  h TEXT NOT NULL,             -- 기기 해시(IP+브라우저). 원본은 저장하지 않는다
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ping_at ON pings(at DESC);
+
 -- 순방문 판별용 해시. 원본 IP는 저장하지 않으며 7일 뒤 지운다.
 CREATE TABLE IF NOT EXISTS visitors (
   day TEXT NOT NULL,

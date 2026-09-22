@@ -37,7 +37,8 @@ app.use((_req, res, next) => {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "SAMEORIGIN",
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    // 현장 탭이 위치를 쓴다. 우리 페이지에서만 허용하고 나머지는 계속 차단
+    "Permissions-Policy": "geolocation=(self), microphone=(), camera=()",
     "Cross-Origin-Resource-Policy": "cross-origin",
   });
   next();
@@ -125,10 +126,20 @@ const ZONES = [
   { code: "A", name: "제4보도교" }, { code: "B", name: "제5보도교" },
   { code: "C", name: "제6보도교" }, { code: "D", name: "방파제" },
 ];
+/* 현장 탭 설정. 탭 하나는 약한 신호라, 모아서 보여주고 금방 사라지게 한다 */
+const PARK = { lat: 35.1144, lng: 129.0464, radius: 700 };   // 공원 좌표 (src/lib/zones.ts와 같은 값)
+const LIVE_MIN = Number(process.env.LIVE_MIN || 15);         // 이 시간 안의 탭만 "지금"으로 친다
+const PING_COOLDOWN_MIN = Number(process.env.PING_COOLDOWN_MIN || 10);   // 같은 기기 재탭 간격
+const inPark = (lat, lng) => Math.hypot((PARK.lat - lat) * 111000, (PARK.lng - lng) * 91000) <= PARK.radius;
 const qSubs = db.prepare(`SELECT id, zone, taken_at AS at, photo, thumb, ordinal FROM submissions WHERE status='approved' ORDER BY taken_at DESC LIMIT 40`);
 const qObs = db.prepare(`SELECT kind, zone, at, note FROM observations ORDER BY at DESC LIMIT 40`);
 const qNotices = db.prepare(`SELECT src, title, url, crit FROM notices ORDER BY created_at DESC LIMIT 6`);
 const qOrdinal = db.prepare("SELECT v FROM meta WHERE k='ordinal'");
+const qLivePings = db.prepare(`SELECT kind, zone, at, h FROM pings WHERE at > ? GROUP BY h, kind ORDER BY at DESC`);
+const qRecentPing = db.prepare(`SELECT 1 FROM pings WHERE h = ? AND at > ? LIMIT 1`);
+const insPing = db.prepare(`INSERT INTO pings (at, kind, zone, h, created_at) VALUES (?,?,?,?,?)`);
+const delOldPings = db.prepare(`DELETE FROM pings WHERE at < ?`);
+setInterval(() => { try { delOldPings.run(new Date(Date.now() - 6 * 3600e3).toISOString()); } catch { /* 무시 */ } }, 3600e3).unref();
 const qSubCount = db.prepare(`SELECT
   COUNT(*) total,
   SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) approved,
@@ -148,6 +159,14 @@ function buildStatus() {
   const notices = qNotices.all().map((n) => ({ ...n, crit: !!n.crit }));
   const control = notices.find((n) => n.crit) || null;
 
+  // 현장 탭 집계. 사람 수는 기기 해시 기준 중복 제거
+  const cut = new Date(Date.now() - LIVE_MIN * 60e3).toISOString();
+  const pg = qLivePings.all(cut);
+  const live = pg.length
+    ? { seen: pg.filter((p) => p.kind === "seen").length, miss: pg.filter((p) => p.kind === "miss").length,
+        at: pg[0].at, zone: pg.find((p) => p.kind === "seen" && p.zone)?.zone ?? null, windowMin: LIVE_MIN }
+    : null;
+
   const vToday = Object.fromEntries(qVisits.all(today()).map((r) => [r.kind, r.n]));
   const vAll = Object.fromEntries(qVisitsAll.all().map((r) => [r.kind, r.n]));
   const subCount = qSubCount.get();
@@ -161,6 +180,7 @@ function buildStatus() {
       approvedTotal: subCount.approved || 0,
     },
     control: control ? { title: control.title, url: control.url } : null,
+    live,
     last, zones: ZONES, timeline, notices,
     counters: { seen: Number(qOrdinal.get()?.v || 0), visit: 0 },
   };
@@ -181,6 +201,25 @@ app.post("/api/visit", limiter({ windowMs: 60e3, max: 30, key: clientIp }), (req
   if (/HeadlessChrome|bot|crawler|spider|Playwright/i.test(ua)) return res.status(204).end();
   try { countVisit(req); } catch { /* 집계 실패는 무시 */ }
   res.status(204).end();
+});
+
+/* 현장 탭. 공원 안에서만, 같은 기기는 PING_COOLDOWN_MIN분에 한 번.
+   사진 제보와 달리 카드도 안 나오고 타임라인에도 안 들어간다. "지금" 한 줄만 바꾼다 */
+app.post("/api/ping", limiter({ windowMs: 10 * 60e3, max: 12, key: clientIp }), express.json({ limit: "2kb" }), (req, res) => {
+  const { kind, zone, lat, lng } = req.body || {};
+  if (!["seen", "miss"].includes(kind)) return res.status(400).json({ error: "kind는 seen 또는 miss" });
+  if (zone != null && zone !== "" && !ZONE_CODES.has(zone)) return res.status(400).json({ error: "구역이 이상해요." });
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return res.status(400).json({ error: "위치를 확인할 수 없어요." });
+  if (!inPark(lat, lng)) return res.status(403).json({ error: "공원 근처에서만 누를 수 있어요." });
+
+  const h = crypto.createHash("sha256").update(`ping|${clientIp(req)}|${req.headers["user-agent"] || ""}`).digest("base64url").slice(0, 22);
+  const since = new Date(Date.now() - PING_COOLDOWN_MIN * 60e3).toISOString();
+  if (qRecentPing.get(h, since)) return res.status(429).json({ error: `${PING_COOLDOWN_MIN}분에 한 번만 누를 수 있어요.` });
+
+  const now = new Date().toISOString();
+  insPing.run(now, kind, zone || null, h, now);
+  cache.at = 0;                                    // 상황판 즉시 갱신
+  res.json({ ok: true });
 });
 
 app.get("/api/status", (req, res) => {
@@ -437,7 +476,12 @@ app.get("/healthz", (_req, res) => res.json({ ok: true, uploads: running, queued
 
 /* ---------- 정적 (개발용) ---------- */
 if (SERVE_STATIC && fs.existsSync(DIST)) {
-  app.use(express.static(DIST, { maxAge: "1h", index: "index.html" }));
+  // index.html과 version.json은 캐시하지 않는다. admin.bukangi.com이 검수본이라 즉시 반영돼야 한다.
+  // 자산은 파일명에 해시가 있어 오래 캐시해도 안전하다.
+  app.use(express.static(DIST, {
+    index: "index.html",
+    setHeaders: (res, p) => res.set("Cache-Control", /index\.html$|version\.json$/.test(p) ? "no-store" : "public, max-age=604800, immutable"),
+  }));
   app.get(/.*/, (_req, res) => res.sendFile(path.join(DIST, "index.html")));
 } else {
   app.use((_req, res) => res.status(404).json({ error: "not found" }));

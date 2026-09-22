@@ -99,7 +99,7 @@ export default function App() {
       {status?.demo && <div className="demobar">서버에 연결되지 않았어요. 아래는 <b>예시 데이터</b>이고 제보는 되지 않아요.</div>}
       {err && <div className="page"><div className="alert warn" style={{ marginTop: "1rem" }}>{err}</div></div>}
       {!status && !err && <div className="page" style={{ paddingTop: "3rem", textAlign: "center", color: "var(--ink-3)" }}><img src={ONE} alt="" width={90} height={90} /><div>불러오는 중</div></div>}
-      {status && nav.route === "home" && <Home status={status} onDraw={() => go("certify")} onHall={() => go("hall")} />}
+      {status && nav.route === "home" && <Home status={status} onDraw={() => go("certify")} onHall={() => go("hall")} onRefresh={() => fetchStatus().then(setStatus).catch(() => null)} />}
       {status && nav.route === "certify" && <Certify status={status} onDone={onCertified} onTiers={() => go("tiers")} />}
       {status && nav.route === "card" && <Card status={status} focus={nav.param ?? focusCard} onTiers={() => go("tiers")} />}
       {nav.route === "admin" && <Admin />}
@@ -109,7 +109,7 @@ export default function App() {
       <nav className="nav">
         <div className="nav-inner nav-3">
           <a href="#/" className={nav.route === "home" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("home"); }}>{Icon.home}지금</a>
-          <a href="#/certify" className={nav.route === "certify" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("certify"); }}>{Icon.certify}카드 뽑기</a>
+          <a href="#/certify" className={nav.route === "certify" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("certify"); }}>{Icon.certify}제보하기</a>
           <a href="#/card" className={nav.route === "card" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("card"); }}>{Icon.card}내 카드</a>
         </div>
       </nav>

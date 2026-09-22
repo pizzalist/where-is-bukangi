@@ -4,6 +4,7 @@ import type { Status, Event, ZoneCode } from "../lib/types";
 import { ageMinutes, fmtAge, fmtTime } from "../lib/store";
 const TWO = `${import.meta.env.BASE_URL}bukang-two.webp`;
 import ZoneMap from "../components/ZoneMap";
+import LiveBar from "../components/LiveBar";
 import { RARITY_ORDER, RARITY_META } from "../lib/rarity";
 import { ZONES, ZONE_BY_CODE, naverDirections, naverPlace, PARK } from "../lib/zones";
 
@@ -21,7 +22,7 @@ function deriveHero(s: Status, now: number): { state: HeroState; headline: strin
 const TIER_LABEL = { confirmed: "확인됨", est: "SNS 추정", auto: "미확인" } as const;
 const TIER_CLASS = { confirmed: "ok", est: "est", auto: "auto" } as const;
 
-export default function Home({ status, onDraw, onHall }: { status: Status; onDraw?: () => void; onHall?: () => void }) {
+export default function Home({ status, onDraw, onHall, onRefresh }: { status: Status; onDraw?: () => void; onHall?: () => void; onRefresh?: () => void }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
   const hero = useMemo(() => deriveHero(status, now), [status, now]);
@@ -52,13 +53,18 @@ export default function Home({ status, onDraw, onHall }: { status: Status; onDra
           {status.last && hero.state === "seen" && <span className="pill">{TIER_LABEL[status.last.tier]}</span>}
           <span className="pill">갱신 <span className="age">{fmtAge(ageMinutes(status.updatedAt, now))}</span></span>
         </div>
+        {hero.state === "seen" && hero.ageMin > 120 && (
+          <p className="hero-ask">이 화면은 여러분의 제보로만 갱신돼요. 지금 상태를 알려주세요.</p>
+        )}
         <img className="shark" src={TWO} alt="" width={150} height={150} />
       </motion.section>
 
+      <LiveBar live={status.live} onDone={() => onRefresh?.()} />
+
       <button className="cta" onClick={onDraw}>
         <div>
-          <b>부캉이 봤나?</b>
-          <small>부캉이 인증 카드 뽑기</small>
+          <b>부캉이 찍었나?</b>
+          <small>사진 올려 제보하고 인증 카드 뽑기</small>
         </div>
         <div className="cta-dots">{RARITY_ORDER.slice(3).map((r) => <span key={r} className={`tier-dot tier-dot-${r} mini`}>{RARITY_META[r].symbol}</span>)}</div>
       </button>
