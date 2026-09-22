@@ -104,7 +104,8 @@ export default function LiveBar({ live, onDone }: { live: Status["live"]; onDone
         <div className="live-thanks">알려줘서 고마워요. 다른 사람들 화면에 바로 반영됐어요.</div>
       ) : (
         <>
-          <div className="live-q">지금 공원에 있다면 알려주세요</div>
+          <div className="live-q">지금 공원에서 <b>상어 부캉이</b>가 보이나요?</div>
+          <div className="live-sub">공원에 계신 분만 누를 수 있어요</div>
           {inAppBrowser() && <div className="live-hint">앱 안에서 열린 화면이라 위치가 안 잡힐 수 있어요. 안 되면 사파리나 크롬으로 열어주세요.</div>}
           <div className="live-btns">
             <button className="live-yes" onClick={() => tap("seen")} disabled={!!busy}>{busy === "seen" ? "보내는 중…" : "지금 보여요"}</button>

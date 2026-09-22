@@ -664,7 +664,9 @@ html.shot-og, html.shot-og body { background: transparent !important; }
 .live-state span { font-size: 0.82rem; color: var(--ink-2); }
 .live-state.strong { background: linear-gradient(135deg, #d8f2ff, #b6e6fb); }
 .live-state.strong b { color: var(--sky-deep); }
-.live-q { font-size: 0.88rem; color: var(--ink-2); }
+.live-q { font-size: 1rem; color: var(--ink); font-weight: 700; }
+.live-q b { color: var(--sky-deep); }
+.live-sub { font-size: 0.8rem; color: var(--ink-3); margin-top: -0.35rem; }
 .live-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .live-btns button { border: 0; border-radius: 14px; padding: 0.85rem 0.5rem; font-size: 1rem; font-weight: 700; font-family: inherit; }
 .live-btns button:disabled { opacity: .6; }
