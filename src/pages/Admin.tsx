@@ -6,6 +6,7 @@ import { RARITY_META } from "../lib/rarity";
 import { ZONES } from "../lib/zones";
 import { adminApi, getToken, setToken, type QueueItem } from "../lib/admin";
 import { fetchStatus } from "../lib/api";
+import { API_BASE } from "../lib/site";
 import type { Stats } from "../lib/types";
 
 function toLocalInput(d: Date) {
@@ -13,7 +14,14 @@ function toLocalInput(d: Date) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
+/** 운영자 API는 공개 호스트에서 막혀 있다. 운영 배포(API가 딴 주소)에서 admin. 호스트가 아니면 그리로 안내한다 */
+function adminHostUrl(): string | null {
+  if (!API_BASE || typeof location === "undefined" || /^admin\./.test(location.host)) return null;
+  return `${location.protocol}//admin.${location.host.replace(/^www\./, "")}/#/admin`;
+}
+
 export default function Admin() {
+  const wrongHost = adminHostUrl();
   const [token, setTok] = useState(getToken());
   const [authed, setAuthed] = useState(false);
   const [queue, setQueue] = useState<QueueItem[] | null>(null);
@@ -43,6 +51,18 @@ export default function Admin() {
       setQueue((q) => (q ? q.filter((x) => x.id !== it.id) : q));
     } catch { setErr("처리하지 못했어요."); }
     setBusy(null);
+  }
+
+  if (wrongHost) {
+    return (
+      <div className="page">
+        <div className="card" style={{ marginTop: "1.2rem" }}>
+          <b>운영자 페이지는 다른 주소에서 열어요.</b>
+          <p style={{ color: "var(--ink-2)", margin: "0.4rem 0 0.8rem", fontSize: "0.9rem" }}>이 주소에서는 운영자 기능이 막혀 있어요(공개용). 아래 주소로 들어가면 토큰 입력창이 나와요.</p>
+          <a className="btn" href={wrongHost}>{wrongHost.replace(/^https?:\/\//, "").replace(/\/#\/admin$/, "")} 로 이동</a>
+        </div>
+      </div>
+    );
   }
 
   if (!authed) {
