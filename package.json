@@ -29,8 +29,11 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "jsqr": "^1.4.0",
     "oxlint": "^1.81.0",
     "playwright": "^1.63.0",
+    "pngjs": "^7.0.0",
+    "qrcode": "^1.5.4",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "wrangler": "^4.136.0"
