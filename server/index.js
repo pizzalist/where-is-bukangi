@@ -174,8 +174,16 @@ function statusBody() {
   }
   return cache;
 }
-app.get("/api/status", (req, res) => {
+/* 방문 집계. 앱이 페이지를 "실제로 열 때" 한 번만 POST한다. 30초 상황 폴링과는 분리.
+   헤드리스 브라우저(카드 렌더러·테스트)와 봇은 세지 않는다 */
+app.post("/api/visit", limiter({ windowMs: 60e3, max: 30, key: clientIp }), (req, res) => {
+  const ua = String(req.headers["user-agent"] || "");
+  if (/HeadlessChrome|bot|crawler|spider|Playwright/i.test(ua)) return res.status(204).end();
   try { countVisit(req); } catch { /* 집계 실패는 무시 */ }
+  res.status(204).end();
+});
+
+app.get("/api/status", (req, res) => {
   const { body, etag } = statusBody();
   res.set("Cache-Control", "public, max-age=10, s-maxage=10, stale-while-revalidate=30");
   res.set("ETag", etag);

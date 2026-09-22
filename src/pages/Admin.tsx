@@ -100,7 +100,7 @@ export default function Admin() {
         {stats && (
           <div className="statbar" style={{ marginTop: "0.6rem" }}>
             <div><b>{stats.visitsToday.toLocaleString()}</b><span>오늘 방문</span></div>
-            <div><b>{stats.viewsToday.toLocaleString()}</b><span>오늘 조회</span></div>
+            <div><b>{stats.viewsToday.toLocaleString()}</b><span>오늘 페이지뷰</span></div>
             <div><b>{stats.reportsToday.toLocaleString()}</b><span>오늘 제보</span></div>
             <div><b>{stats.reportsTotal.toLocaleString()}</b><span>누적 제보</span></div>
           </div>

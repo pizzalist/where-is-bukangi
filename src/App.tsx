@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Status, Submission } from "./lib/types";
 import { fetchStatus } from "./lib/api";
+import { API_BASE } from "./lib/site";
 const ONE = `${import.meta.env.BASE_URL}bukang-one.webp`;
 import Home from "./pages/Home";
 import Certify from "./pages/Certify";
@@ -41,6 +42,10 @@ export default function App() {
   useEffect(() => {
     const load = () => fetchStatus().then(setStatus).catch(() => setErr("상황 정보를 불러오지 못했어요. 마지막 화면이 오래됐을 수 있어요."));
     load();
+    // 방문 집계: 페이지를 연 순간 한 번만. 화면 이동이나 30초 갱신은 안 센다. 카드 렌더용 화면과 자동화 브라우저도 제외
+    if (parseHash().route !== "shot" && !(navigator as Navigator & { webdriver?: boolean }).webdriver) {
+      fetch(`${API_BASE}/api/visit`, { method: "POST", keepalive: true }).catch(() => null);
+    }
     const t = setInterval(load, 30000);
     const onHash = () => setNav(parseHash());
     addEventListener("hashchange", onHash);
