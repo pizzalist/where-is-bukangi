@@ -672,4 +672,5 @@ html.shot-og, html.shot-og body { background: transparent !important; }
 .live-no { background: #eef3f7; color: var(--ink-2); }
 .live-thanks { font-size: 0.9rem; color: var(--sky-deep); font-weight: 700; }
 .live-msg { font-size: 0.85rem; color: #b4453a; line-height: 1.45; }
+.live-hint { font-size: 0.78rem; color: var(--ink-3); line-height: 1.4; margin-top: -0.3rem; }
 .hero-ask { margin: 0.5rem 0 0; font-size: 0.85rem; line-height: 1.45; color: rgba(255,255,255,.92); position: relative; z-index: 1; padding-right: 7.2rem; }

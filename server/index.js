@@ -130,7 +130,10 @@ const ZONES = [
 const PARK = { lat: 35.1144, lng: 129.0464, radius: 700 };   // 공원 좌표 (src/lib/zones.ts와 같은 값)
 const LIVE_MIN = Number(process.env.LIVE_MIN || 15);         // 이 시간 안의 탭만 "지금"으로 친다
 const PING_COOLDOWN_MIN = Number(process.env.PING_COOLDOWN_MIN || 10);   // 같은 기기 재탭 간격
-const inPark = (lat, lng) => Math.hypot((PARK.lat - lat) * 111000, (PARK.lng - lng) * 91000) <= PARK.radius;
+const MAX_ACC = 1500;    // 기지국 기반 위치는 오차가 크다. 이만큼까지만 봐준다
+const distToPark = (lat, lng) => Math.hypot((PARK.lat - lat) * 111000, (PARK.lng - lng) * 91000);
+/** 오차 반경을 감안해 판정. 인앱 브라우저는 GPS 대신 기지국 위치가 오는 경우가 많다 */
+const inPark = (lat, lng, acc = 0) => distToPark(lat, lng) <= PARK.radius + Math.min(Math.max(acc, 0), MAX_ACC);
 const qSubs = db.prepare(`SELECT id, zone, taken_at AS at, photo, thumb, ordinal FROM submissions WHERE status='approved' ORDER BY taken_at DESC LIMIT 40`);
 const qObs = db.prepare(`SELECT kind, zone, at, note FROM observations ORDER BY at DESC LIMIT 40`);
 const qNotices = db.prepare(`SELECT src, title, url, crit FROM notices ORDER BY created_at DESC LIMIT 6`);
@@ -206,11 +209,11 @@ app.post("/api/visit", limiter({ windowMs: 60e3, max: 30, key: clientIp }), (req
 /* 현장 탭. 공원 안에서만, 같은 기기는 PING_COOLDOWN_MIN분에 한 번.
    사진 제보와 달리 카드도 안 나오고 타임라인에도 안 들어간다. "지금" 한 줄만 바꾼다 */
 app.post("/api/ping", limiter({ windowMs: 10 * 60e3, max: 12, key: clientIp }), express.json({ limit: "2kb" }), (req, res) => {
-  const { kind, zone, lat, lng } = req.body || {};
+  const { kind, zone, lat, lng, acc } = req.body || {};
   if (!["seen", "miss"].includes(kind)) return res.status(400).json({ error: "kind는 seen 또는 miss" });
   if (zone != null && zone !== "" && !ZONE_CODES.has(zone)) return res.status(400).json({ error: "구역이 이상해요." });
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return res.status(400).json({ error: "위치를 확인할 수 없어요." });
-  if (!inPark(lat, lng)) return res.status(403).json({ error: "공원 근처에서만 누를 수 있어요." });
+  if (!inPark(lat, lng, Number(acc) || 0)) return res.status(403).json({ error: "공원 근처에서만 누를 수 있어요." });
 
   const h = crypto.createHash("sha256").update(`ping|${clientIp(req)}|${req.headers["user-agent"] || ""}`).digest("base64url").slice(0, 22);
   const since = new Date(Date.now() - PING_COOLDOWN_MIN * 60e3).toISOString();

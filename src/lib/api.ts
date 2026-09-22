@@ -50,7 +50,7 @@ export async function fetchCard(id: string): Promise<CardInfo | null> {
 }
 
 /** 현장 탭. 공원 안에서만 통한다. 실패 사유를 그대로 올려 호출부가 보여준다 */
-export async function sendPing(body: { kind: "seen" | "miss"; zone?: string; lat: number; lng: number }): Promise<void> {
+export async function sendPing(body: { kind: "seen" | "miss"; zone?: string; lat: number; lng: number; acc?: number }): Promise<void> {
   const r = await fetch(`${API_BASE}/api/ping`, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
