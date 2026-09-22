@@ -6,7 +6,7 @@ import HoloCard from "../components/HoloCard";
 import { RARITY_META, RARITY_ORDER } from "../lib/rarity";
 import { useTiltAvailable } from "../lib/tilt";
 import { API_BASE } from "../lib/site";
-import { fetchCard } from "../lib/api";
+import { fetchCard, track } from "../lib/api";
 
 export default function Card({ status, focus, onTiers }: { status: Status; focus?: string | null; onTiers?: () => void }) {
   const subs = loadSubmissions();
@@ -55,6 +55,7 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
   /** 공유하기: 링크를 보낸다. 받는 쪽 카톡엔 이 카드 이미지가 미리보기로 뜬다 */
   async function shareLink() {
     if (!sel) return;
+    track("share");
     const text = `부캉이 인증 카드 No.${(sel.ordinal ?? 0).toLocaleString()} · ${RARITY_META[sel.rarity ?? "common"].label}`;
     const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
     if (nav.share) {
@@ -67,7 +68,7 @@ export default function Card({ status, focus, onTiers }: { status: Status; focus
   /** 이미지 저장: 화면의 홀로 카드를 서버가 PNG로 찍어준다. 폰은 사진첩(공유 시트의 "이미지 저장"), PC는 내려받기 */
   async function saveImage() {
     if (!sel || busy) return;
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); track("save");
     try {
       const r = await fetch(`${API_BASE}/api/cards/${encodeURIComponent(sel.id)}.png`);
       if (r.status === 404) {

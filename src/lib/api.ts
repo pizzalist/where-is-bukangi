@@ -56,3 +56,9 @@ export async function sendPing(body: { kind: "seen" | "miss"; zone?: string; lat
   });
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "지금은 보낼 수 없어요.");
 }
+
+/** 화면에서 일어난 행동 기록. 실패해도 조용히 넘어간다 (집계는 부가 기능) */
+export function track(name: "share" | "save" | "geo_fail" | "card_view") {
+  try { fetch(`${API_BASE}/api/event`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }), keepalive: true }).catch(() => null); }
+  catch { /* 무시 */ }
+}

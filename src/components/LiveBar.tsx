@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { sendPing } from "../lib/api";
+import { sendPing, track } from "../lib/api";
 import type { Status } from "../lib/types";
 
 /**
@@ -78,7 +78,7 @@ export default function LiveBar({ live, onDone }: { live: Status["live"]; onDone
       setDone(kind);
       onDone();
     } catch (e) {
-      if (e instanceof GeoError) setFail({ kind: e.kind, text: e.message });
+      if (e instanceof GeoError) { if (e.kind === "unavailable") track("geo_fail"); setFail({ kind: e.kind, text: e.message }); }
       else setFail({ kind: "other", text: e instanceof Error ? e.message : "지금은 보낼 수 없어요." });
     } finally { setBusy(null); }
   }

@@ -5,14 +5,15 @@ import { adminApi, type HourRow } from "../lib/admin";
  * 시간대별 추이. 외부 차트 라이브러리 없이 SVG 막대로 그린다.
  * 방문(순방문)·페이지뷰·제보·현장 탭을 같은 시간축에 놓고 언제 사람이 오는지 본다.
  */
-type Key = "uniq" | "view" | "report" | "ping";
+type Key = "uniq" | "view" | "report" | "ping" | "share";
 const SERIES: { key: Key; label: string; color: string }[] = [
   { key: "uniq", label: "순방문", color: "#2fb5e8" },
   { key: "view", label: "페이지뷰", color: "#9fd8ef" },
   { key: "report", label: "사진 제보", color: "#0b5c8a" },
   { key: "ping", label: "현장 탭", color: "#f0a33c" },
+  { key: "share", label: "공유·저장", color: "#7b61ff" },
 ];
-const val = (r: HourRow, k: Key) => (k === "ping" ? r.ping_seen + r.ping_miss : r[k]);
+const val = (r: HourRow, k: Key) => (k === "ping" ? r.ping_seen + r.ping_miss : k === "share" ? r.share + r.save : r[k]);
 const hh = (h: string) => Number(h.slice(11, 13));
 
 export default function HourChart() {
@@ -81,13 +82,15 @@ export default function HourChart() {
       <details className="hc-table">
         <summary>시간별 숫자 보기</summary>
         <table>
-          <thead><tr><th>시각</th><th>순방문</th><th>페이지뷰</th><th>제보</th><th>탭(보임/안보임)</th></tr></thead>
+          <thead><tr><th>시각</th><th>순방문</th><th>페이지뷰</th><th>제보</th><th>탭(보임/안보임)</th><th>공유/저장</th><th>카드링크</th></tr></thead>
           <tbody>
-            {[...rows].reverse().filter((r) => r.view + r.report + r.ping_seen + r.ping_miss > 0).map((r) => (
+            {[...rows].reverse().filter((r) => r.view + r.report + r.ping_seen + r.ping_miss + r.share + r.save + r.card_view > 0).map((r) => (
               <tr key={r.hour}>
                 <td className="mono">{r.hour.slice(5, 10)} {String(hh(r.hour)).padStart(2, "0")}시</td>
                 <td className="mono">{r.uniq}</td><td className="mono">{r.view}</td><td className="mono">{r.report}</td>
                 <td className="mono">{r.ping_seen}/{r.ping_miss}</td>
+                <td className="mono">{r.share}/{r.save}</td>
+                <td className="mono">{r.card_view}</td>
               </tr>
             ))}
           </tbody>

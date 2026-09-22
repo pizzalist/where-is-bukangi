@@ -6,6 +6,7 @@ import { RARITY_META } from "../lib/rarity";
 import { ZONES } from "../lib/zones";
 import { adminApi, getToken, setToken, type QueueItem } from "../lib/admin";
 import HourChart from "../components/HourChart";
+import Breakdown from "../components/Breakdown";
 import { fetchStatus } from "../lib/api";
 import { API_BASE } from "../lib/site";
 import type { Stats } from "../lib/types";
@@ -110,6 +111,11 @@ export default function Admin() {
         <div className="section">
           <div className="section-head"><h2>시간대별</h2></div>
           <HourChart />
+        </div>
+
+        <div className="section">
+          <div className="section-head"><h2>어디서 들어오나</h2></div>
+          <Breakdown />
         </div>
 
         <ObservationForm onDone={load} />

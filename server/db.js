@@ -59,6 +59,17 @@ CREATE TABLE IF NOT EXISTS visits (
   PRIMARY KEY (day, kind)
 );
 
+-- 유입 경로(어디서 들어왔나)와 화면별 조회. 날짜 단위면 충분하다.
+-- 개인 식별 없이 출처 종류와 화면 이름만 센다. 전체 주소나 검색어는 저장하지 않는다.
+CREATE TABLE IF NOT EXISTS sources (
+  day TEXT NOT NULL, src TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, src)
+);
+CREATE TABLE IF NOT EXISTS routes (
+  day TEXT NOT NULL, route TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, route)
+);
+
 -- 시간별 순방문 판별용 해시. 일 단위(visitors)와 따로 둔다.
 -- "그 시간에 온 사람 수"를 세야 해서, 하루 단위 첫 방문 기준으로는 시간별 값이 안 나온다.
 CREATE TABLE IF NOT EXISTS visitors_hourly (
@@ -68,7 +79,9 @@ CREATE TABLE IF NOT EXISTS visitors_hourly (
 );
 
 -- 시간대별 집계. 어드민 그래프용. 한국 시간 기준 "YYYY-MM-DDTHH" 키.
--- kind: view(페이지뷰) uniq(순방문) report(사진 제보) ping_seen ping_miss card(공개된 카드)
+-- kind: view(페이지뷰) uniq(순방문) report(사진 제보) card(공개된 카드)
+--       ping_seen ping_miss(현장 탭) ping_far(반경 밖 거절) geo_fail(위치 확인 실패)
+--       share(링크 공유) save(이미지 저장) card_view(카드 링크로 들어옴)
 CREATE TABLE IF NOT EXISTS stats_hourly (
   hour TEXT NOT NULL,
   kind TEXT NOT NULL,

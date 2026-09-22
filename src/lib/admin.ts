@@ -29,9 +29,11 @@ export interface QueueItem {
   aiShark?: number | null; aiPerson?: number | null; aiConf?: number | null; aiReason?: string | null;
 }
 
-export interface HourRow { hour: string; view: number; uniq: number; report: number; ping_seen: number; ping_miss: number; card: number }
+export interface Breakdown { from: string; sources: { src: string; n: number }[]; routes: { route: string; n: number }[] }
+export interface HourRow { hour: string; view: number; uniq: number; report: number; ping_seen: number; ping_miss: number; ping_far: number; card: number; share: number; save: number; card_view: number; geo_fail: number }
 
 export const adminApi = {
+  breakdown: (days = 1) => call<Breakdown>(`/api/admin/breakdown?days=${days}`),
   hourly: (hours = 24) => call<{ rows: HourRow[]; since: string | null }>(`/api/admin/hourly?hours=${hours}`),
   queue: () => call<QueueItem[]>("/api/admin/queue"),
   decide: (id: string, action: "approve" | "reject", zone?: ZoneCode | null) =>

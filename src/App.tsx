@@ -44,7 +44,10 @@ export default function App() {
     load();
     // 방문 집계: 페이지를 연 순간 한 번만. 화면 이동이나 30초 갱신은 안 센다. 카드 렌더용 화면과 자동화 브라우저도 제외
     if (parseHash().route !== "shot" && !(navigator as Navigator & { webdriver?: boolean }).webdriver) {
-      fetch(`${API_BASE}/api/visit`, { method: "POST", keepalive: true }).catch(() => null);
+      fetch(`${API_BASE}/api/visit`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
+        body: JSON.stringify({ ref: document.referrer || "", route: parseHash().route }),
+      }).catch(() => null);
     }
     const t = setInterval(load, 30000);
     const onHash = () => setNav(parseHash());

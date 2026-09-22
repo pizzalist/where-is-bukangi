@@ -109,6 +109,27 @@ function today() { const d = new Date(Date.now() + 9 * 3600e3); return d.toISOSt
 /** 한국 시간 기준 시간 키. 기본은 지금 */
 function hourKey(at) { return new Date((at ? new Date(at).getTime() : Date.now()) + 9 * 3600e3).toISOString().slice(0, 13); }
 const bumpHour = db.prepare(`INSERT INTO stats_hourly (hour, kind, n) VALUES (?,?,1) ON CONFLICT(hour,kind) DO UPDATE SET n = n + 1`);
+const bumpSource = db.prepare(`INSERT INTO sources (day, src, n) VALUES (?,?,1) ON CONFLICT(day,src) DO UPDATE SET n = n + 1`);
+const bumpRoute = db.prepare(`INSERT INTO routes (day, route, n) VALUES (?,?,1) ON CONFLICT(day,route) DO UPDATE SET n = n + 1`);
+/** 참조 주소를 출처 종류로만 분류한다. 전체 주소나 검색어는 저장하지 않는다 */
+function classifySource(ref, ua) {
+  const h = (() => { try { return new URL(String(ref)).hostname.toLowerCase(); } catch { return ""; } })();
+  const u = String(ua || "").toLowerCase();
+  if (/threads/.test(h) || /threads/.test(u)) return "threads";
+  if (/instagram/.test(h) || /instagram/.test(u)) return "instagram";
+  if (/kakao|daum/.test(h) || /kakaotalk/.test(u)) return "kakao";
+  if (/facebook|fb\.com/.test(h) || /fban|fbav/.test(u)) return "facebook";
+  if (/naver/.test(h) || /naver/.test(u)) return "naver";
+  if (/google/.test(h)) return "google";
+  if (/youtube|youtu\.be/.test(h)) return "youtube";
+  if (/^(t\.co|x\.com|twitter)/.test(h)) return "twitter";
+  if (/bukangi\.com$/.test(h)) return "internal";
+  if (h) return "other";
+  return "direct";                                  // 주소 직접 입력, QR, 메모 앱 등
+}
+const ROUTES = new Set(["home", "certify", "card", "hall", "tiers", "admin", "shot"]);
+/** 클라이언트가 보낼 수 있는 이벤트만 허용. 아무 이름이나 받지 않는다 */
+const EVENTS = new Set(["share", "save", "geo_fail", "card_view"]);
 /** 집계는 부가 기능이라 실패해도 본 동작을 막지 않는다 */
 function tally(kind, at) { try { bumpHour.run(hourKey(at), kind); } catch { /* 무시 */ } }
 function daysAgo(n) { const d = new Date(Date.now() + 9 * 3600e3 - n * 864e5); return d.toISOString().slice(0, 10); }
@@ -207,10 +228,25 @@ function statusBody() {
 }
 /* 방문 집계. 앱이 페이지를 "실제로 열 때" 한 번만 POST한다. 30초 상황 폴링과는 분리.
    헤드리스 브라우저(카드 렌더러·테스트)와 봇은 세지 않는다 */
-app.post("/api/visit", limiter({ windowMs: 60e3, max: 30, key: clientIp }), (req, res) => {
+app.post("/api/visit", limiter({ windowMs: 60e3, max: 30, key: clientIp }), express.json({ limit: "1kb" }), (req, res) => {
   const ua = String(req.headers["user-agent"] || "");
   if (/HeadlessChrome|bot|crawler|spider|Playwright/i.test(ua)) return res.status(204).end();
-  try { countVisit(req); } catch { /* 집계 실패는 무시 */ }
+  try {
+    countVisit(req);
+    const day = today();
+    bumpSource.run(day, classifySource(req.body?.ref || req.headers.referer, ua));
+    const r = String(req.body?.route || "home");
+    bumpRoute.run(day, ROUTES.has(r) ? r : "other");
+  } catch { /* 집계 실패는 무시 */ }
+  res.status(204).end();
+});
+
+/* 화면에서 일어난 행동. 공유·저장·위치 실패처럼 서버가 알 수 없는 것만 받는다 */
+app.post("/api/event", limiter({ windowMs: 60e3, max: 60, key: clientIp }), express.json({ limit: "1kb" }), (req, res) => {
+  const ua = String(req.headers["user-agent"] || "");
+  if (/HeadlessChrome|bot|crawler|spider|Playwright/i.test(ua)) return res.status(204).end();
+  const name = String(req.body?.name || "");
+  if (EVENTS.has(name)) tally(name);
   res.status(204).end();
 });
 
@@ -382,6 +418,9 @@ app.get(/^\/c\/([A-Za-z0-9_-]{6,32})$/, limiter({ windowMs: 15 * 60e3, max: 120,
   const desc = `${when} ${r.zone ? ZONE_NAME[r.zone] || "" : "부산 북항 친수공원"} · ${RARITY_LABEL[r.rarity] || r.rarity}`;
   const img = `${PUBLIC_URL || site}/api/cards/${r.id}.jpg`;   // 미리보기는 가벼운 쪽
   const app = `${site}/#/card/${r.id}`;
+  if (!/bot|crawler|spider|facebookexternalhit|kakaotalk-scrap|Twitterbot|Slackbot|meta-externalagent/i.test(String(req.headers["user-agent"] || ""))) {
+    tally("card_view"); try { bumpSource.run(today(), "card_link"); } catch { /* 무시 */ }
+  }
   res.set("Cache-Control", "public, max-age=60, s-maxage=300");
   res.type("html").send(`<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <title>${esc(title)}</title>
@@ -439,10 +478,20 @@ app.get("/api/admin/hourly", limiter({ windowMs: 15 * 60e3, max: 120, key: clien
   const out = [];
   for (let i = hours - 1; i >= 0; i--) {
     const h = hourKey(Date.now() - i * 3600e3);
-    out.push({ hour: h, ...{ view: 0, uniq: 0, report: 0, ping_seen: 0, ping_miss: 0, card: 0 }, ...(by[h] || {}) });
+    out.push({ hour: h, ...{ view: 0, uniq: 0, report: 0, ping_seen: 0, ping_miss: 0, ping_far: 0, card: 0, share: 0, save: 0, card_view: 0, geo_fail: 0 }, ...(by[h] || {}) });
   }
   res.set("Cache-Control", "no-store");
   res.json({ rows: out, since: (db.prepare("SELECT MIN(hour) m FROM stats_hourly WHERE kind='view'").get() || {}).m || null });
+});
+
+/* 유입 경로·화면별 (날짜 단위) */
+const qSources = db.prepare(`SELECT src, SUM(n) n FROM sources WHERE day >= ? GROUP BY src ORDER BY n DESC`);
+const qRoutes = db.prepare(`SELECT route, SUM(n) n FROM routes WHERE day >= ? GROUP BY route ORDER BY n DESC`);
+app.get("/api/admin/breakdown", limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), auth, (req, res) => {
+  const days = Math.min(Math.max(Number(req.query.days) || 1, 1), 30);
+  const from = daysAgo(days - 1);
+  res.set("Cache-Control", "no-store");
+  res.json({ from, sources: qSources.all(from), routes: qRoutes.all(from) });
 });
 
 const insObs = db.prepare(`INSERT INTO observations (kind, zone, at, note, created_at) VALUES (?,?,?,?,?)`);

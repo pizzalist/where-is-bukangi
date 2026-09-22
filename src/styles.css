@@ -700,3 +700,13 @@ html.shot-og, html.shot-og body { background: transparent !important; }
 .hc-table th, .hc-table td { text-align: right; padding: 0.3rem 0.25rem; border-bottom: 1px solid var(--line); }
 .hc-table th:first-child, .hc-table td:first-child { text-align: left; }
 .hc-table th { color: var(--ink-3); font-weight: 500; font-size: 0.75rem; }
+
+/* ---- 유입 경로·화면별 ---- */
+.bd-list { display: grid; gap: 0.4rem; margin-top: 0.6rem; }
+.bd-row { display: grid; grid-template-columns: 5.4rem 1fr 2.6rem 2.2rem; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+.bd-name { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bd-bar { background: var(--foam); border-radius: 999px; height: 0.55rem; overflow: hidden; }
+.bd-bar i { display: block; height: 100%; background: var(--sky); border-radius: 999px; }
+.bd-n { text-align: right; font-weight: 700; }
+.bd-pct { text-align: right; color: var(--ink-3); font-size: 0.75rem; }
+.bd-empty { font-size: 0.82rem; color: var(--ink-3); margin-top: 0.5rem; }
