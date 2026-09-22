@@ -115,7 +115,7 @@ const bumpRoute = db.prepare(`INSERT INTO routes (day, route, n) VALUES (?,?,1) 
 function classifySource(ref, ua) {
   const h = (() => { try { return new URL(String(ref)).hostname.toLowerCase(); } catch { return ""; } })();
   const u = String(ua || "").toLowerCase();
-  if (/threads/.test(h) || /threads/.test(u)) return "threads";
+  if (/threads/.test(h) || /threads|barcelona/.test(u)) return "threads";   // 스레드 iOS 앱은 UA에 Barcelona를 쓴다
   if (/instagram/.test(h) || /instagram/.test(u)) return "instagram";
   if (/kakao|daum/.test(h) || /kakaotalk/.test(u)) return "kakao";
   if (/facebook|fb\.com/.test(h) || /fban|fbav/.test(u)) return "facebook";
@@ -243,10 +243,11 @@ app.post("/api/visit", limiter({ windowMs: 60e3, max: 30, key: clientIp }), expr
   const ua = String(req.headers["user-agent"] || "");
   if (/HeadlessChrome|bot|crawler|spider|Playwright/i.test(ua)) return res.status(204).end();
   try {
-    const firstToday = countVisit(req);
-    // 유입 경로·첫 진입 화면은 "오늘 처음 온 사람"만 센다.
-    // 새로고침이나 재방문까지 세면 합계가 방문자 수와 안 맞고, 참조 주소가 우리 사이트라 "새로고침"으로 뭉개진다
-    if (firstToday) {
+    countVisit(req);
+    // 유입 경로·첫 진입 화면은 방문 한 번에 한 번만 센다 (클라이언트가 첫 진입에만 first를 보낸다).
+    // 새로고침까지 세면 합계가 방문자 수와 안 맞고 참조 주소가 우리 사이트라 뭉개진다.
+    // 하루 기준이 아니라 방문 기준이라, 아침에 카톡·저녁에 인스타로 오면 둘 다 잡힌다
+    if (req.body?.first === true) {
       const day = today();
       const tag = SRC_CODES[String(req.body?.s || "").toLowerCase()];
       bumpSource.run(day, tag || classifySource(req.body?.ref || req.headers.referer, ua));
