@@ -74,7 +74,7 @@ export default function LiveBar({ onDone }: { onDone: () => void }) {
       setDone(kind);
       onDone();
     } catch (e) {
-      if (e instanceof GeoError) { if (e.kind === "unavailable") track("geo_fail"); setFail({ kind: e.kind, text: e.message }); }
+      if (e instanceof GeoError) { track("geo_fail"); setFail({ kind: e.kind, text: e.message }); }
       else setFail({ kind: "other", text: e instanceof Error ? e.message : "지금은 보낼 수 없어요." });
     } finally { setBusy(null); }
   }
@@ -95,17 +95,12 @@ export default function LiveBar({ onDone }: { onDone: () => void }) {
         </>
       )}
       {fail?.kind === "other" && <div className="live-msg">{fail.text}</div>}
-      {fail?.kind === "denied" && (
-        <div className="live-msg">
-          <b>위치 권한이 꺼져 있어요.</b>
-          <p>공원에 있는 사람만 누를 수 있게 하려고 위치를 확인해요. 브라우저 주소창 왼쪽에서 위치를 허용해주세요.</p>
-        </div>
-      )}
-      {fail?.kind === "unavailable" && (
+      {(fail?.kind === "denied" || fail?.kind === "unavailable") && (
         <div className="live-msg">
           <b>위치를 확인하지 못했어요.</b>
-          <p>카톡·인스타·스레드 안에서 열린 화면은 위치를 쓸 수 없어요. 아래 버튼으로 주소를 복사한 뒤 <b>사파리나 크롬</b>에 붙여넣어 주세요.</p>
+          <p>인스타·스레드·카톡 <b>앱 안에서 열린 화면</b>은 위치를 쓸 수 없어요. 아래 버튼으로 주소를 복사한 뒤 사파리나 크롬에 붙여넣어 주세요.</p>
           <button className="live-copy" onClick={copyLink}>{copied ? "복사됐어요" : "bukangi.com 주소 복사"}</button>
+          <p className="live-fine">사파리·크롬인데도 안 되면 브라우저 설정에서 이 사이트의 위치를 허용해주세요.</p>
         </div>
       )}
     </section>
