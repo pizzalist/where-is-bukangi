@@ -44,7 +44,7 @@ function slot() {
 function release() { active--; const n = waiting.shift(); if (n) n(); }
 
 export function cardKey(row, fmt = "png") {
-  return crypto.createHash("sha1").update(JSON.stringify([row.ordinal, row.rarity, row.zone, row.taken_at, row.photo, SITE_HOST, fmt, 6])).digest("base64url").slice(0, 10);
+  return crypto.createHash("sha1").update(JSON.stringify([row.ordinal, row.rarity, row.zone, row.taken_at, row.photo, SITE_HOST, fmt, 7])).digest("base64url").slice(0, 10);
 }
 
 /** 저장용(png)은 크고 선명하게, 링크 미리보기용(jpg)은 작고 가볍게 */
