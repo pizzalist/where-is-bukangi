@@ -15,6 +15,9 @@ const MASCOT = `${import.meta.env.BASE_URL}bukang-one.webp`;
 export default function Shot({ id }: { id?: string }) {
   const [d, setD] = useState<ShotData | null>(null);
   const [ready, setReady] = useState(false);
+  const q = typeof location !== "undefined" ? new URLSearchParams(location.search) : new URLSearchParams();
+  const og = q.get("og") === "1";
+  const video = q.get("video") === "1";
 
   useEffect(() => {
     document.documentElement.classList.add("shot");
@@ -23,6 +26,8 @@ export default function Shot({ id }: { id?: string }) {
     if (p0.get("bg") === "1") document.documentElement.classList.add("shot-bg");
     // og=1: 링크 미리보기용 가로 1200x630 구성 (카드 + 문구). 메신저마다 세로 이미지를 이상하게 자른다
     if (p0.get("og") === "1") document.documentElement.classList.add("shot-og");
+    // video=1: 뒤집기 + 자동 문지르기. 영상 녹화용
+    if (p0.get("video") === "1") document.documentElement.classList.add("shot-video");
     const q = new URLSearchParams(location.search).get("d");
     if (q) {
       try { setD(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(q.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0))))); return; } catch { /* 아래로 */ }
@@ -30,6 +35,7 @@ export default function Shot({ id }: { id?: string }) {
     if (id) fetchCard(id).then((r) => r && setD({ id: r.id, ordinal: r.ordinal, rarity: r.rarity, zone: r.zone as ZoneCode, zoneName: r.zoneName, takenAt: r.takenAt, photo: r.photo }));
     return () => document.documentElement.classList.remove("shot");
   }, [id]);
+
 
   useEffect(() => {
     if (!d) return;
@@ -49,10 +55,19 @@ export default function Shot({ id }: { id?: string }) {
   }, [d]);
 
   if (!d) return null;
-  const og = typeof location !== "undefined" && new URLSearchParams(location.search).get("og") === "1";
-  const card = <HoloCard id={d.id} type="seen" ordinal={d.ordinal} takenAt={d.takenAt} zone={d.zone ?? undefined} zoneName={d.zoneName ?? ""} photoDataUrl={d.photo ?? undefined} rarity={d.rarity} site={d.site} fixed={{ mx: 36, my: 30 }} />;
-  if (!og) return <div className="shot-wrap" data-ready={ready ? "1" : "0"}>{card}</div>;
   const meta = RARITY_META[d.rarity];
+  const card = <HoloCard id={d.id} type="seen" ordinal={d.ordinal} takenAt={d.takenAt} zone={d.zone ?? undefined} zoneName={d.zoneName ?? ""} photoDataUrl={d.photo ?? undefined} rarity={d.rarity} site={d.site} fixed={{ mx: 36, my: 30 }} />;
+  if (video) {
+    // 영상 녹화용. 반짝임 각도는 녹화 스크립트가 프레임마다 직접 지정한다
+    // (브라우저 애니메이션에 맡기면 한 바퀴가 정확히 안 맞아 반복할 때 튄다)
+    return (
+      <div className="shot-wrap shot-video-wrap" data-ready={ready ? "1" : "0"}>
+        <HoloCard id={d.id} type="seen" ordinal={d.ordinal} takenAt={d.takenAt} zone={d.zone ?? undefined} zoneName={d.zoneName ?? ""} photoDataUrl={d.photo ?? undefined} rarity={d.rarity} site={d.site} fixed={{ mx: 50, my: 50 }} />
+        <div className={`shot-rarity tier-dot-${d.rarity} on`}>{meta.symbol} {meta.label}</div>
+      </div>
+    );
+  }
+  if (!og) return <div className="shot-wrap" data-ready={ready ? "1" : "0"}>{card}</div>;
   return (
     <div className="shot-wrap shot-og-wrap" data-ready={ready ? "1" : "0"}>
       <div className="og-text">

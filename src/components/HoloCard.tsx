@@ -20,6 +20,8 @@ export interface HoloCardProps {
   fixed?: { mx: number; my: number };
   /** 손 안 댈 때 자동으로 천천히 도는 데모 */
   sweep?: boolean;
+  /** 이 밀리초에 정확히 한 바퀴. 주면 영상이 끊김 없이 반복된다 */
+  loopMs?: number;
   /** 카드 하단에 찍을 사이트 주소. 서버 렌더에서 넘겨준다 (기본은 접속 주소) */
   site?: string;
 }
@@ -57,13 +59,20 @@ export default function HoloCard(p: HoloCardProps) {
     const loop = (t: number) => {
       raf = requestAnimationFrame(loop);
       if (!visible || touching.current || t - last < 33) return;
-      last = t; const a = (t - t0) / 2200; setPos(50 + Math.cos(a) * 32, 50 + Math.sin(a * 0.8) * 26);
+      last = t;
+      if (p.loopMs) {
+        // 정확히 한 바퀴 도는 원 궤도. 시작과 끝이 같아 영상이 매끄럽게 이어진다
+        const th = ((t - t0) % p.loopMs) / p.loopMs * Math.PI * 2;
+        setPos(50 + Math.cos(th) * 34, 50 + Math.sin(th) * 27);
+      } else {
+        const a = (t - t0) / 2200; setPos(50 + Math.cos(a) * 32, 50 + Math.sin(a * 0.8) * 26);
+      }
     };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; setActive(visible); }, { rootMargin: "40px" });
     io.observe(el);
     raf = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(raf); io.disconnect(); };
-  }, [p.sweep]);
+  }, [p.sweep, p.loopMs]);
 
   useEffect(() => {
     if (!p.interactive) return;
