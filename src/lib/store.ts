@@ -79,12 +79,31 @@ export function fmtAge(min: number) {
   if (h < 24) return `${h}시간 ${min % 60}분 전`;
   return `${Math.floor(h / 24)}일 전`;
 }
+/** 부산에 있는 상어 이야기라, 어디서 보든 한국 시간으로 보여준다 */
+function kstParts(iso: string) {
+  const f = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+  const p = Object.fromEntries(f.formatToParts(new Date(iso)).map((x) => [x.type, x.value])) as Record<string, string>;
+  return { y: p.year, m: p.month, d: p.day, hh: p.hour === "24" ? "00" : p.hour, mm: p.minute };
+}
 export function fmtTime(iso: string) {
-  const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const p = kstParts(iso);
+  return `${p.hh}:${p.mm}`;
+}
+/** 오늘이 아니면 날짜를 붙인다. "23:10"만 보이면 어제 건지 알 수 없다 */
+export function fmtWhen(iso: string) {
+  const p = kstParts(iso), t = kstParts(new Date().toISOString());
+  if (p.y === t.y && p.m === t.m && p.d === t.d) return `${p.hh}:${p.mm}`;
+  const y = kstParts(new Date(Date.now() - 864e5).toISOString());
+  if (p.y === y.y && p.m === y.m && p.d === y.d) return `어제 ${p.hh}:${p.mm}`;
+  return `${Number(p.m)}/${Number(p.d)} ${p.hh}:${p.mm}`;
+}
+/** 오늘(한국 시간) 기록인가 */
+export function isToday(iso: string) {
+  const p = kstParts(iso), t = kstParts(new Date().toISOString());
+  return p.y === t.y && p.m === t.m && p.d === t.d;
 }
 export function fmtDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+  const p = kstParts(iso);
+  return `${p.y}.${p.m}.${p.d}`;
 }
 

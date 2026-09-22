@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Status, Event, ZoneCode } from "../lib/types";
-import { ageMinutes, fmtAge, fmtTime } from "../lib/store";
+import { ageMinutes, fmtAge, fmtTime, fmtWhen, isToday } from "../lib/store";
 const TWO = `${import.meta.env.BASE_URL}bukang-two.webp`;
 import ZoneMap from "../components/ZoneMap";
 import LiveBar from "../components/LiveBar";
@@ -14,11 +14,11 @@ function deriveHero(s: Status, now: number): { state: HeroState; headline: strin
   if (s.control) return { state: "crit", headline: "출입통제 중", sub: s.control.title, ageMin: 0 };
   if (!s.last) return { state: "none", headline: "아직 제보가 없어요", sub: "부캉이를 봤다면 사진 한 장 올려주세요. 첫 주인공이 돼요", ageMin: 0 };
   const a = ageMinutes(s.last.at, now);
-  if (s.last.kind === "miss") return { state: "miss", headline: `${fmtTime(s.last.at)} 관측 · 못 봄`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
+  if (s.last.kind === "miss") return { state: "miss", headline: `${fmtWhen(s.last.at)} 관측 · 못 봄`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
   // 큰 글씨는 "언제 나왔나". 근거(사진 인증·현장 관측)와 구역은 바로 아래 줄에.
   // 시간이 오래 지나도 "미확인"으로 바꾸지 않는다. 얼마나 됐는지는 옆 배지로 알린다
   const via = s.last.photo ? "사진 인증" : "현장 관측";
-  return { state: "seen", headline: `${fmtTime(s.last.at)} 출몰`, sub: `${via} · ${ZONE_BY_CODE[s.last.zone]?.full ?? ""}`, ageMin: a };
+  return { state: "seen", headline: `${fmtWhen(s.last.at)} 출몰`, sub: `${via} · ${ZONE_BY_CODE[s.last.zone]?.full ?? ""}`, ageMin: a };
 }
 
 /** 지금 몇 명이 보인다/안 보인다고 했는지. 히어로 안에 한 줄로 */
@@ -110,7 +110,7 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
               <strong>{ZONE_BY_CODE[pick]?.full ?? pick}</strong> · 오늘 기록 {byZone[pick]?.length ?? 0}건
               {(byZone[pick] ?? []).slice(0, 3).map((e, i) => (
                 <div key={i} style={{ fontSize: "0.88rem", color: "var(--ink-2)" }}>
-                  <span className="mono">{fmtTime(e.at)}</span> · {e.kind === "miss" ? "미목격" : "목격"} · {TIER_LABEL[e.tier]}
+                  <span className="mono">{fmtWhen(e.at)}</span> · {e.kind === "miss" ? "미목격" : "목격"} · {TIER_LABEL[e.tier]}
                 </div>
               ))}
               {!(byZone[pick]?.length) && <div style={{ fontSize: "0.88rem", color: "var(--ink-3)" }}>기록 없음</div>}
@@ -121,11 +121,11 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
 
       <section className="section">
         <div className="section-head">
-          <h2>오늘의 기록</h2>
+          <h2>최근 기록</h2>
           <button className="more" onClick={onHall}>명예의 전당 ›</button>
         </div>
         {status.timeline.length === 0 && (
-          <div className="card" style={{ color: "var(--ink-3)" }}>아직 오늘 기록이 없어요. 부캉이를 봤다면 사진 한 장 올려주세요. 첫 기록의 주인공이 돼요.</div>
+          <div className="card" style={{ color: "var(--ink-3)" }}>아직 기록이 없어요. 부캉이를 봤다면 사진 한 장 올려주세요. 첫 기록의 주인공이 돼요.</div>
         )}
         <ul className="timeline">
           {status.timeline.map((e, i) => (
@@ -134,7 +134,7 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
               className={`tl-item ${e.tier} ${e.kind}`}
               initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
             >
-              <span className="time">{fmtTime(e.at)}</span>
+              <span className="time">{isToday(e.at) ? fmtTime(e.at) : fmtWhen(e.at)}</span>
               {e.photo ? <img className="tl-photo" src={e.photo} alt="" loading="lazy" /> : <span className="tl-nophoto" />}
               <span className="body">
                 {e.kind === "miss" ? "관측했지만 못 봄" : `${ZONE_BY_CODE[e.zone]?.name ?? e.zone}에서 목격`}
