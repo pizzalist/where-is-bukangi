@@ -9,6 +9,9 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
+    // 기본값은 정적 파일 처리가 먼저라, 브라우저의 /c/<id> 요청이 SPA 폴백(index.html)으로 가로채여
+    // 스크립트가 아예 안 돌았다. 이 경로만 스크립트를 먼저 태운다
+    "run_worker_first": ["/c/*"],
     // 해시 라우팅이라 없는 경로는 전부 index.html로 돌려준다
     "not_found_handling": "single-page-application"
   },

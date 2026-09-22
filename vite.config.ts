@@ -10,7 +10,8 @@ function versionFile(): Plugin {
 
 export default defineConfig({
   plugins: [react(), versionFile()],
-  base: "./",
+  // 절대 경로. index.html이 /c/xxx 같은 깊은 주소에서 떠도 자산을 제대로 찾는다
+  base: "/",
   define: { __BUILD__: JSON.stringify(BUILD) },
   // 파일명에 해시를 넣는다. 옛 index.html이 새 JS를 잘못 물거나, 브라우저가 옛 JS를 계속 쓰는 걸 막는다.
   build: { rollupOptions: { output: { entryFileNames: "assets/app-[hash].js", chunkFileNames: "assets/[name]-[hash].js", assetFileNames: "assets/[name]-[hash][extname]" } } },

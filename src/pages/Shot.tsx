@@ -17,6 +17,8 @@ export default function Shot({ id }: { id?: string }) {
 
   useEffect(() => {
     document.documentElement.classList.add("shot");
+    // jpg는 투명 배경이 안 되니 카드 밖을 흰색 대신 옅은 하늘색으로 (bg=1)
+    if (new URLSearchParams(location.search).get("bg") === "1") document.documentElement.classList.add("shot-bg");
     const q = new URLSearchParams(location.search).get("d");
     if (q) {
       try { setD(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(q.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0))))); return; } catch { /* 아래로 */ }

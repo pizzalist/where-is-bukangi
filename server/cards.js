@@ -43,18 +43,26 @@ function slot() {
 }
 function release() { active--; const n = waiting.shift(); if (n) n(); }
 
-export function cardKey(row) {
-  return crypto.createHash("sha1").update(JSON.stringify([row.ordinal, row.rarity, row.zone, row.taken_at, row.photo, SITE_HOST, 2])).digest("base64url").slice(0, 10);
+export function cardKey(row, fmt = "png") {
+  return crypto.createHash("sha1").update(JSON.stringify([row.ordinal, row.rarity, row.zone, row.taken_at, row.photo, SITE_HOST, fmt, 3])).digest("base64url").slice(0, 10);
 }
+
+/** 저장용(png)은 크고 선명하게, 링크 미리보기용(jpg)은 작고 가볍게 */
+const FMT = {
+  png: { scale: 3, type: "png", opts: { omitBackground: true } },
+  jpg: { scale: 1.5, type: "jpeg", opts: { quality: 86 } },   // 약 740x990, 150KB 안팎. 카톡·스레드가 읽는 크기
+};
+export const CARD_SIZE = { png: { w: 1476, h: 1983 }, jpg: { w: 738, h: 992 } };
 
 /**
  * row: { id, ordinal, rarity, zone, taken_at, photo }  zoneName: 표시용 구역 이름
  * localBase: 앱과 사진을 낼 수 있는 이 서버의 로컬 주소 (http://127.0.0.1:8787)
  * 반환: PNG 파일 경로
  */
-export async function cardPng(row, zoneName, localBase) {
-  const key = cardKey(row);
-  const file = path.join(DIR, `${row.id}.${key}.png`);
+export async function cardPng(row, zoneName, localBase, fmt = "png") {
+  const f = FMT[fmt] || FMT.png;
+  const key = cardKey(row, fmt);
+  const file = path.join(DIR, `${row.id}.${key}.${fmt}`);
   if (fs.existsSync(file)) return file;
 
   await slot();
@@ -62,7 +70,7 @@ export async function cardPng(row, zoneName, localBase) {
   try {
     if (fs.existsSync(file)) return file;                 // 기다리는 사이 다른 요청이 만들었을 수 있다
     const b = await getBrowser();
-    const ctx = await b.newContext({ viewport: { width: WIDTH + 80, height: 900 }, deviceScaleFactor: 3 });
+    const ctx = await b.newContext({ viewport: { width: WIDTH + 80, height: 900 }, deviceScaleFactor: f.scale });
     try {
       const page = await ctx.newPage();
       const d = Buffer.from(JSON.stringify({
@@ -70,14 +78,14 @@ export async function cardPng(row, zoneName, localBase) {
         takenAt: row.taken_at, photo: row.photo ? `${localBase}/photos/${row.photo}` : null,
         site: SITE_HOST,                                    // 카드 하단 주소. 없으면 127.0.0.1이 찍힌다
       })).toString("base64url");
-      await page.goto(`${localBase}/?d=${d}#/shot/${row.id}`, { waitUntil: "load", timeout: 20000 });
+      await page.goto(`${localBase}/?d=${d}&bg=${fmt === "jpg" ? 1 : 0}#/shot/${row.id}`, { waitUntil: "load", timeout: 20000 });
       await page.waitForSelector('.shot-wrap[data-ready="1"]', { timeout: 20000 });
       await page.waitForTimeout(120);                       // 마지막 페인트 한 프레임
-      const buf = await page.locator(".shot-wrap").screenshot({ type: "png", omitBackground: true, timeout: 15000 });
+      const buf = await page.locator(".shot-wrap").screenshot({ type: f.type, timeout: 15000, ...f.opts });
       const tmp = `${file}.${process.pid}.tmp`;
       await fsp.writeFile(tmp, buf);
       await fsp.rename(tmp, file);
-      console.log(`[카드] ${row.id} No.${row.ordinal} ${row.rarity} ${Math.round(buf.length / 1024)}KB ${Date.now() - t0}ms`);
+      console.log(`[카드] ${row.id} No.${row.ordinal} ${row.rarity} ${fmt} ${Math.round(buf.length / 1024)}KB ${Date.now() - t0}ms`);
       return file;
     } finally { await ctx.close().catch(() => {}); }
   } finally { release(); }

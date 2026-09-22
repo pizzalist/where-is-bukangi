@@ -637,6 +637,7 @@ input, select, textarea { font: inherit; }
 
 /* ---- 카드 PNG 렌더 모드 (서버의 헤드리스 브라우저가 #/shot/<id> 로 연다) ---- */
 html.shot, html.shot body { background: transparent !important; overflow: visible; }
+html.shot-bg, html.shot-bg body { background: #eaf4fb !important; }
 html.shot #root { display: block; }
 .shot-wrap { width: 420px; padding: 30px 36px 44px; box-sizing: content-box; }
 .shot-wrap .holo { width: 420px; max-width: none; }

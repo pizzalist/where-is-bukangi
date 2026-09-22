@@ -8,7 +8,7 @@ import { db, PHOTOS, photoPath, nextOrdinal } from "./db.js";
 import { roll, isRevival } from "./rarity.js";
 import { startScreener } from "./screener.js";
 import { verify as verifyAction, enabled as notifyEnabled, notifyText } from "./notify.js";
-import { cardPng, cardKey, cardStats } from "./cards.js";
+import { cardPng, cardKey, cardStats, CARD_SIZE } from "./cards.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(__dirname, "..", "dist");
@@ -273,15 +273,16 @@ app.get("/api/submissions/:id", limiter({ windowMs: 60e3, max: 60, key: clientIp
 /* ---------- 카드 PNG (저장·공유용). 화면의 홀로 카드를 서버가 그대로 찍는다 ---------- */
 const qCardRow = db.prepare(`SELECT id, ordinal, rarity, zone, taken_at, photo FROM submissions WHERE id=?`);
 const ZONE_NAME = Object.fromEntries(ZONES.map((z) => [z.code, z.name]));
-app.get(/^\/api\/cards\/([A-Za-z0-9_-]{6,32})\.png$/, limiter({ windowMs: 15 * 60e3, max: 90, key: clientIp }), async (req, res) => {
+app.get(/^\/api\/cards\/([A-Za-z0-9_-]{6,32})\.(png|jpg)$/, limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), async (req, res) => {
+  const fmt = req.params[1];
   const r = qCardRow.get(req.params[0]);
   if (!r) return res.status(404).json({ error: "없는 카드예요." });
   if (!SERVE_STATIC) return res.status(503).json({ error: "이 서버는 카드 이미지를 만들 수 없어요 (SERVE_STATIC=0)." });
   try {
-    const file = await cardPng(r, r.zone ? ZONE_NAME[r.zone] || "" : "", `http://127.0.0.1:${PORT}`);
-    res.set("Cache-Control", "public, max-age=300, s-maxage=300");
-    res.set("ETag", `"${cardKey(r)}"`);
-    res.type("png").sendFile(file);
+    const file = await cardPng(r, r.zone ? ZONE_NAME[r.zone] || "" : "", `http://127.0.0.1:${PORT}`, fmt);
+    res.set("Cache-Control", "public, max-age=3600, s-maxage=86400");
+    res.set("ETag", `"${cardKey(r, fmt)}"`);
+    res.type(fmt === "jpg" ? "jpeg" : "png").sendFile(file);
   } catch (e) {
     if (e.message === "BUSY") return res.status(503).json({ error: "지금 카드를 만드는 요청이 많아요. 잠시 뒤 다시 눌러주세요." });
     console.error("[카드] 실패:", e.message);
@@ -290,8 +291,9 @@ app.get(/^\/api\/cards\/([A-Za-z0-9_-]{6,32})\.png$/, limiter({ windowMs: 15 * 6
 });
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
 /* ---------- 카드 공유 링크 /c/:id ----------
-   카톡·인스타 봇이 읽는 OG 태그(이 카드의 PNG)를 주고, 사람은 바로 앱의 카드 화면으로 보낸다 */
+   카톡·인스타 봇이 읽는 OG 태그(이 카드의 가벼운 jpg)를 주고, 사람은 바로 앱의 카드 화면으로 보낸다 */
 const RARITY_LABEL = { common: "커먼", uncommon: "언커먼", rare: "레어", holo: "홀로", reverse: "리버스 홀로", galaxy: "갤럭시", fullart: "풀아트", rainbow: "레인보우", gold: "시크릿 골드" };
 const SITE_URL = (process.env.SITE_URL || "").replace(/\/$/, "");
 app.get(/^\/c\/([A-Za-z0-9_-]{6,32})$/, limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), (req, res) => {
@@ -301,7 +303,7 @@ app.get(/^\/c\/([A-Za-z0-9_-]{6,32})$/, limiter({ windowMs: 15 * 60e3, max: 120,
   const when = new Date(r.taken_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
   const title = `부캉이 인증 카드 No.${Number(r.ordinal).toLocaleString()}`;
   const desc = `${when} ${r.zone ? ZONE_NAME[r.zone] || "" : "부산 북항 친수공원"} · ${RARITY_LABEL[r.rarity] || r.rarity}`;
-  const img = `${PUBLIC_URL || site}/api/cards/${r.id}.png`;
+  const img = `${PUBLIC_URL || site}/api/cards/${r.id}.jpg`;   // 미리보기는 가벼운 쪽
   const app = `${site}/#/card/${r.id}`;
   res.set("Cache-Control", "public, max-age=60, s-maxage=300");
   res.type("html").send(`<!doctype html><html lang="ko"><head><meta charset="utf-8">
@@ -310,7 +312,7 @@ app.get(/^\/c\/([A-Za-z0-9_-]{6,32})$/, limiter({ windowMs: 15 * 60e3, max: 120,
 <meta property="og:type" content="website"><meta property="og:site_name" content="부캉이 지금 있나">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:url" content="${esc(site)}/c/${esc(r.id)}">
-<meta property="og:image" content="${esc(img)}"><meta property="og:image:width" content="1476"><meta property="og:image:height" content="1983">
+<meta property="og:image" content="${esc(img)}"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="${CARD_SIZE.jpg.w}"><meta property="og:image:height" content="${CARD_SIZE.jpg.h}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${esc(img)}">
 <meta http-equiv="refresh" content="0;url=${esc(app)}">
 <script>location.replace(${JSON.stringify(app)})</script>
