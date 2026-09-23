@@ -725,3 +725,12 @@ html.shot-video, html.shot-video body { background: linear-gradient(160deg, #6fd
 .shot-rarity { opacity: 0; transform: translateY(8px) scale(.9); transition: opacity 420ms 420ms, transform 420ms 420ms cubic-bezier(.2,1.4,.4,1);
   font-size: 1.35rem; font-weight: 700; padding: 0.6rem 1.6rem; border-radius: 999px; display: inline-flex; gap: 0.5rem; align-items: center; }
 .shot-rarity.on { opacity: 1; transform: none; }
+
+/* ---- 어드민: AI 자동 처리 내역 (접이식) ---- */
+details.review > summary { list-style: none; display: flex; align-items: center; gap: 0.6rem; cursor: pointer; margin: 0 0 0.4rem; }
+details.review > summary::-webkit-details-marker { display: none; }
+details.review > summary h2 { margin: 0; font-size: 1.1rem; }
+details.review > summary::after { content: "펼치기"; margin-left: auto; font-size: 0.8rem; color: var(--ink-3); }
+details.review[open] > summary::after { content: "접기"; }
+.rv-count { font-size: 0.85rem; color: var(--ink-2); background: var(--foam); padding: 0.15rem 0.6rem; border-radius: 999px; }
+.rv-note { font-size: 0.85rem; color: var(--ink-2); margin: 0 0 0.6rem; line-height: 1.5; }

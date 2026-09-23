@@ -27,6 +27,8 @@ export default function Admin() {
   const [token, setTok] = useState(getToken());
   const [authed, setAuthed] = useState(false);
   const [queue, setQueue] = useState<QueueItem[] | null>(null);
+  const [rejected, setRejected] = useState<QueueItem[] | null>(null);
+  const [approved, setApproved] = useState<QueueItem[] | null>(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [zoneOf, setZoneOf] = useState<Record<string, ZoneCode>>({});
@@ -36,6 +38,8 @@ export default function Admin() {
     try {
       const q = await adminApi.queue();
       setQueue(q); setAuthed(true); setErr("");
+      adminApi.queue("rejected").then(setRejected).catch(() => null);
+      adminApi.queue("approved").then(setApproved).catch(() => null);
       fetchStatus().then((s) => setStats(s.stats ?? null)).catch(() => null);
     } catch (e) {
       if ((e as Error).message === "UNAUTHORIZED") { setAuthed(false); setErr("토큰이 맞지 않아요."); }
@@ -122,38 +126,60 @@ export default function Admin() {
 
         <div className="section">
           <div className="section-head"><h2>승인 대기</h2></div>
-          {queue === null && <div className="card" style={{ color: "var(--ink-3)" }}>불러오는 중</div>}
-          {queue?.length === 0 && <div className="card" style={{ color: "var(--ink-3)" }}>비어 있음</div>}
-          <AnimatePresence>
-            {queue?.map((it) => (
-              <motion.div key={it.id} className="queue-item" style={{ marginBottom: "0.5rem" }}
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: 40 }}>
-                {it.photo ? <a href={it.photo} target="_blank" rel="noreferrer"><img src={it.photo} alt="" /></a>
-                  : <div style={{ width: 72, height: 72, borderRadius: 10, background: "var(--foam-2)" }} />}
-                <div>
-                  <div style={{ fontWeight: 700 }}>
-                    <span className="mono">#{it.ordinal}</span> · {RARITY_META[it.rarity].label}
-                  </div>
-                  <div className="q-meta">
-                    촬영 <span className="mono">{fmtDate(it.takenAt)} {fmtTime(it.takenAt)}</span>
-                    {it.lat ? " · GPS 있음" : " · GPS 없음"}
-                  </div>
-                  <AiBadge it={it} />
-                  <div className="q-actions">
-                    <select value={zoneOf[it.id] ?? it.zone ?? ""} onChange={(e) => setZoneOf((z) => ({ ...z, [it.id]: e.target.value as ZoneCode }))}>
-                      <option value="">구역 없음</option>
-                      {ZONES.map((z) => <option key={z.code} value={z.code}>{z.code} {z.name}</option>)}
-                    </select>
-                    <button className="ok" disabled={busy === it.id} onClick={() => decide(it, "approve")}>공개</button>
-                    <button className="no" disabled={busy === it.id} onClick={() => decide(it, "reject")}>반려</button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          <QueueList items={queue} busy={busy} zoneOf={zoneOf} setZoneOf={setZoneOf} decide={decide} empty="비어 있음" />
         </div>
+
+        <details className="section review">
+          <summary><h2>AI가 반려한 것</h2><span className="rv-count">{rejected ? `${rejected.length}건` : ""}</span></summary>
+          <p className="rv-note">흐린 사진을 AI가 놓칠 수 있어요. 진짜 부캉이면 <b>공개</b>를 누르면 상황판·명예의 전당에 올라가요.</p>
+          <QueueList items={rejected} busy={busy} zoneOf={zoneOf} setZoneOf={setZoneOf} decide={decide} empty="없음" only="approve" />
+        </details>
+
+        <details className="section review">
+          <summary><h2>AI가 통과시킨 것</h2><span className="rv-count">{approved ? `${approved.length}건` : ""}</span></summary>
+          <p className="rv-note">잘못 올라간 게 있으면 <b>반려</b>로 내릴 수 있어요. 카드는 그대로 남아요.</p>
+          <QueueList items={approved} busy={busy} zoneOf={zoneOf} setZoneOf={setZoneOf} decide={decide} empty="없음" only="reject" />
+        </details>
       </motion.div>
     </div>
+  );
+}
+
+function QueueList({ items, busy, zoneOf, setZoneOf, decide, empty, only }: {
+  items: QueueItem[] | null; busy: string | null; zoneOf: Record<string, ZoneCode>;
+  setZoneOf: React.Dispatch<React.SetStateAction<Record<string, ZoneCode>>>;
+  decide: (it: QueueItem, action: "approve" | "reject") => void; empty: string; only?: "approve" | "reject";
+}) {
+  if (items === null) return <div className="card" style={{ color: "var(--ink-3)" }}>불러오는 중</div>;
+  if (items.length === 0) return <div className="card" style={{ color: "var(--ink-3)" }}>{empty}</div>;
+  return (
+    <AnimatePresence>
+      {items.map((it) => (
+        <motion.div key={it.id} className="queue-item" style={{ marginBottom: "0.5rem" }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: 40 }}>
+          {it.photo ? <a href={it.photo} target="_blank" rel="noreferrer"><img src={it.photo} alt="" /></a>
+            : <div style={{ width: 72, height: 72, borderRadius: 10, background: "var(--foam-2)" }} />}
+          <div>
+            <div style={{ fontWeight: 700 }}>
+              <span className="mono">#{it.ordinal}</span> · {RARITY_META[it.rarity].label}
+            </div>
+            <div className="q-meta">
+              촬영 <span className="mono">{fmtDate(it.takenAt)} {fmtTime(it.takenAt)}</span>
+              {it.lat ? " · GPS 있음" : " · GPS 없음"}
+            </div>
+            <AiBadge it={it} />
+            <div className="q-actions">
+              <select value={zoneOf[it.id] ?? it.zone ?? ""} onChange={(e) => setZoneOf((z) => ({ ...z, [it.id]: e.target.value as ZoneCode }))}>
+                <option value="">구역 없음</option>
+                {ZONES.map((z) => <option key={z.code} value={z.code}>{z.code} {z.name}</option>)}
+              </select>
+              {only !== "reject" && <button className="ok" disabled={busy === it.id} onClick={() => decide(it, "approve")}>공개</button>}
+              {only !== "approve" && <button className="no" disabled={busy === it.id} onClick={() => decide(it, "reject")}>반려</button>}
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </AnimatePresence>
   );
 }
 

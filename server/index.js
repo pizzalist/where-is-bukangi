@@ -463,14 +463,19 @@ function auth(req, res, next) {
 }
 const adminGuard = [limiter({ windowMs: 15 * 60e3, max: 60, key: clientIp }), auth, express.json({ limit: "64kb" })];
 
+/* 운영자 목록. 대기 중(pending)뿐 아니라 AI가 자동으로 반려·통과시킨 것도 볼 수 있어야 한다.
+   흐린 상어 사진을 AI가 반려하는 경우가 있어서, 사람이 뒤집을 수 있게 */
 const qQueue = db.prepare(`
-  SELECT s.id, s.ordinal, s.rarity, s.zone, s.taken_at AS takenAt, s.submitted_at AS submittedAt, s.photo, s.lat, s.lng,
+  SELECT s.id, s.ordinal, s.rarity, s.zone, s.taken_at AS takenAt, s.submitted_at AS submittedAt, s.photo, s.lat, s.lng, s.status,
          c.verdict AS aiVerdict, c.shark AS aiShark, c.person AS aiPerson, c.confidence AS aiConf, c.reason AS aiReason
   FROM submissions s LEFT JOIN screening c ON c.id = s.id
-  WHERE s.status='pending' ORDER BY s.submitted_at DESC LIMIT 100`);
-app.get("/api/admin/queue", limiter({ windowMs: 15 * 60e3, max: 120, key: clientIp }), auth, (_req, res) => {
+  WHERE s.status=? ORDER BY s.submitted_at DESC LIMIT ?`);
+const QUEUE_STATUS = new Set(["pending", "rejected", "approved"]);
+app.get("/api/admin/queue", limiter({ windowMs: 15 * 60e3, max: 240, key: clientIp }), auth, (req, res) => {
+  const status = QUEUE_STATUS.has(String(req.query.status)) ? String(req.query.status) : "pending";
+  const limit = Math.min(Math.max(Number(req.query.limit) || (status === "pending" ? 100 : 50), 1), 200);
   res.set("Cache-Control", "no-store");
-  res.json(qQueue.all().map((r) => ({ ...r, photo: photoUrl(r.photo) })));
+  res.json(qQueue.all(status, limit).map((r) => ({ ...r, photo: photoUrl(r.photo) })));
 });
 
 const updSub = db.prepare(`UPDATE submissions SET status=?, zone=COALESCE(?, zone) WHERE id=?`);

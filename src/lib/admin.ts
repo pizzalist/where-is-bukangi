@@ -24,7 +24,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
 
 export interface QueueItem {
   id: string; ordinal: number; rarity: Rarity; zone: ZoneCode | null;
-  takenAt: string; submittedAt: string; photo: string | null; lat: number | null; lng: number | null;
+  takenAt: string; submittedAt: string; photo: string | null; lat: number | null; lng: number | null; status?: "pending" | "rejected" | "approved";
   aiVerdict?: "pass" | "reject" | "unsure" | "error" | null;
   aiShark?: number | null; aiPerson?: number | null; aiConf?: number | null; aiReason?: string | null;
 }
@@ -35,7 +35,7 @@ export interface HourRow { hour: string; view: number; uniq: number; report: num
 export const adminApi = {
   breakdown: (days = 1) => call<Breakdown>(`/api/admin/breakdown?days=${days}`),
   hourly: (hours = 24) => call<{ rows: HourRow[]; since: string | null }>(`/api/admin/hourly?hours=${hours}`),
-  queue: () => call<QueueItem[]>("/api/admin/queue"),
+  queue: (status: "pending" | "rejected" | "approved" = "pending") => call<QueueItem[]>(`/api/admin/queue?status=${status}`),
   decide: (id: string, action: "approve" | "reject", zone?: ZoneCode | null) =>
     call<{ ok: true }>(`/api/admin/${id}/${action}`, { method: "POST", body: JSON.stringify({ zone }) }),
   observation: (b: { kind: "seen" | "miss"; zone?: ZoneCode | null; at?: string; note?: string }) =>
