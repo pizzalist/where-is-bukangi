@@ -17,8 +17,9 @@ function deriveHero(s: Status, now: number): { state: HeroState; headline: strin
   if (s.last.kind === "miss") return { state: "miss", headline: `${fmtWhen(s.last.at)} 관측 · 못 봄`, sub: `${ZONE_BY_CODE[s.last.zone]?.full ?? ""} · ${s.last.note ?? ""}`, ageMin: a };
   // 큰 글씨는 "언제 나왔나". 근거(사진 인증·현장 관측)와 구역은 바로 아래 줄에.
   // 시간이 오래 지나도 "미확인"으로 바꾸지 않는다. 얼마나 됐는지는 옆 배지로 알린다
-  const via = s.last.photo ? "사진 인증" : "현장 관측";
-  return { state: "seen", headline: `${fmtWhen(s.last.at)} 출몰`, sub: `${via} · ${ZONE_BY_CODE[s.last.zone]?.full ?? ""}`, ageMin: a };
+  const via = s.last.source === "ping" ? "현장 제보" : s.last.source === "observation" || !s.last.photo ? "현장 관측" : "사진 인증";
+  const where = s.last.zone ? ZONE_BY_CODE[s.last.zone]?.full ?? "" : "북항 친수공원";   // 탭은 GPS로 보도교까지는 못 가른다
+  return { state: "seen", headline: `${fmtWhen(s.last.at)} 출몰`, sub: `${via} · ${where}`, ageMin: a };
 }
 
 /** 지금 몇 명이 보인다/안 보인다고 했는지. 히어로 안에 한 줄로 */

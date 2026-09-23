@@ -12,6 +12,8 @@ export interface Event {
   note?: string;
   photo?: string | null;
   ordinal?: number;
+  /** 근거. photo=사진 인증, observation=운영자 현장 관측, ping=현장 탭 */
+  source?: "photo" | "observation" | "ping";
 }
 
 export interface Notice { src: string; title: string; url: string; crit?: boolean }

@@ -182,7 +182,9 @@ const qLivePings = db.prepare(`SELECT kind, zone, at, h FROM pings WHERE at > ? 
 const qRecentPing = db.prepare(`SELECT 1 FROM pings WHERE h = ? AND at > ? LIMIT 1`);
 const insPing = db.prepare(`INSERT INTO pings (at, kind, zone, h, created_at) VALUES (?,?,?,?,?)`);
 const delOldPings = db.prepare(`DELETE FROM pings WHERE at < ?`);
-setInterval(() => { try { delOldPings.run(new Date(Date.now() - 6 * 3600e3).toISOString()); } catch { /* 무시 */ } }, 3600e3).unref();
+const qLastSeenPing = db.prepare(`SELECT at, zone FROM pings WHERE kind='seen' ORDER BY at DESC LIMIT 1`);
+// 탭은 7일 보관. 헤드라인이 탭 시각을 쓰므로 너무 빨리 지우면 시각이 거꾸로 간다 ("지금" 집계는 따로 30분 창)
+setInterval(() => { try { delOldPings.run(new Date(Date.now() - 7 * 864e5).toISOString()); } catch { /* 무시 */ } }, 3600e3).unref();
 const qSubCount = db.prepare(`SELECT
   COUNT(*) total,
   SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) approved,
@@ -192,11 +194,17 @@ const qSubCount = db.prepare(`SELECT
 
 function buildStatus() {
   const timeline = [
-    ...qSubs.all().map((s) => ({ at: s.at, kind: "seen", zone: s.zone, tier: "confirmed", note: "현장 사진", photo: photoUrl(s.thumb || s.photo), ordinal: s.ordinal })),
-    ...qObs.all().map((o) => ({ at: o.at, kind: o.kind, zone: o.zone, tier: "confirmed", note: o.note })),
+    ...qSubs.all().map((s) => ({ at: s.at, kind: "seen", zone: s.zone, tier: "confirmed", note: "현장 사진", photo: photoUrl(s.thumb || s.photo), ordinal: s.ordinal, source: "photo" })),
+    ...qObs.all().map((o) => ({ at: o.at, kind: o.kind, zone: o.zone, tier: "confirmed", note: o.note, source: "observation" })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 30);
 
-  const lastSeen = timeline.find((e) => e.kind === "seen") || null;
+  // 헤드라인 근거. 사진·관측 외에 현장 탭("보여요")도 후보다. 공원 안에서만 눌리니 시각은 믿을 만하고,
+  // 근거 표시만 "현장 제보"로 구분한다. 타임라인에는 넣지 않는다 (탭은 사진·관측보다 약한 기록)
+  let lastSeen = timeline.find((e) => e.kind === "seen") || null;
+  const lastPing = qLastSeenPing.get();
+  if (lastPing && (!lastSeen || lastPing.at > lastSeen.at)) {
+    lastSeen = { at: lastPing.at, kind: "seen", zone: lastPing.zone, tier: "confirmed", note: "현장 제보", photo: null, source: "ping" };
+  }
   const head = timeline[0] || null;
   const last = head && lastSeen && head.kind === "miss" && head.at > lastSeen.at ? head : lastSeen;
 
