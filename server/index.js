@@ -186,7 +186,8 @@ setInterval(() => { try { delOldPings.run(new Date(Date.now() - 6 * 3600e3).toIS
 const qSubCount = db.prepare(`SELECT
   COUNT(*) total,
   SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) approved,
-  SUM(CASE WHEN substr(submitted_at,1,10) = strftime('%Y-%m-%d','now','+9 hours') THEN 1 ELSE 0 END) today
+  -- submitted_at은 UTC로 저장돼 있다. 한국 날짜로 바꿔서 비교해야 새벽 0~9시 제보가 전날로 빠지지 않는다
+  SUM(CASE WHEN substr(datetime(submitted_at,'+9 hours'),1,10) = strftime('%Y-%m-%d','now','+9 hours') THEN 1 ELSE 0 END) today
   FROM submissions`);
 
 function buildStatus() {
