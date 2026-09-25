@@ -203,7 +203,13 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
           </div>
         </div>
 
-      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. 마지막 목격 이후 시간이 지났다고 지금 없는 건 아니에요.<br /><span style={{ opacity: 0.55 }}>v.{__BUILD__.slice(4, 13)}</span></p>
+      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. 마지막 목격 이후 시간이 지났다고 지금 없는 건 아니에요.</p>
+      <p className="contact">
+        문의 · <a href="mailto:letgoofthepizza@gmail.com">letgoofthepizza@gmail.com</a>
+        {" · "}<a href="https://www.threads.com/@where_is_bukangi" target="_blank" rel="noopener noreferrer">스레드</a>
+        {" · "}<a href="https://www.instagram.com/where_is_bukangi" target="_blank" rel="noopener noreferrer">인스타</a>
+        <br /><span style={{ opacity: 0.55 }}>v.{__BUILD__.slice(4, 13)}</span>
+      </p>
     </div>
   );
 }
