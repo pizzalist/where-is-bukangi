@@ -207,8 +207,8 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
             <div className="notice">
               <div>
                 <div className="src">운영 시간</div>
-                <div className="t">05:00 ~ 24:00</div>
-                <div className="src">부산시설공단 운영 · 주소 {PARK.address}</div>
+                <div className="t">저녁 6시 ~ 아침 6시는 수로 주변 출입 통제</div>
+                <div className="src">밤에는 상어를 볼 수 없어요. 공원 자체는 05:00~24:00 · 부산시설공단 운영 · 주소 {PARK.address}</div>
               </div>
             </div>
           </div>
