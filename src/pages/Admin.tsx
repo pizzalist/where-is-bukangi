@@ -123,6 +123,7 @@ export default function Admin() {
         </div>
 
         <ObservationForm onDone={load} />
+        <NoticeForm />
 
         <div className="section">
           <div className="section-head"><h2>승인 대기</h2></div>
@@ -231,6 +232,38 @@ function ObservationForm({ onDone }: { onDone: () => void }) {
         <label className="pickrow"><span className="pl">메모</span>
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={kind === "miss" ? "20:10~20:40 관측, 미목격" : "운영자 현장 관측"} /></label>
         <button className="btn" onClick={submit}>기록 올리기</button>
+        {msg && <div className="alert ok">{msg}</div>}
+      </div>
+    </div>
+  );
+}
+
+function NoticeForm() {
+  const [src, setSrc] = useState("");
+  const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
+  const [crit, setCrit] = useState(false);
+  const [msg, setMsg] = useState("");
+  async function submit() {
+    if (!src.trim() || !title.trim()) { setMsg("출처와 제목은 꼭 넣어주세요"); return; }
+    try {
+      await adminApi.notice({ src: src.trim(), title: title.trim(), url: url.trim() || undefined, crit });
+      setMsg("올렸어요. 상황판에는 10초 안에 반영돼요"); setSrc(""); setTitle(""); setUrl(""); setCrit(false); setTimeout(() => setMsg(""), 2500);
+    } catch { setMsg("실패했어요"); }
+  }
+  return (
+    <div className="section">
+      <div className="section-head"><h2>안전 · 공지 추가</h2></div>
+      <div className="card" style={{ display: "grid", gap: "0.5rem" }}>
+        <label className="pickrow"><span className="pl">출처</span>
+          <input value={src} onChange={(e) => setSrc(e.target.value)} placeholder="부산해양경찰서" maxLength={60} /></label>
+        <label className="pickrow"><span className="pl">제목</span>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="물가 접근 자제 당부" maxLength={200} /></label>
+        <label className="pickrow"><span className="pl">링크</span>
+          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https:// (선택)" inputMode="url" /></label>
+        <label className="pickrow"><span className="pl">긴급</span>
+          <span><input type="checkbox" checked={crit} onChange={(e) => setCrit(e.target.checked)} /> 빨간 테두리로 강조하고 상단 헤드라인에도 반영</span></label>
+        <button className="btn" onClick={submit}>공지 올리기</button>
         {msg && <div className="alert ok">{msg}</div>}
       </div>
     </div>

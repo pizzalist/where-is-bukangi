@@ -23,6 +23,7 @@ function parseHash(): { route: Route; param?: string } {
 const Icon = {
   home: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>,
   certify: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 7h3l2-3h6l2 3h3v12H4z" /><circle cx="12" cy="13" r="3.5" /></svg>,
+  hall: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" /></svg>,
   card: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>,
   admin: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>,
 };
@@ -124,9 +125,10 @@ export default function App() {
       {status && nav.route === "hall" && <Hall onBack={() => go("home")} />}
 
       <nav className="nav">
-        <div className="nav-inner nav-3">
+        <div className="nav-inner nav-4">
           <a href="#/" className={nav.route === "home" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("home"); }}>{Icon.home}지금</a>
           <a href="#/certify" className={nav.route === "certify" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("certify"); }}>{Icon.certify}제보하기</a>
+          <a href="#/hall" className={nav.route === "hall" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("hall"); }}>{Icon.hall}명예의 전당</a>
           <a href="#/card" className={nav.route === "card" ? "on" : ""} onClick={(e) => { e.preventDefault(); go("card"); }}>{Icon.card}내 카드</a>
         </div>
       </nav>

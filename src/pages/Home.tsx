@@ -41,6 +41,11 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
   const live = useMemo(() => liveLine(status.live), [status.live]);
   const hotZone = hero.state === "seen" ? status.last!.zone : null;
   const [pick, setPick] = useState<ZoneCode | null>(null);
+  const [allLog, setAllLog] = useState(false);       // 최근 기록 더보기
+  const [allNotice, setAllNotice] = useState(false); // 공지 더보기
+  const LOG_N = 6, NOTICE_N = 2;
+  const shownLog = allLog ? status.timeline : status.timeline.slice(0, LOG_N);
+  const shownNotice = allNotice ? status.notices : status.notices.slice(0, NOTICE_N);
 
   const byZone = useMemo(() => {
     const m: Record<string, Event[]> = {};
@@ -129,7 +134,7 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
           <div className="card" style={{ color: "var(--ink-3)" }}>아직 기록이 없어요. 부캉이를 봤다면 사진 한 장 올려주세요. 첫 기록의 주인공이 돼요.</div>
         )}
         <ul className="timeline">
-          {status.timeline.map((e, i) => (
+          {shownLog.map((e, i) => (
             <motion.li
               key={i}
               className={`tl-item ${e.tier} ${e.kind}`}
@@ -145,6 +150,9 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
             </motion.li>
           ))}
         </ul>
+        {!allLog && status.timeline.length > LOG_N && (
+          <button className="fold" onClick={() => setAllLog(true)}>이전 기록 {status.timeline.length - LOG_N}개 더보기</button>
+        )}
       </section>
 
       {status.stats && (
@@ -164,7 +172,7 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
           <h2>안전 · 공지</h2>
         </div>
         <div style={{ display: "grid", gap: "0.5rem" }}>
-          {status.notices.map((n, i) => (
+          {shownNotice.map((n, i) => (
             <a key={i} className={`notice${n.crit ? " crit" : ""}`} href={n.url} target="_blank" rel="noreferrer">
               <div>
                 <div className="src">{n.src}</div>
@@ -173,6 +181,9 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
             </a>
           ))}
         </div>
+        {!allNotice && status.notices.length > NOTICE_N && (
+          <button className="fold" onClick={() => setAllNotice(true)}>공지 {status.notices.length - NOTICE_N}개 더보기</button>
+        )}
       </section>
       )}
 

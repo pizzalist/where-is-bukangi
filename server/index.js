@@ -176,7 +176,7 @@ const distToPark = (lat, lng) => Math.hypot((PARK.lat - lat) * 111000, (PARK.lng
 const inPark = (lat, lng, acc = 0) => distToPark(lat, lng) <= PARK.radius + Math.min(Math.max(acc, 0), MAX_ACC);
 const qSubs = db.prepare(`SELECT id, zone, taken_at AS at, photo, thumb, ordinal FROM submissions WHERE status='approved' ORDER BY taken_at DESC LIMIT 40`);
 const qObs = db.prepare(`SELECT kind, zone, at, note FROM observations ORDER BY at DESC LIMIT 40`);
-const qNotices = db.prepare(`SELECT src, title, url, crit FROM notices ORDER BY created_at DESC LIMIT 6`);
+const qNotices = db.prepare(`SELECT src, title, url, crit FROM notices ORDER BY created_at DESC LIMIT 20`);
 const qOrdinal = db.prepare("SELECT v FROM meta WHERE k='ordinal'");
 const qLivePings = db.prepare(`SELECT kind, zone, at, h FROM pings WHERE at > ? GROUP BY h, kind ORDER BY at DESC`);
 const qRecentPing = db.prepare(`SELECT 1 FROM pings WHERE h = ? AND at > ? LIMIT 1`);

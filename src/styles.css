@@ -205,6 +205,7 @@ input, select, textarea { font: inherit; }
 }
 .nav-inner { max-width: 32rem; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
 .nav-inner.nav-3 { grid-template-columns: repeat(3, 1fr); }
+.nav-inner.nav-4 { grid-template-columns: repeat(4, 1fr); }
 .nav a { display: grid; justify-items: center; gap: 0.15rem; padding: 0.55rem 0 0.5rem; text-decoration: none; color: var(--ink-3); font-size: 0.7rem; font-weight: 700; }
 .nav a.on { color: var(--sky-deep); }
 .nav svg { width: 22px; height: 22px; }
@@ -579,6 +580,7 @@ input, select, textarea { font: inherit; }
 .backlink { background: none; border: 0; color: var(--sky-deep); font-size: 0.9rem; font-weight: 700; padding: 0.6rem 0 0; }
 .cta { width: 100%; text-align: left; }
 .section-head .more { background: none; border: 0; }
+.fold { display: block; width: 100%; margin-top: 0.5rem; padding: 0.6rem; background: var(--white); border: 1px dashed var(--line); border-radius: 12px; color: var(--ink-2); font-size: 0.85rem; font-weight: 600; }
 
 /* 사진 영역 지정 */
 .cropwrap { display: grid; gap: 0.6rem; }
