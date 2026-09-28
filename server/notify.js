@@ -6,7 +6,8 @@
  * 환경변수
  *  DISCORD_WEBHOOK  웹훅 URL. 없으면 알림 꺼짐
  *  PUBLIC_URL       API 서버의 바깥 주소 (터널 주소). 서명 링크의 앞부분
- *  SITE_URL         사이트 주소. 관리자 페이지 링크용 (선택)
+ *  SITE_URL         사이트 주소 (선택)
+ *  ADMIN_URL        관리자 페이지 주소. 없으면 SITE_URL (운영은 admin.bukangi.com)
  *  NOTIFY_ON        알릴 판정. 기본 "unsure,error"
  */
 import crypto from "node:crypto";
@@ -16,6 +17,7 @@ import { photoPath } from "./db.js";
 const WEBHOOK = process.env.DISCORD_WEBHOOK || "";
 const PUBLIC_URL = (process.env.PUBLIC_URL || "").replace(/\/$/, "");
 const SITE_URL = (process.env.SITE_URL || "").replace(/\/$/, "");
+const ADMIN_URL = (process.env.ADMIN_URL || SITE_URL).replace(/\/$/, "");
 const ON = new Set((process.env.NOTIFY_ON || "unsure,error").split(",").map((s) => s.trim()).filter(Boolean));
 const SECRET = process.env.ADMIN_TOKEN || "";
 
@@ -53,7 +55,7 @@ export async function notifyVerdict(row, verdict, v) {
   const lines = [];
   if (approve && reject) lines.push(`[✅ 공개](${approve})   [❌ 반려](${reject})`);
   else lines.push("PUBLIC_URL이 없어 링크를 못 만들었어요. 관리자 페이지에서 처리하세요.");
-  if (SITE_URL) lines.push(`[관리자 페이지](${SITE_URL}/#/admin)`);
+  if (ADMIN_URL) lines.push(`[관리자 페이지](${ADMIN_URL}/#/admin)`);
 
   const embed = {
     title: `${VERDICT_LABEL[verdict] || verdict} · No.${Number(row.ordinal || 0).toLocaleString()}`,
