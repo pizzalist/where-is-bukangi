@@ -17,13 +17,14 @@ import path from "node:path";
 import { db, photoPath } from "./db.js";
 import { notifyVerdict } from "./notify.js";
 
-const ENGINE = process.env.SCREEN_ENGINE || "claude";       // claude | api | off
+const ENGINE = process.env.SCREEN_ENGINE || "claude";       // claude | api | jev | off
 const MODEL = process.env.SCREEN_MODEL || "claude-haiku-4-5-20251001";
 const INTERVAL = Number(process.env.SCREEN_INTERVAL || 20000);
 const PASS_CONF = Number(process.env.SCREEN_PASS_CONF || 0.8);
 const AUTO_APPROVE = process.env.SCREEN_AUTO_APPROVE !== "0";
 const AUTO_REJECT = process.env.SCREEN_AUTO_REJECT !== "0";
-const PARALLEL = Math.max(1, Number(process.env.SCREEN_PARALLEL || (ENGINE === "api" ? 4 : 2)));
+// jev 서버는 요청을 한 줄로 세워 한 번에 하나씩 처리하므로 동시 1이 기본
+const PARALLEL = Math.max(1, Number(process.env.SCREEN_PARALLEL || (ENGINE === "api" ? 4 : ENGINE === "jev" ? 1 : 2)));
 const BATCH = Math.max(1, Number(process.env.SCREEN_BATCH || 20));
 
 const PROMPT = `Output ONLY compact JSON, no markdown, no explanation:
@@ -80,6 +81,44 @@ async function viaApi(imgPath) {
   return parseJson(j.content?.[0]?.text);
 }
 
+/* ---------- jev 엔진: 로컬 판정형 추론 (jev-visual + Qwen3.5-4B-4bit) ----------
+   jev-visual 레포의 HTTP 서버(POST /v1/judge)를 그대로 호출한다. 레포 코드는 수정하지 않는다.
+   프롬프트는 평가에 쓴 v2를 jev-prompt.json으로 옮긴 것 그대로 (bukang-jev-eval 커밋 ec12d4f).
+   평가(146장)와 같은 조건을 맞추려고 썸네일이 아니라 원본 사진을 보낸다 (레포가 768px로 줄인다).
+   판정: p(공개) >= JEV_THRESHOLD 면 공개, <= 1-JEV_THRESHOLD 면 반려, 그 사이는 사람에게. */
+const JEV_URL = process.env.JEV_URL || "http://127.0.0.1:8788";
+const JEV_THRESHOLD = Number(process.env.JEV_THRESHOLD || 0.7);
+const JEV_PROMPT = ENGINE === "jev" ? JSON.parse(await fsp.readFile(new URL("./jev-prompt.json", import.meta.url), "utf8")) : null;
+const SOURCE_KO = { camera_photo: "직접 촬영", screen_capture: "화면·영상 캡처", screenshot: "스크린샷", artwork: "그림·카드" };
+
+async function viaJev(imgPath) {
+  const buf = await fsp.readFile(imgPath);
+  const ext = path.extname(imgPath).slice(1).replace("jpg", "jpeg");
+  const r = await fetch(`${JEV_URL}/v1/judge`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ image: `data:image/${ext};base64,${buf.toString("base64")}`, state: JEV_PROMPT.state, questions: JEV_PROMPT.questions }),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (!r.ok) throw new Error(`jev ${r.status} ${(await r.text()).slice(0, 80)}`);
+  const a = (await r.json()).answers;
+  const pPub = a.verdict.probabilities.publish;
+  return {
+    pPub,
+    photo: null,                                   // 출처 질문은 v2에서 신뢰할 수 없어 판정에 쓰지 않는다 (평가 결과)
+    shark: a.shark.noul >= 0.5,
+    person: null,
+    confidence: Math.max(pPub, 1 - pPub),
+    reason: `p(공개)=${pPub.toFixed(2)} · 상어=${a.shark.noul.toFixed(2)} · 출처 추정 ${SOURCE_KO[a.source.choice] ?? a.source.choice}`,
+  };
+}
+
+function decideJev(v) {
+  if (v.pPub >= JEV_THRESHOLD) return "pass";
+  if (v.pPub <= 1 - JEV_THRESHOLD) return "reject";
+  return "unsure";
+}
+
 function decide(v) {
   const sure = (v.confidence ?? 0) >= PASS_CONF;
   if (!sure) return "unsure";
@@ -93,8 +132,13 @@ export async function screenOne(row, onChange) {
   const t0 = Date.now();
   let verdict = "error", v = { photo: null, shark: null, person: null, confidence: null, reason: "" };
   try {
-    v = ENGINE === "api" ? await viaApi(img) : await viaClaudeCli(img);
-    verdict = decide(v);
+    if (ENGINE === "jev") {
+      v = await viaJev(photoPath(row.photo || row.thumb));   // 평가와 같은 원본 입력
+      verdict = decideJev(v);
+    } else {
+      v = ENGINE === "api" ? await viaApi(img) : await viaClaudeCli(img);
+      verdict = decide(v);
+    }
   } catch (e) {
     v.reason = String(e.message).slice(0, 120);
   }
@@ -112,7 +156,7 @@ export async function screenOne(row, onChange) {
 
 export function startScreener(onChange) {
   if (ENGINE === "off") { console.log("[심사] 꺼짐"); return; }
-  console.log(`[심사] ${ENGINE} 엔진, ${INTERVAL / 1000}초마다 최대 ${BATCH}장, 동시 ${PARALLEL}장`);
+  console.log(`[심사] ${ENGINE} 엔진, ${INTERVAL / 1000}초마다 최대 ${BATCH}장, 동시 ${PARALLEL}장${ENGINE === "jev" ? `, 기준 ${JEV_THRESHOLD}, ${JEV_URL}` : ""}`);
   let busy = false;
   const tick = async () => {
     if (busy) return; busy = true;

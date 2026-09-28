@@ -1,0 +1,28 @@
+{
+  "_note": "평가에 쓴 프롬프트 v2 그대로 (bukang-jev-eval/prompts.py, 커밋 ec12d4f에서 고정). 손으로 고치지 말 것",
+  "state": "This photo was submitted to a citizen sighting board for a shark that is staying in a waterway at Busan North Port Waterfront Park. Judge only what is visible.\n\nA genuine sighting is a photo taken on site, directly with a camera, of the waterway. Such photos show water, usually seen from a railing, deck or stone edge. The water is often green or murky, so the shark may appear only as a dark elongated shape, a fin, its back or a shadow. A blurry shape in real water can still be a genuine sighting.\n\nThe following are NOT genuine sightings and must not be published, even if a shark is clearly visible in them, because the person did not see the shark on site:\n- A photo of a screen: a TV, monitor, laptop or phone display. Typical signs are visible screen edges or bezels, moire or pixel-grid patterns, reflections on glass, and overlaid text or graphics such as captions, subtitles, channel logos, news tickers, timestamps or app interface elements.\n- A screenshot or a frame saved from a video, news broadcast, website or social media.\n- A drawing, illustration, cartoon, sticker, card, printed image or meme.\n\nA photo that does not show the waterway at all is not a sighting.",
+  "questions": {
+    "verdict": {
+      "type": "choice",
+      "instructions": "Should this submission be published as a real sighting of the shark?",
+      "criteria": {
+        "publish": "Yes: a real camera photo of the water or waterfront in which a shark, or its fin, back or shadow, is visible",
+        "reject": "No: no shark is visible, or it is not a real camera photo (screenshot, photo of a TV or screen, video capture, drawing, card or meme)"
+      }
+    },
+    "source": {
+      "type": "choice",
+      "instructions": "What kind of image is this?",
+      "criteria": {
+        "camera_photo": "A photo taken directly with a camera of a real scene",
+        "screen_capture": "A photo of a TV, monitor or phone screen, or a frame captured from a video or news broadcast",
+        "screenshot": "A screenshot of an app, website or social media",
+        "artwork": "A drawing, illustration, trading card, sticker or meme"
+      }
+    },
+    "shark": {
+      "type": "noul",
+      "instructions": "Is a shark, or its fin, back or shadow, visible in real water?"
+    }
+  }
+}
