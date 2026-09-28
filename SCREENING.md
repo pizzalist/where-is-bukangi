@@ -81,16 +81,46 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 **권장:** CLI로 시작. 운영자 화면에 "AI 심사 대기"가 계속 쌓이면 API로 바꾼다. 환경변수 두 줄이다.
 
-### 나중에 로컬 LLM으로
-`viaApi`와 같은 자리에 함수 하나만 더 넣으면 된다.
-`server/screener.js`의 `viaClaudeCli` / `viaApi` 옆에 `viaOllama` 같은 걸 추가하고
-`ENGINE` 분기만 늘리면 끝. 판정 로직(`decide`)은 그대로 쓴다.
+### jev (로컬 판정형, 운영 기본값, 2026-09-28~)
+```bash
+SCREEN_ENGINE=jev
+JEV_URL=http://127.0.0.1:8788   # 같은 맥미니의 jev 프로그램. 외부 비공개
+JEV_THRESHOLD=0.7               # p(공개) ≥ 0.7 공개, ≤ 0.3 반려, 그 사이는 사람
+```
+글을 생성하지 않고, 보기(공개/반려) 토큰의 점수만 읽어 확률로 바꾸는 방식이다.
+[jev-visual](https://github.com/hr98w/jev-visual) 레포를 코드 수정 없이 쓰고, 모델은 `mlx-community/Qwen3.5-4B-4bit`.
+Node 서버는 모델을 직접 못 돌려서, 맥미니에 Python 프로그램을 하나 상시로 켜두고 물어본다.
+
+설치와 상시 실행은 한 줄이다 (Apple Silicon, uv 필요):
+```bash
+./ops/jev/setup.sh       # ~/bukang-jev 에 레포(고정 커밋)·가상환경·모델(고정 버전) 설치 + launchd 등록
+```
+- 프롬프트는 `server/jev-prompt.json`. 평가에 쓴 v2를 그대로 옮긴 것이라 손으로 고치지 않는다
+- 심사에는 원본 사진을 보낸다 (평가와 같은 조건). 한 장 약 2.2초, 메모리 약 6GB
+- 출처 질문(직접 촬영/화면 캡처 등)은 기록만 하고 판정에 쓰지 않는다. 평가에서 신뢰도가 낮았다
+- jev 프로그램이 꺼져 있으면 심사가 "오류"로 기록되고 사람 대기열로 간다. 서비스는 멈추지 않는다
+
+**평가 (운영 제보 146장, 정답은 운영자 최종 판정)**
+
+| | claude CLI | jev 4B, 0.7 |
+|---|---|---|
+| 자동 처리 | 108 (74.0%) | 101 (69.2%) |
+| 자동 처리 정확도 | 99.1% (107/108) | 100% (101/101) |
+| 허위 제보 자동 공개 | 0 | 0 |
+| 심사 실패 | 6 (로그인 만료) | 0 |
+| 한 장 | 11.4초 | 2.2초 |
+
+알려진 약점: 상어가 선명하게 보이는 **영상·화면 캡처**는 jev가 공개할 수 있다 (claude는 보류).
+상어가 없는 화면 캡처는 확실히 반려한다. 자동 공개된 것은 어드민 "AI가 통과시킨 것"에서 뒤집을 수 있다.
+평가 기록: `~/Projects/bukang-jev-eval` (프롬프트 고정 커밋 ec12d4f).
+
+**되돌리기**: 서버 설정 `SCREEN_ENGINE=claude` → 서버 재시작. jev 프로그램 끄기는 `launchctl bootout gui/$(id -u)/kr.bukangi.jev`.
 
 ## 설정
 
 | 환경변수 | 기본 | 뜻 |
 |---|---|---|
-| `SCREEN_ENGINE` | `claude` | `claude` / `api` / `off` |
+| `SCREEN_ENGINE` | `claude` | `claude` / `api` / `jev` / `off` |
 | `SCREEN_INTERVAL` | `20000` | 확인 주기(ms) |
 | `SCREEN_BATCH` | `20` | 한 번에 집는 장수 |
 | `SCREEN_PARALLEL` | CLI 2 / API 4 | 동시에 심사하는 장수 |

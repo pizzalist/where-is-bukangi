@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- jev 심사 엔진 (jev-visual HTTP 서버). ops/jev/setup.sh 가 __값__ 을 채워 설치한다.
+     127.0.0.1 에서만 듣는다. 터널로 내보내지 않는다. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>kr.bukangi.jev</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__JEV_HOME__/jev-visual/.venv/bin/uvicorn</string>
+    <string>jev_visual.server:app</string>
+    <string>--host</string><string>127.0.0.1</string>
+    <string>--port</string><string>__PORT__</string>
+  </array>
+  <key>WorkingDirectory</key><string>__JEV_HOME__/jev-visual</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>JEV_VISUAL_MODEL_PATH</key><string>__JEV_HOME__/models/Qwen3.5-4B-4bit</string>
+    <key>HF_HUB_OFFLINE</key><string>1</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>__LOG_DIR__/jev.log</string>
+  <key>StandardErrorPath</key><string>__LOG_DIR__/jev.err.log</string>
+</dict>
+</plist>
