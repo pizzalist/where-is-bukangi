@@ -547,8 +547,18 @@ app.post("/api/admin/notice", adminGuard, (req, res) => {
 
 /* ---------- 디스코드 서명 링크로 공개/반려 ----------
    GET  /r/:id/:action/:sig → 확인 화면 (링크 미리보기 봇이 열어도 아무 일 없음)
-   POST /r/:id/:action/:sig → 실제 처리. pending일 때만 통한다 */
+   POST /r/:id/:action/:sig → 실제 처리. approve/reject는 pending일 때만 통한다
+   undo: AI가 자동 공개·반려했고 사람이 아직 손대지 않았을 때만 반대로 뒤집는다 */
 const qPendingOne = db.prepare(`SELECT id, ordinal, zone, photo, thumb, status FROM submissions WHERE id=?`);
+const qAiVerdict = db.prepare(`SELECT verdict FROM screening WHERE id=?`);
+/** undo 가능 여부: AI 결정(pass→approved, reject→rejected)과 현재 상태가 같을 때만. 뒤집을 상태를 돌려준다 */
+function undoTarget(r) {
+  const v = qAiVerdict.get(r.id)?.verdict;
+  if (v === "pass" && r.status === "approved") return "rejected";
+  if (v === "reject" && r.status === "rejected") return "approved";
+  return null;
+}
+const KO = { approved: "공개", rejected: "반려", pending: "대기" };
 function actionPage(title, body) {
   return `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${esc(title)}</title>
@@ -563,9 +573,19 @@ const actionLimiter = limiter({ windowMs: 15 * 60e3, max: 60, key: clientIp });
 app.get("/r/:id/:action/:sig", actionLimiter, (req, res) => {
   const { id, action, sig } = req.params;
   res.set("Cache-Control", "no-store");
-  if (!["approve", "reject"].includes(action) || !verifyAction(id, action, sig)) return res.status(404).send(actionPage("없는 링크", "<h1>없는 링크예요</h1>"));
+  if (!["approve", "reject", "undo"].includes(action) || !verifyAction(id, action, sig)) return res.status(404).send(actionPage("없는 링크", "<h1>없는 링크예요</h1>"));
   const r = qPendingOne.get(String(id).slice(0, 32));
   if (!r) return res.status(404).send(actionPage("없는 제보", "<h1>없는 제보예요</h1>"));
+  if (action === "undo") {
+    const to = undoTarget(r);
+    if (!to) return res.send(actionPage("뒤집을 수 없음", `<h1>이미 사람이 처리한 제보예요</h1><p>현재 상태: ${esc(KO[r.status] || r.status)}</p><p class="muted">AI가 자동 처리한 그대로일 때만 뒤집을 수 있어요.</p>`));
+    const img = r.thumb || r.photo;
+    return res.send(actionPage(`No.${r.ordinal} 뒤집기`,
+      `<h1>No.${esc(r.ordinal)} · AI가 자동 ${esc(KO[r.status])}했어요</h1>
+       ${img ? `<img src="/photos/${esc(img)}" alt="">` : ""}
+       <form method="post"><button class="${to === "approved" ? "ok" : "no"}">${to === "approved" ? "✅ 공개로 바꿀게요" : "❌ 반려로 바꿀게요"}</button></form>
+       <p class="muted">AI 결정이 그대로일 때만 동작해요.</p>`));
+  }
   if (r.status !== "pending") return res.send(actionPage("이미 처리됨", `<h1>이미 처리된 제보예요</h1><p>현재 상태: ${esc(r.status === "approved" ? "공개" : "반려")}</p>`));
   const img = r.thumb || r.photo;
   res.send(actionPage(`No.${r.ordinal} ${action === "approve" ? "공개" : "반려"}`,
@@ -577,9 +597,16 @@ app.get("/r/:id/:action/:sig", actionLimiter, (req, res) => {
 app.post("/r/:id/:action/:sig", actionLimiter, (req, res) => {
   const { id, action, sig } = req.params;
   res.set("Cache-Control", "no-store");
-  if (!["approve", "reject"].includes(action) || !verifyAction(id, action, sig)) return res.status(404).send(actionPage("없는 링크", "<h1>없는 링크예요</h1>"));
+  if (!["approve", "reject", "undo"].includes(action) || !verifyAction(id, action, sig)) return res.status(404).send(actionPage("없는 링크", "<h1>없는 링크예요</h1>"));
   const r = qPendingOne.get(String(id).slice(0, 32));
   if (!r) return res.status(404).send(actionPage("없는 제보", "<h1>없는 제보예요</h1>"));
+  if (action === "undo") {
+    const to = undoTarget(r);
+    if (!to) return res.send(actionPage("뒤집을 수 없음", `<h1>이미 사람이 처리한 제보예요</h1><p>현재 상태: ${esc(KO[r.status] || r.status)}</p>`));
+    const u = db.prepare(`UPDATE submissions SET status=? WHERE id=? AND status=?`).run(to, r.id, r.status);
+    cache.at = 0; hallCache.at = 0;
+    return res.send(actionPage("완료", `<h1>${to === "approved" ? "공개로 바꿨어요 ✅" : "반려로 바꿨어요 ❌"}</h1><p>No.${esc(r.ordinal)}${u.changes ? "" : " (그 사이 상태가 바뀌어 적용하지 않았어요)"}</p>`));
+  }
   if (r.status !== "pending") return res.send(actionPage("이미 처리됨", `<h1>이미 처리된 제보예요</h1><p>현재 상태: ${esc(r.status === "approved" ? "공개" : "반려")}</p>`));
   const u = db.prepare(`UPDATE submissions SET status=? WHERE id=? AND status='pending'`).run(action === "approve" ? "approved" : "rejected", r.id);
   cache.at = 0; hallCache.at = 0;

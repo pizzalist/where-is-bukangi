@@ -1,14 +1,14 @@
 /**
  * 운영자 알림 (디스코드 웹훅).
- * AI가 판단을 보류했거나(unsure) 실패한(error) 제보만 보낸다. 통과·반려는 조용히 처리.
- * 메시지에 썸네일과 "공개 / 반려" 서명 링크를 붙여서 폰에서 바로 처리할 수 있게 한다.
+ * 보류(unsure)·실패(error)에는 "공개 / 반려" 서명 링크를 붙여 폰에서 바로 처리하게 한다.
+ * 자동 공개(pass)·자동 반려(reject)에는 "뒤집기" 서명 링크를 붙인다. AI 결정이 그대로일 때만 동작한다.
  *
  * 환경변수
  *  DISCORD_WEBHOOK  웹훅 URL. 없으면 알림 꺼짐
  *  PUBLIC_URL       API 서버의 바깥 주소 (터널 주소). 서명 링크의 앞부분
  *  SITE_URL         사이트 주소 (선택)
  *  ADMIN_URL        관리자 페이지 주소. 없으면 SITE_URL (운영은 admin.bukangi.com)
- *  NOTIFY_ON        알릴 판정. 기본 "unsure,error"
+ *  NOTIFY_ON        알릴 판정. 기본 "unsure,error". 운영은 "unsure,error,pass,reject"
  */
 import crypto from "node:crypto";
 import fsp from "node:fs/promises";
@@ -36,7 +36,7 @@ export function actionUrl(id, action) {
 }
 
 const ZONE_NAME = { A: "제4보도교", B: "제5보도교", C: "제6보도교", D: "방파제" };
-const VERDICT_LABEL = { unsure: "AI 판단 보류", error: "AI 심사 실패", pass: "AI 통과", reject: "AI 반려" };
+const VERDICT_LABEL = { unsure: "AI 판단 보류", error: "AI 심사 실패", pass: "AI 자동 공개", reject: "AI 자동 반려" };
 const COLOR = { unsure: 0xf5a623, error: 0xd0021b, pass: 0x2ecc71, reject: 0x95a5a6 };
 
 function fmtKST(iso) {
@@ -51,10 +51,11 @@ function fmtKST(iso) {
  */
 export async function notifyVerdict(row, verdict, v) {
   if (!WEBHOOK || !ON.has(verdict)) return false;
-  const approve = actionUrl(row.id, "approve"), reject = actionUrl(row.id, "reject");
   const lines = [];
-  if (approve && reject) lines.push(`[✅ 공개](${approve})   [❌ 반려](${reject})`);
-  else lines.push("PUBLIC_URL이 없어 링크를 못 만들었어요. 관리자 페이지에서 처리하세요.");
+  if (!PUBLIC_URL) lines.push("PUBLIC_URL이 없어 링크를 못 만들었어요. 관리자 페이지에서 처리하세요.");
+  else if (verdict === "pass") lines.push(`자동으로 공개됐어요.  [↩️ 반려로 뒤집기](${actionUrl(row.id, "undo")})`);
+  else if (verdict === "reject") lines.push(`자동으로 반려됐어요.  [↩️ 공개로 뒤집기](${actionUrl(row.id, "undo")})`);
+  else lines.push(`[✅ 공개](${actionUrl(row.id, "approve")})   [❌ 반려](${actionUrl(row.id, "reject")})`);
   if (ADMIN_URL) lines.push(`[관리자 페이지](${ADMIN_URL}/#/admin)`);
 
   const embed = {
@@ -65,7 +66,9 @@ export async function notifyVerdict(row, verdict, v) {
       { name: "구역", value: row.zone ? `${row.zone} ${ZONE_NAME[row.zone] || ""}` : "미지정", inline: true },
       { name: "촬영", value: fmtKST(row.taken_at), inline: true },
       { name: "등급", value: String(row.rarity || "-"), inline: true },
-      { name: "AI", value: `실사진 ${v.photo == null ? "?" : v.photo ? "O" : "X"} · 상어 ${v.shark == null ? "?" : v.shark ? "O" : "X"} · 사람 ${v.person == null ? "?" : v.person ? "O" : "X"}${v.confidence != null ? ` · 확신 ${Math.round(v.confidence * 100)}%` : ""}` },
+      { name: "AI", value: v.pPub != null
+        ? `공개 확률 ${Math.round(v.pPub * 100)}% · 상어 ${v.shark ? "O" : "X"}`     // jev 엔진
+        : `실사진 ${v.photo == null ? "?" : v.photo ? "O" : "X"} · 상어 ${v.shark == null ? "?" : v.shark ? "O" : "X"} · 사람 ${v.person == null ? "?" : v.person ? "O" : "X"}${v.confidence != null ? ` · 확신 ${Math.round(v.confidence * 100)}%` : ""}` },
       ...(v.reason ? [{ name: "이유", value: String(v.reason).slice(0, 200) }] : []),
     ],
     footer: { text: `id ${row.id}` },

@@ -150,7 +150,7 @@ export async function screenOne(row, onChange) {
   if (verdict === "pass" || verdict === "reject") onChange?.();
 
   console.log(`[심사] ${row.id} → ${verdict} (실사진=${v.photo} 상어=${v.shark} 사람=${v.person} 확신=${v.confidence} ${ms}ms) ${v.reason}`);
-  if (verdict === "unsure" || verdict === "error") await notifyVerdict(row, verdict, v);   // 사람 손이 필요한 것만 알림
+  await notifyVerdict(row, verdict, v);   // 어떤 판정을 알릴지는 NOTIFY_ON이 정한다 (기본은 보류·실패만)
   return verdict;
 }
 
