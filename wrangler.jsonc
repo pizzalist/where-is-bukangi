@@ -11,7 +11,9 @@
     "binding": "ASSETS",
     // 기본값은 정적 파일 처리가 먼저라, 브라우저의 /c/<id> 요청이 SPA 폴백(index.html)으로 가로채여
     // 스크립트가 아예 안 돌았다. 이 경로만 스크립트를 먼저 태운다
-    "run_worker_first": ["/c/*"],
+    // www → bukangi.com 리다이렉트도 여기서 한다. 사람이 처음 들어오는 경로(/, /index.html)만 스크립트를 태우고,
+    // 나머지 자산은 리다이렉트된 bukangi.com에서 받으므로 그대로 둔다
+    "run_worker_first": ["/c/*", "/", "/index.html"],
     // 해시 라우팅이라 없는 경로는 전부 index.html로 돌려준다
     "not_found_handling": "single-page-application"
   },

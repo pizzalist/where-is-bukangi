@@ -45,6 +45,9 @@ VITE_API_BASE=https://api.bukang.kr npm run build     # 도메인은 네 것으�
 
 **주의:** 제보 API는 `SITE_URL`에 적은 주소에서 온 화면만 받는다 (CORS). 사람들이 쓰는 주소를 정확히 적을 것 (`https://bukang.kr`).
 `bukang.pages.dev`로도 쓰게 하려면 `ALLOWED_ORIGINS=https://bukang.pages.dev`를 추가.
+화면이 열리는 주소가 둘 이상이면 전부 등록해야 한다. 빠진 주소에서는 상황판은 보이는데 제보·현장 버튼만 Safari에서 `Load failed`로 실패한다
+(2026-10-01, `www.bukangi.com`이 빠져 있던 사고). 운영은 `ALLOWED_ORIGINS=https://admin.bukangi.com,https://www.bukangi.com`이고,
+`worker.js`가 www를 `bukangi.com`으로 301 이동시켜 주소를 하나로 모은다.
 
 ## 3. 데이터: 맥미니 + Cloudflare Tunnel
 
