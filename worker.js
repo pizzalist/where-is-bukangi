@@ -1,6 +1,6 @@
 /**
  * bukangi.com 앞단. 정적 파일은 Workers가 알아서 내주고, 이 코드는 정적 파일이 아닌 경로만 받는다.
- *  www.bukangi.com/* → bukangi.com 같은 경로로 301. 주소를 하나로 모은다
+ *  www.bukangi.com/*, http://* → https://bukangi.com 같은 경로로 301. 주소를 하나로 모은다
  *    (www에서 열면 API가 그 출처를 몰라 제보·버튼이 "Load failed"로 실패했다. 2026-10-01)
  *  /c/<카드id>  → 맥미니 API의 카드 미리보기 페이지로 넘긴다 (카톡 봇이 OG를 읽고, 사람은 앱으로 이동)
  *  그 외        → 앱(index.html)
@@ -10,8 +10,11 @@ const CANONICAL = "bukangi.com";
 export default {
   async fetch(req, env) {
     const u = new URL(req.url);
-    if (u.hostname === `www.${CANONICAL}`) {
+    // http로 열리면 화면 출처가 http://bukangi.com이 되어 API가 거절한다(인스타 인앱이 http로 연 사례, 2026-10-01).
+    // www와 http를 모두 https://bukangi.com 한 주소로 모은다
+    if (u.hostname === `www.${CANONICAL}` || u.protocol === "http:") {
       u.hostname = CANONICAL;
+      u.protocol = "https:";
       return Response.redirect(u.toString(), 301);
     }
     const m = /^\/c\/([A-Za-z0-9_-]{6,32})$/.exec(u.pathname);

@@ -53,7 +53,14 @@ app.use((req, res, next) => {
   if (!origin) return next();                                   // 같은 주소에서 온 요청은 CORS 무관
   if (PUBLIC_READ.test(req.path) && req.method === "GET") res.set("Access-Control-Allow-Origin", "*");
   else if (SITE_ORIGINS.has(origin)) res.set({ "Access-Control-Allow-Origin": origin, "Vary": "Origin" });
-  else if (req.method === "OPTIONS") return res.status(403).end();
+  else if (req.method === "OPTIONS") {
+    // 거절은 응답만 나가고 흔적이 없어서, 출처를 몰라 "Load failed"가 9일간 안 보였다 (2026-10-01). 출처·경로·브라우저 종류만 남긴다
+    const ua = String(req.headers["user-agent"] || "");
+    const kind = /Instagram/.test(ua) ? "instagram" : /Barcelona|Threads/.test(ua) ? "threads" : /KAKAOTALK/i.test(ua) ? "kakao" : /Safari/.test(ua) ? "safari" : "other";
+    console.log(`[CORS 거절] origin=${JSON.stringify(String(origin).slice(0, 80))} ${req.path} ${kind}`);
+    tally("cors_reject");
+    return res.status(403).end();
+  }
   if (req.method === "OPTIONS") {
     res.set({ "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Max-Age": "86400" });
     return res.status(204).end();

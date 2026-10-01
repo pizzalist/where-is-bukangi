@@ -47,7 +47,10 @@ VITE_API_BASE=https://api.bukang.kr npm run build     # 도메인은 네 것으�
 `bukang.pages.dev`로도 쓰게 하려면 `ALLOWED_ORIGINS=https://bukang.pages.dev`를 추가.
 화면이 열리는 주소가 둘 이상이면 전부 등록해야 한다. 빠진 주소에서는 상황판은 보이는데 제보·현장 버튼만 Safari에서 `Load failed`로 실패한다
 (2026-10-01, `www.bukangi.com`이 빠져 있던 사고). 운영은 `ALLOWED_ORIGINS=https://admin.bukangi.com,https://www.bukangi.com`이고,
-`worker.js`가 www를 `bukangi.com`으로 301 이동시켜 주소를 하나로 모은다.
+`worker.js`가 www와 `http://`를 모두 `https://bukangi.com`으로 301 이동시켜 주소를 하나로 모은다.
+같은 날 인스타 인앱 브라우저가 링크를 `http://bukangi.com`으로 열어, 출처가 `http://`라 똑같이 거절되던 것도 확인했다.
+Cloudflare 대시보드의 SSL/TLS → Edge Certificates → **Always Use HTTPS**도 켜 두면 Worker를 거치지 않는 경로까지 막힌다.
+거절된 출처는 서버 로그에 `[CORS 거절] origin=...`으로 남는다.
 
 ## 3. 데이터: 맥미니 + Cloudflare Tunnel
 
