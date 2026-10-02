@@ -7,6 +7,7 @@ import ZoneMap from "../components/ZoneMap";
 import LiveBar from "../components/LiveBar";
 import { RARITY_ORDER, RARITY_META } from "../lib/rarity";
 import { ZONES, ZONE_BY_CODE, naverDirections, naverPlace, PARK } from "../lib/zones";
+import { gaEnabled } from "../lib/ga";
 
 type HeroState = "seen" | "miss" | "none" | "crit";
 
@@ -214,7 +215,7 @@ export default function Home({ status, onDraw, onHall, onRefresh }: { status: St
           </div>
         </div>
 
-      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. 마지막 목격 이후 시간이 지났다고 지금 없는 건 아니에요.</p>
+      <p className="disclaimer">시민 제보로 운영하는 상황판이에요. 물가 접근 금지 등 해경·구청 안내를 따르세요. 마지막 목격 이후 시간이 지났다고 지금 없는 건 아니에요.{gaEnabled() && " 방문 통계를 위해 구글 애널리틱스 쿠키를 써요. 브라우저에서 쿠키를 막으면 수집되지 않아요."}</p>
       <p className="contact">
         Created by <a href="mailto:letgoofthepizza@gmail.com">letgoofthepizza@gmail.com</a>
         {" · "}<a href="https://www.threads.com/@where_is_bukangi" target="_blank" rel="noopener noreferrer">스레드</a>

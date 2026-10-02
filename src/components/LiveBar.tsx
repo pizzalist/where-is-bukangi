@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { sendPing, track } from "../lib/api";
+import { gaEvent } from "../lib/ga";
 
 /**
  * 현장 탭. 사진 없이 "지금 보이는지"만 한 번에 알린다.
@@ -71,6 +72,7 @@ export default function LiveBar({ onDone }: { onDone: () => void }) {
     try {
       const p = await pos();
       await sendPing({ kind, lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy });
+      gaEvent("ping", { kind });
       setDone(kind);
       onDone();
     } catch (e) {

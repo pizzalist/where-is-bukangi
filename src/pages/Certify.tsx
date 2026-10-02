@@ -5,6 +5,7 @@ import type { Status, ZoneCode, Submission } from "../lib/types";
 import { addSubmission, drawsLeft, useDraw, DAILY_LIMIT } from "../lib/store";
 import { RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
 import { postSubmission } from "../lib/api";
+import { gaEvent } from "../lib/ga";
 import { ZONES, ZONE_BY_CODE, inPark, DEFAULT_ZONE } from "../lib/zones";
 import ZoneMap from "../components/ZoneMap";
 const SMILE = `${import.meta.env.BASE_URL}bukang-smile.webp`;
@@ -59,6 +60,7 @@ export default function Certify({ onDone, onTiers }: { status: Status; onDone: (
         exifGps: gps, photoDataUrl: photo, status: "pending", ordinal: r.ordinal, rarity: r.rarity,
       };
       addSubmission(s);
+      gaEvent("report", { rarity: String(r.rarity ?? "") });
       useDraw();
       setLeft(drawsLeft());
       onDone(s);

@@ -1,6 +1,7 @@
 import type { Status, Submission } from "./types";
 import { loadStatus as loadStatic } from "./store";
 import { API_BASE } from "./site";
+import { gaEvent } from "./ga";
 
 /** 서버가 있으면 서버를, 없으면 정적 파일을 쓴다 (아티팩트 데모용 폴백). */
 let serverUp: boolean | null = null;
@@ -59,6 +60,7 @@ export async function sendPing(body: { kind: "seen" | "miss"; zone?: string; lat
 
 /** 화면에서 일어난 행동 기록. 실패해도 조용히 넘어간다 (집계는 부가 기능) */
 export function track(name: "share" | "save" | "geo_fail" | "card_view") {
+  gaEvent(name);
   try { fetch(`${API_BASE}/api/event`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }), keepalive: true }).catch(() => null); }
   catch { /* 무시 */ }
 }
