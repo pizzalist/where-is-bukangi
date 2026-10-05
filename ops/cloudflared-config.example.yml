@@ -1,6 +1,6 @@
 # 부캉이 터널. 밖으로 내보내는 경로를 최소로 제한한다. 여기에 없는 건 밖에서 못 본다.
-tunnel: 851dc359-a40b-41fe-a094-8d5e927644ad
-credentials-file: /Users/teamlab/.cloudflared/851dc359-a40b-41fe-a094-8d5e927644ad.json
+tunnel: <TUNNEL_ID>
+credentials-file: ~/.cloudflared/<TUNNEL_ID>.json
 protocol: http2          # 집 회선에서 QUIC(UDP 7844)이 막혀 있어 http2로 고정
 
 ingress:

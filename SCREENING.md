@@ -1,145 +1,151 @@
-# AI 1차 심사
+**English** | [한국어](SCREENING.ko.md)
 
-## 하는 일
+# AI First-Pass Screening
 
-제보가 들어오면 AI가 먼저 보고 셋 중 하나로 가른다. 기준은 **"부캉이 사진인가"** 하나다.
-사람이 같이 나와도 상관없다.
+## What it does
 
-| 판정 | 조건 | 결과 |
+When a report comes in, the AI looks at it first and sorts it into one of three outcomes. There is only one criterion: **"Is this a photo of Bukangi?"**
+It doesn't matter if people are in the shot too.
+
+| Verdict | Condition | Result |
 |---|---|---|
-| **통과** | 실제 사진 + 상어 보임 + 확신 80% 이상 | 자동 공개 |
-| **반려** | 스크린샷·그림·카드 이미지이거나, 상어가 없음 (확신 80% 이상) | 자동 반려 |
-| **보류** | 확신 80% 미만, 또는 AI 호출 실패 | 사람이 판단. 운영자 화면에 남고 **디스코드로 알림** |
+| **Pass** | Real photo + shark visible + confidence ≥ 80% | Auto-approve |
+| **Reject** | Screenshot, drawing, or card image, or no shark (confidence ≥ 80%) | Auto-reject |
+| **Unsure** | Confidence < 80%, or the AI call failed | A human decides. Stays on the operator screen and **triggers a Discord notification** |
 
-운영자 화면에는 AI 의견이 색깔 배지로 같이 뜬다. 보류만 남으니 볼 게 확 줄어든다.
-"사람" 항목은 참고용으로 기록만 하고 판정에는 안 쓴다.
+The operator screen shows the AI's opinion as a colored badge. Only the unsure ones remain, so there's far less to review.
+The "person" field is recorded for reference only and is not used in the verdict.
 
-## 실제 판정 예시 (실측)
-
-```
-seed09       pass   실사진=true  상어=true  사람=false 확신=0.85  13.3초
-                    "물가 얕은 물속에 상어로 보이는 큰 물고기가 선명히 찍힌 실제 사진"
-카드 스크린샷 reject 실사진=false 상어=false 사람=false 확신=0.95  13.2초
-                    "앱 카드 UI 3장을 캡처한 스크린샷, 카드 안 상어는 합성 이미지"
-```
-
-앱 스크린샷 안의 상어 그림까지 "합성 이미지"로 잡아낸다.
-
-## 디스코드 알림 (보류·실패만)
-
-AI가 못 가른 것만 디스코드 채널로 온다. 썸네일 + AI 의견 + **공개 / 반려 링크**.
-링크를 누르면 확인 화면이 뜨고, 버튼을 한 번 더 누르면 처리된다. 폰에서 끝난다.
+## Real verdict examples (measured)
 
 ```
-DISCORD_WEBHOOK=https://discord.com/api/webhooks/...   # 채널 설정 → 연동 → 웹훅 만들기
-PUBLIC_URL=https://api.도메인                          # 링크 앞부분 (API 서버 바깥 주소)
-SITE_URL=https://도메인                                 # 관리자 페이지 링크 (선택)
-NOTIFY_ON=unsure,error                                  # 기본값. pass,reject를 넣으면 전부 옴
+seed09       pass   real_photo=true  shark=true  person=false conf=0.85  13.3s
+                    "A real photo clearly showing a large fish that looks like a shark in shallow water at the shoreline"
+card screenshot reject real_photo=false shark=false person=false conf=0.95  13.2s
+                    "A screenshot capturing 3 app card UIs; the shark inside the cards is a composite image"
 ```
 
-- 링크는 `ADMIN_TOKEN`으로 서명돼 있어 못 만들어낸다. **대기 중일 때만** 동작하니 두 번 눌러도 안전하다.
-- 미리보기 봇이 링크를 열어도 아무 일 없다 (GET은 확인 화면, 처리는 POST).
-- 웹훅 URL이 새면 남이 채널에 글을 쓸 수 있으니 채널은 나만 보는 곳으로. 새면 디스코드에서 웹훅을 지우고 다시 만든다.
-- 알림이 실패해도 심사는 계속된다. 로그에 `[알림]`으로 남는다.
+It even catches the shark drawing inside an app screenshot as a "composite image".
 
-## 동시 업로드
+## Discord notifications (unsure and failed only)
 
-업로드는 서버가 동시 8건씩 받고 200건까지 줄 세운다 (그 이상은 503 → 앱이 "잠시 뒤 다시"로 안내).
-실측 4,405건/초, 1,000건 동시 제출 전부 저장 확인 (`OPS.md`).
-심사는 별도 루프라 업로드를 막지 않는다. `SCREEN_INTERVAL`마다 대기 중인 걸 `SCREEN_BATCH`장씩 집어
-`SCREEN_PARALLEL`장 동시에 돌린다. 밀리면 그냥 대기 상태로 쌓이고 순서대로 처리된다.
-카드는 업로드 즉시 발급되니 사용자는 심사를 기다리지 않는다.
+Only what the AI couldn't decide goes to the Discord channel: thumbnail + AI opinion + **approve / reject links**.
+Tapping a link opens a confirmation screen, and one more button press processes it. You can finish it all on your phone.
 
-## 엔진 두 가지
+```
+DISCORD_WEBHOOK=https://discord.com/api/webhooks/...   # Channel settings → Integrations → Create webhook
+PUBLIC_URL=https://api.<domain>                        # Link prefix (public address of the API server)
+SITE_URL=https://<domain>                              # Admin page link (optional)
+NOTIFY_ON=unsure,error                                  # Default. Add pass,reject to get everything
+```
 
-### claude CLI (기본, 비용 0)
+- Links are signed with `ADMIN_TOKEN`, so they can't be forged. They **only work while the report is pending**, so pressing twice is safe.
+- Nothing happens if a link-preview bot opens the link (GET shows the confirmation screen; processing is a POST).
+- If the webhook URL leaks, others can post to the channel, so use a channel only you can see. If it leaks, delete the webhook in Discord and create a new one.
+- Screening continues even if a notification fails. It's logged as `[알림]` (notification).
+
+## Concurrent uploads
+
+The server accepts uploads 8 at a time and queues up to 200 (beyond that, 503 → the app tells the user to try again shortly).
+Measured at 4,405 per second; all 1,000 concurrent submissions were confirmed saved (`OPS.md`).
+Screening runs in a separate loop, so it doesn't block uploads. Every `SCREEN_INTERVAL`, it picks up `SCREEN_BATCH` pending photos
+and runs `SCREEN_PARALLEL` of them concurrently. If it falls behind, reports simply pile up as pending and are processed in order.
+The card is issued immediately on upload, so users don't wait for screening.
+
+## Two engines
+
+### claude CLI (default, zero cost)
 ```bash
 SCREEN_ENGINE=claude
 ```
-`claude` CLI를 부른다. **구독으로 돌아가 API 요금이 안 나간다.**
-대신 느리다. 한 건에 12~15초, 첫 호출은 워밍업으로 60초까지.
-하루 수백 건이면 충분하고, 수천 건이면 밀린다.
+Calls the `claude` CLI. **It runs on a subscription, so there are no API charges.**
+The trade-off is speed: 12–15 seconds per photo, and up to 60 seconds for the first call while it warms up.
+Enough for a few hundred a day; at thousands it falls behind.
 
-### API (빠름, 토큰 비용)
+### API (fast, token cost)
 ```bash
 SCREEN_ENGINE=api
-SCREEN_MODEL=claude-haiku-4-5-20251001     # 가장 싼 비전 모델 ($1/M 입력, $5/M 출력)
+SCREEN_MODEL=claude-haiku-4-5-20251001     # Cheapest vision model ($1/M input, $5/M output)
 ANTHROPIC_API_KEY=sk-ant-...
 ```
-한 건에 1~2초. 심사에는 원본이 아니라 **480px 썸네일**을 보낸다.
-이미지 토큰은 가로×세로÷750 이라 480×360 = 약 230토큰, 프롬프트 250토큰, 답 60토큰.
-**한 건에 약 $0.0008 = 1.1원.**
+1–2 seconds per photo. Screening sends a **480px thumbnail**, not the original.
+Image tokens are width × height ÷ 750, so 480×360 ≈ 230 tokens, plus 250 prompt tokens and 60 answer tokens.
+**About $0.0008 per photo = ₩1.1.**
 
-| 하루 제보 | CLI (구독) | API (Haiku 4.5) |
+| Reports per day | CLI (subscription) | API (Haiku 4.5) |
 |---|---|---|
-| 300건 | 0원. 동시 2장이면 약 35분 | 약 330원 |
-| 3,000건 | 0원이지만 종일 돌아감 (약 5.5시간) | 약 3,300원 |
-| 10,000건 | 밀림 (18시간). 구독 한도도 걸릴 수 있음 | 약 11,000원 (한 달 33만원) |
+| 300 | ₩0. About 35 minutes at 2 concurrent | About ₩330 |
+| 3,000 | ₩0, but runs all day (about 5.5 hours) | About ₩3,300 |
+| 10,000 | Falls behind (18 hours). May also hit subscription limits | About ₩11,000 (₩330,000 a month) |
 
-참고로 지금까지 3일간 방문 3만 명이었다. 사진 제보는 방문의 1~3%로 잡으면 하루 100~500건이다.
-그 구간은 CLI로 0원, API로 가도 하루 몇백 원이다. 만 건은 사실상 안 온다.
+For reference, there were 30,000 visits over the first 3 days. If photo reports are 1–3% of visits, that's 100–500 a day.
+In that range the CLI costs ₩0, and even the API is a few hundred won a day. Ten thousand a day is practically never going to happen.
 
-**권장:** CLI로 시작. 운영자 화면에 "AI 심사 대기"가 계속 쌓이면 API로 바꾼다. 환경변수 두 줄이다.
+**Recommendation:** Start with the CLI. If "AI 심사 대기" (awaiting AI screening) keeps piling up on the operator screen, switch to the API. It's two environment variables.
 
-### jev (로컬 판정형, 운영 기본값, 2026-09-28~)
+### jev (local Jev-style scoring, production default since 2026-09-28)
 ```bash
 SCREEN_ENGINE=jev
-JEV_URL=http://127.0.0.1:8788   # 같은 맥미니의 jev 프로그램. 외부 비공개
-JEV_THRESHOLD=0.7               # p(공개) ≥ 0.7 공개, ≤ 0.3 반려, 그 사이는 사람
+JEV_URL=http://127.0.0.1:8788   # The jev program on the same Mac mini. Not exposed externally
+JEV_THRESHOLD=0.7               # p(approve) ≥ 0.7 approve, ≤ 0.3 reject, anything in between goes to a human
 ```
-글을 생성하지 않고, 보기(공개/반려) 토큰의 점수만 읽어 확률로 바꾸는 방식이다.
-[jev-visual](https://github.com/hr98w/jev-visual) 레포를 코드 수정 없이 쓰고, 모델은 `mlx-community/Qwen3.5-4B-4bit`.
-Node 서버는 모델을 직접 못 돌려서, 맥미니에 Python 프로그램을 하나 상시로 켜두고 물어본다.
+Instead of generating text, it reads only the scores of the answer-option tokens (approve/reject) and converts them into a probability.
+It uses the [jev-visual](https://github.com/hr98w/jev-visual) repo without code changes, with the model `mlx-community/Qwen3.5-4B-4bit`.
+The Node server can't run the model itself, so a Python program runs permanently on the Mac mini and the server queries it.
 
-설치와 상시 실행은 한 줄이다 (Apple Silicon, uv 필요):
+Installation and always-on setup is one command (Apple Silicon, requires uv):
 ```bash
-./ops/jev/setup.sh       # ~/bukang-jev 에 레포(고정 커밋)·가상환경·모델(고정 버전) 설치 + launchd 등록
+./ops/jev/setup.sh       # Installs the repo (pinned commit), virtualenv, and model (pinned version) into ~/bukang-jev + registers with launchd
 ```
-- 프롬프트는 `server/jev-prompt.json`. 평가에 쓴 v2를 그대로 옮긴 것이라 손으로 고치지 않는다
-- 심사에는 원본 사진을 보낸다 (평가와 같은 조건). 한 장 약 2.2초, 메모리 약 6GB
-- 출처 질문(직접 촬영/화면 캡처 등)은 기록만 하고 판정에 쓰지 않는다. 평가에서 신뢰도가 낮았다
-- jev 프로그램이 꺼져 있으면 심사가 "오류"로 기록되고 사람 대기열로 간다. 서비스는 멈추지 않는다
+- The prompt is `server/jev-prompt.json`. It's a direct copy of v2 used in the evaluation, so don't edit it by hand
+- Screening sends the original photo (same conditions as the evaluation). About 2.2 seconds per photo, about 6GB of memory
+- The source question (taken directly / screen capture, etc.) is recorded only and not used in the verdict. It had low reliability in the evaluation
+- If the jev program is down, screening is recorded as "오류" (error) and the report goes to the human queue. The service doesn't stop
 
-**평가 (운영 제보 146장, 정답은 운영자 최종 판정)**
+**Evaluation (146 production reports; ground truth is the operator's final decision)**
 
 | | claude CLI | jev 4B, 0.7 |
 |---|---|---|
-| 자동 처리 | 108 (74.0%) | 101 (69.2%) |
-| 자동 처리 정확도 | 99.1% (107/108) | 100% (101/101) |
-| 허위 제보 자동 공개 | 0 | 0 |
-| 심사 실패 | 6 (로그인 만료) | 0 |
-| 한 장 | 11.4초 | 2.2초 |
+| Automated | 108 (74.0%) | 101 (69.2%) |
+| Accuracy of automated decisions | 99.1% (107/108) | 100% (101/101) |
+| False reports auto-approved | 0 | 0 |
+| Screening failures | 6 (login expired) | 0 |
+| Per photo | 11.4s | 2.2s |
 
-알려진 약점: 상어가 선명하게 보이는 **영상·화면 캡처**는 jev가 공개할 수 있다 (claude는 보류).
-상어가 없는 화면 캡처는 확실히 반려한다. 자동 공개된 것은 어드민 "AI가 통과시킨 것"에서 뒤집을 수 있다.
-평가 기록: `~/Projects/bukang-jev-eval` (프롬프트 고정 커밋 ec12d4f).
+The speedup from 11.4s → 2.2s is a whole-system comparison in which the CLI invocation, the internet round trip, and the model size all changed together. Changing only how the answer is extracted, with the same 4B model, gives a median of 2.22s vs 4.34s over all 146 photos, or 1.29x on the 60 photos both methods answered. Also, with plain generation-based answering, 86 of 146 photos failed to produce an answer within the output length limit (`eval/`).
 
-**되돌리기**: 서버 설정 `SCREEN_ENGINE=claude` → 서버 재시작. jev 프로그램 끄기는 `launchctl bootout gui/$(id -u)/kr.bukangi.jev`.
+Production results (161 reports since the 9/28 switch, as of 2026-10-04): 126 auto-approved, 16 auto-rejected (including 2 operator test photos), 19 handed to a human (16 published, 2 rejected, 1 pending), 0 automated decisions overturned by a human, 88% handled automatically. "Correct" here means "a human did not overturn it".
 
-## 설정
+Known weakness: jev may approve a **video frame or screen capture** in which the shark is clearly visible (claude marks these unsure).
+Screen captures without a shark are reliably rejected. Auto-approved reports can be reversed from "AI가 통과시킨 것" (passed by AI) in the admin page.
+Evaluation records: `eval/` in this repo (at evaluation time, the prompt was pinned by a commit in a separate repo before running; commit ec12d4f).
 
-| 환경변수 | 기본 | 뜻 |
+**Rolling back**: set `SCREEN_ENGINE=claude` in the server config → restart the server. To stop the jev program: `launchctl bootout gui/$(id -u)/kr.bukangi.jev`.
+
+## Configuration
+
+| Environment variable | Default | Meaning |
 |---|---|---|
 | `SCREEN_ENGINE` | `claude` | `claude` / `api` / `jev` / `off` |
-| `SCREEN_INTERVAL` | `20000` | 확인 주기(ms) |
-| `SCREEN_BATCH` | `20` | 한 번에 집는 장수 |
-| `SCREEN_PARALLEL` | CLI 2 / API 4 | 동시에 심사하는 장수 |
-| `SCREEN_PASS_CONF` | `0.8` | 자동 처리 최소 확신도 |
-| `SCREEN_AUTO_APPROVE` | 켜짐 | `0`이면 통과도 사람이 확인 |
-| `SCREEN_AUTO_REJECT` | 켜짐 | `0`이면 반려도 사람이 확인 |
-| `DISCORD_WEBHOOK` | 없음 | 있으면 보류·실패를 디스코드로 |
-| `PUBLIC_URL` | 없음 | 디스코드 링크의 API 주소 |
-| `NOTIFY_ON` | `unsure,error` | 알릴 판정 |
+| `SCREEN_INTERVAL` | `20000` | Polling interval (ms) |
+| `SCREEN_BATCH` | `20` | Photos picked up per round |
+| `SCREEN_PARALLEL` | CLI 2 / API 4 | Photos screened concurrently |
+| `SCREEN_PASS_CONF` | `0.8` | Minimum confidence for automated handling |
+| `SCREEN_AUTO_APPROVE` | On | If `0`, a human also confirms passes |
+| `SCREEN_AUTO_REJECT` | On | If `0`, a human also confirms rejections |
+| `DISCORD_WEBHOOK` | None | If set, unsure and failed results go to Discord |
+| `PUBLIC_URL` | None | API address used in Discord links |
+| `NOTIFY_ON` | `unsure,error` | Verdicts to notify on |
 
-**처음 며칠은 `SCREEN_AUTO_APPROVE=0`으로 두고 AI 의견만 보는 걸 권한다.**
-판정이 믿을 만한지 눈으로 확인한 뒤에 자동을 켜면 안전하다.
+**For the first few days, we recommend `SCREEN_AUTO_APPROVE=0` and just watching the AI's opinions.**
+It's safe to turn on automation once you've confirmed by eye that the verdicts are trustworthy.
 
-## 심사 기록
+## Screening log
 
-모든 판정이 `screening` 테이블에 남는다. 나중에 정확도를 재거나
-모델을 바꿀 때 비교 기준이 된다.
+Every verdict is stored in the `screening` table. It serves as the baseline for measuring accuracy later
+or for comparison when switching models.
 
 ```sql
 SELECT verdict, COUNT(*) FROM screening GROUP BY verdict;
-SELECT AVG(ms) FROM screening;   -- 평균 처리 시간
+SELECT AVG(ms) FROM screening;   -- average processing time
 ```

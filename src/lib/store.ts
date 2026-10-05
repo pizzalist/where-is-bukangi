@@ -17,7 +17,7 @@ export function drawsLeft() {
   } catch { return DAILY_LIMIT; }
 }
 
-export function useDraw() {
+export function consumeDraw() {
   try {
     const q = JSON.parse(localStorage.getItem(QUOTA_KEY) || "null");
     const used = (!q || q.date !== today()) ? 1 : q.used + 1;

@@ -19,5 +19,5 @@ const ink = await p.evaluate(async (d) => { const i = new Image(); i.src = 'data
   return { 전체높이: c.height, 이름잉크: dark(30, half), 설명잉크: dark(half + 20, c.width - 30) };
 }, buf.toString('base64'));
 console.log(JSON.stringify(ink));
-await p.locator('.row').screenshot({ path: '/private/tmp/claude-501/-Users-teamlab-Projects/aa3a2ba1-f333-4946-9404-5b8d01f878fb/scratchpad/ink.png' });
+await p.locator('.row').screenshot({ path: `${process.env.OUT || 'test-output'}/ink.png` });
 await b.close();

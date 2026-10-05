@@ -14,5 +14,5 @@ for (const [i, row] of (await p.locator('.holo-moves div').all()).entries()) {
   }, buf.toString('base64'));
   console.log(`줄${i + 1} 높이${r.h} | 이름 중심 ${r.이름.중심}% (${r.이름.top}~${r.이름.bot}) | 설명 중심 ${r.설명.중심}% (${r.설명.top}~${r.설명.bot})`);
 }
-await p.locator('.holo-moves').screenshot({ path: '/private/tmp/claude-501/-Users-teamlab-Projects/aa3a2ba1-f333-4946-9404-5b8d01f878fb/scratchpad/moves-zoom.png' });
+await p.locator('.holo-moves').screenshot({ path: `${process.env.OUT || 'test-output'}/moves-zoom.png` });
 await b.close();

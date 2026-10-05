@@ -1,74 +1,77 @@
-# 수집하는 데이터
+**English** | [한국어](DATA.ko.md)
 
-개인을 식별하는 값은 저장하지 않는다. IP와 브라우저 문자열은 해시로만 쓰고 원본은 남기지 않으며,
-참조 주소는 전체 주소 대신 **출처 종류**로만 분류한다 (검색어·경로 저장 안 함).
+# Data we collect
 
-## 표
+No values that identify an individual are stored. IP addresses and browser strings are used only as hashes and the originals are not kept,
+and referrers are classified only by **source type** rather than stored as full URLs (no search terms or paths are stored).
 
-| 표 | 무엇을 | 단위 | 보관 |
+## Tables
+
+| Table | What | Granularity | Retention |
 |---|---|---|---|
-| `submissions` | 사진 제보. 번호·등급·구역·촬영시각·접수시각·상태·사진·위치 | 건별 | 영구 |
-| `screening` | AI 1차 심사 결과. 판정·상어·사람·확신도·이유·엔진·처리시간 | 건별 | 영구 |
-| `observations` | 운영자 현장 관측 (seen/miss) | 건별 | 영구 |
-| `pings` | 현장 탭. 시각·종류·구역·기기 해시 | 건별 | 6시간 |
-| `notices` | 안전·공지 | 건별 | 영구 |
-| `visits` | 방문 (view/uniq) | **날짜** | 영구 |
-| `visitors` | 그날 순방문 판별용 해시 | 날짜+해시 | 7일 |
-| `visitors_hourly` | 그 시간 순방문 판별용 해시 | 시간+해시 | 8일 |
-| `stats_hourly` | 모든 지표의 **시간별** 집계 | 시간+종류 | 영구 |
-| `sources` | 유입 경로 | 날짜+출처 | 영구 |
-| `routes` | 첫 진입 화면 | 날짜+화면 | 영구 |
-| `meta` | 카드 번호 카운터 등 | 키-값 | 영구 |
+| `submissions` | Photo reports. Number, rarity tier, zone, time taken, time received, status, photo, location | Per record | Permanent |
+| `screening` | First-pass AI screening results. Verdict, shark, person, confidence, reason, engine, processing time | Per record | Permanent |
+| `observations` | Operator's on-site observations (seen/miss) | Per record | Permanent |
+| `pings` | On-site taps. Time, type, zone, device hash | Per record | 6 hours |
+| `notices` | Safety notices and announcements | Per record | Permanent |
+| `visits` | Visits (view/uniq) | **Date** | Permanent |
+| `visitors` | Hashes for determining that day's unique visitors | Date + hash | 7 days |
+| `visitors_hourly` | Hashes for determining that hour's unique visitors | Hour + hash | 8 days |
+| `stats_hourly` | **Hourly** aggregates of every metric | Hour + kind | Permanent |
+| `sources` | Traffic sources | Date + source | Permanent |
+| `routes` | First landing screen | Date + screen | Permanent |
+| `meta` | Card number counter, etc. | Key-value | Permanent |
 
-## `stats_hourly`의 종류
+## Kinds in `stats_hourly`
 
-한국 시간 기준 `YYYY-MM-DDTHH` 키로 센다.
+Counted under `YYYY-MM-DDTHH` keys in Korea Standard Time.
 
-| 종류 | 뜻 | 언제 |
+| Kind | Meaning | When |
 |---|---|---|
-| `view` | 페이지뷰 | 페이지를 연 순간 (30초 자동 갱신·화면 이동은 제외) |
-| `uniq` | 그 시간 순방문자 | 같은 기기는 그 시간에 한 번 |
-| `report` | 사진 제보 | 제출 성공 |
-| `card` | 공개된 카드 | 운영자·AI 승인 |
-| `ping_seen` / `ping_miss` | 현장 탭 | 공원 안에서 버튼 |
-| `ping_far` | 반경 밖 거절 | 반경이 걸림돌인지 판단용 |
-| `geo_fail` | 위치 확인 실패 | 인앱 브라우저 등 |
-| `share` / `save` | 링크 공유 / 이미지 저장 | 카드 화면 버튼 |
-| `card_view` | 카드 링크로 들어옴 | `/c/<id>` 사람 방문 (크롤러 제외) |
+| `view` | Page view | When the page is opened (excluding 30-second auto-refreshes and in-app screen navigation) |
+| `uniq` | Unique visitors that hour | Each device counted once per hour |
+| `report` | Photo report | Successful submission |
+| `card` | Published card | Approved by the operator or the AI |
+| `ping_seen` / `ping_miss` | On-site taps | Button pressed inside the park |
+| `ping_far` | Rejected for being outside the radius | To judge whether the radius is getting in the way |
+| `geo_fail` | Location check failed | In-app browsers, etc. |
+| `share` / `save` | Link shared / image saved | Buttons on the card screen |
+| `card_view` | Arrived via a card link | Human visits to `/c/<id>` (crawlers excluded) |
 
-## 유입 경로 분류
+## Traffic source categories
 
 `threads` `instagram` `kakao` `facebook` `naver` `google` `youtube` `twitter`
-`card_link`(공유된 카드 링크) `direct`(주소 직접·QR) `internal`(사이트 내부) `other`
+`card_link` (shared card link) `direct` (typed URL or QR code) `internal` (within the site) `other`
 
-## 보는 곳
+## Where to view it
 
-운영자 페이지 `https://admin.bukangi.com/#/admin`
+Admin page: `https://admin.bukangi.com/#/admin`
 
-- **시간대별**: 순방문·페이지뷰·사진 제보·현장 탭·공유저장을 같은 시간축 막대로. 24시간~7일
-- **어디서 들어오나**: 유입 경로, 화면별 첫 진입. 오늘~30일
+- **By hour**: unique visitors, page views, photo reports, on-site taps, and shares/saves as bars on the same time axis. 24 hours to 7 days
+- **Where visitors come from**: traffic sources and first landing screen. Today to 30 days
 
-## 알아둘 것
+## Things to know
 
-- **시간별 집계는 2026-09-22 16시부터**다. 그 전 방문은 날짜 단위로만 남아 있어 소급이 안 된다.
-  사진 제보는 시각이 남아 있어 소급했다.
-- `visits`(날짜)와 `stats_hourly`(시간)는 시작 시점이 달라 합계가 다르다. 날짜 단위 총계는 `visits`가 맞다.
-- 헤드리스 브라우저·봇은 집계에서 제외한다.
+- **Hourly aggregates start at 16:00 on 2026-09-22.** Visits before that were recorded only per date and cannot be backfilled.
+  Photo reports have timestamps, so they were backfilled.
+- `visits` (per date) and `stats_hourly` (per hour) started at different times, so their totals differ. For per-date totals, `visits` is correct.
+- Headless browsers and bots are excluded from the counts.
 
-## 아직 안 세는 것
+## Not counted yet
 
-- 체류 시간, 스크롤 깊이 (지금 규모에선 과함)
-- 카드 등급별 분포 (`submissions.rarity`로 언제든 집계 가능)
-- 구역별 목격 분포 (`submissions.zone`·`pings.zone`로 집계 가능)
+- Time on page, scroll depth (overkill at the current scale)
+- Distribution by card rarity tier (can be aggregated from `submissions.rarity` at any time)
+- Sighting distribution by zone (can be aggregated from `submissions.zone` and `pings.zone`)
 
-## 구글 애널리틱스 (2026-10-02부터)
+## Google Analytics (since 2026-10-02)
 
-자체 집계와 별도로 GA4(측정 ID `G-FC9Y0PHC14`, 빌드 값 `VITE_GA_ID`)에도 보낸다. 코드는 `src/lib/ga.ts`.
+Alongside our own counters, the production site also sends data to GA4 (measurement ID `G-FC9Y0PHC14`, set at build time with `VITE_GA_ID`). The code is in `src/lib/ga.ts`. If `VITE_GA_ID` is empty, nothing is loaded.
 
-- 실서비스 주소(bukangi.com)에서만 켠다. 검수·로컬 주소, 운영자 화면, 카드 렌더 화면, 자동화 브라우저는 보내지 않는다
-- 화면은 `/`, `/certify`, `/card`, `/hall`, `/tiers` 가상 경로로 보낸다. 카드 ID는 넣지 않는다
-- 이벤트: `report`(등급), `ping`(seen/miss), `share`, `save`, `geo_fail`, `card_view`
-- GA는 쿠키로 같은 브라우저를 알아본다. 홈 하단에 쿠키 사용 고지를 띄운다(GA가 켜졌을 때만)
-- 아이폰 Safari는 스크립트가 만든 쿠키를 7일(추적 파라미터가 붙은 링크로 오면 하루) 뒤 지워서, GA의 사용자 수와 재방문은 실제보다 크게 나올 수 있다. 사람 수는 자체 집계와 나란히 본다
-- 검수 주소에서 확인할 때는 `?ga_test`를 붙인다. 디버그 모드라 GA DebugView에만 보이고 보고서에는 섞이지 않는다
-- GA 화면 설정: 데이터 스트림의 향상된 측정에서 "브라우저 기록 이벤트 기반 페이지 변경"은 끈다(화면 이동을 코드가 직접 보내므로 중복 방지)
+- Enabled only on the production host (bukangi.com). Staging/local hosts, the admin page, the card-render page and automated browsers send nothing
+- Screens are sent as virtual paths: `/`, `/certify`, `/card`, `/hall`, `/tiers`. Card IDs are never included
+- Events: `report` (rarity), `ping` (seen/miss), `share`, `save`, `geo_fail`, `card_view`
+- GA recognizes the same browser with a cookie. The home page footer shows a cookie notice (only when GA is enabled)
+- iPhone Safari deletes script-set cookies after 7 days (1 day when the visitor arrives via a link with a tracking parameter), so GA's user and returning-user counts can run higher than reality. Read people counts side by side with our own counters
+- To check on the staging host, add `?ga_test`. That turns on debug mode, so hits show only in GA DebugView and never mix into reports
+- GA setting: in the data stream's Enhanced measurement, turn off "Page changes based on browser history events" (the code sends screen changes itself, so this avoids duplicates)
+- Time on page and scroll depth are still not counted by our own counters, but on the production site with GA enabled they are visible in GA

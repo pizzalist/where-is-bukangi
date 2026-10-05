@@ -39,3 +39,12 @@ dist-test/
 
 # 검수본 표시
 .staged-build
+research_notes/
+reports/
+.context/
+
+# 공개 저장소에서 제외: 실제 터널 설정 (예시는 ops/cloudflared-config.example.yml)
+ops/cloudflared-config.yml
+
+# 테스트 스크립트 캡처 결과 (OUT 환경변수로 바꿀 수 있음)
+test-output/

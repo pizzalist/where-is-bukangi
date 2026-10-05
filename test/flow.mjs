@@ -10,7 +10,7 @@ await p.click('.cta'); await p.waitForTimeout(900);
 await p.screenshot({ path: '/tmp/p-certify.png', fullPage: true });
 await p.click('.privacy summary'); await p.waitForTimeout(400);
 await p.screenshot({ path: '/tmp/p-privacy.png', fullPage: true });
-await p.setInputFiles('input[type=file]', '/Users/teamlab/Projects/bukang/public/sample.png'); await p.waitForTimeout(1600);
+await p.setInputFiles('input[type=file]', 'public/sample.png'); await p.waitForTimeout(1600);
 await p.getByRole('button', { name: '이대로' }).click(); await p.waitForTimeout(900);
 await p.getByRole('button', { name: '카드 뽑기' }).click(); await p.waitForTimeout(2200);
 console.log('카드:', await p.evaluate(() => ({ holo: document.querySelectorAll('.holo').length })));

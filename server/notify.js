@@ -40,8 +40,11 @@ const VERDICT_LABEL = { unsure: "AI 판단 보류", error: "AI 심사 실패", p
 const COLOR = { unsure: 0xf5a623, error: 0xd0021b, pass: 0x2ecc71, reject: 0x95a5a6 };
 
 function fmtKST(iso) {
-  try { return new Date(iso).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
-  catch { return iso; }
+  try {
+    return new Date(iso).toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit",
+    });
+  } catch { return iso; }
 }
 
 /**
@@ -68,7 +71,10 @@ export async function notifyVerdict(row, verdict, v) {
       { name: "등급", value: String(row.rarity || "-"), inline: true },
       { name: "AI", value: v.pPub != null
         ? `공개 확률 ${Math.round(v.pPub * 100)}% · 상어 ${v.shark ? "O" : "X"}`     // jev 엔진
-        : `실사진 ${v.photo == null ? "?" : v.photo ? "O" : "X"} · 상어 ${v.shark == null ? "?" : v.shark ? "O" : "X"} · 사람 ${v.person == null ? "?" : v.person ? "O" : "X"}${v.confidence != null ? ` · 확신 ${Math.round(v.confidence * 100)}%` : ""}` },
+        : `실사진 ${v.photo == null ? "?" : v.photo ? "O" : "X"}`
+          + ` · 상어 ${v.shark == null ? "?" : v.shark ? "O" : "X"}`
+          + ` · 사람 ${v.person == null ? "?" : v.person ? "O" : "X"}`
+          + `${v.confidence != null ? ` · 확신 ${Math.round(v.confidence * 100)}%` : ""}` },
       ...(v.reason ? [{ name: "이유", value: String(v.reason).slice(0, 200) }] : []),
     ],
     footer: { text: `id ${row.id}` },
@@ -98,8 +104,11 @@ export async function notifyVerdict(row, verdict, v) {
 export async function notifyText(text) {
   if (!WEBHOOK) return false;
   try {
-    const r = await fetch(WEBHOOK, { method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ content: String(text).slice(0, 1900), allowed_mentions: { parse: [] } }), signal: AbortSignal.timeout(10000) });
+    const r = await fetch(WEBHOOK, {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content: String(text).slice(0, 1900), allowed_mentions: { parse: [] } }),
+      signal: AbortSignal.timeout(10000),
+    });
     return r.ok;
   } catch { return false; }
 }

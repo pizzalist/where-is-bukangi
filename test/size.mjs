@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 390, height: 844 } });
 await p.goto('http://localhost:4173/#/certify'); await p.waitForTimeout(1200);
-await p.setInputFiles('input[type=file]', '/Users/teamlab/Projects/bukang/public/sample.png');
+await p.setInputFiles('input[type=file]', 'public/sample.png');
 await p.waitForTimeout(1800);
 await p.getByRole('button', { name: '이대로' }).click(); await p.waitForTimeout(1200);
 const info = await p.evaluate(() => {

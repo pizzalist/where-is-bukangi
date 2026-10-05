@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-const SITE = 'https://bukangi.com'; const OUT = '/private/tmp/claude-501/-Users-teamlab-Projects/aa3a2ba1-f333-4946-9404-5b8d01f878fb/scratchpad';
+const SITE = 'https://bukangi.com'; const OUT = process.env.OUT || 'test-output';
 const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }); const p = await ctx.newPage();
 for (const r of ['', 'certify', 'hall', 'tiers']) { await p.goto(`${SITE}/#/${r}`); await p.waitForTimeout(2500); await p.screenshot({ path: `${OUT}/s-${r || 'home'}.png`, fullPage: true }); }
 await p.goto(`${SITE}/#/certify`); await p.waitForTimeout(1500);

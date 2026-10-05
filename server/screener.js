@@ -43,7 +43,8 @@ const qPending = db.prepare(`
   LEFT JOIN screening c ON c.id = s.id
   WHERE s.status='pending' AND c.id IS NULL
   ORDER BY s.submitted_at ASC LIMIT ${BATCH}`);
-const insScreen = db.prepare(`INSERT OR REPLACE INTO screening (id, verdict, shark, person, confidence, reason, engine, ms, created_at) VALUES (?,?,?,?,?,?,?,?,?)`);
+const insScreen = db.prepare(`INSERT OR REPLACE INTO screening
+  (id, verdict, shark, person, confidence, reason, engine, ms, created_at) VALUES (?,?,?,?,?,?,?,?,?)`);
 const updStatus = db.prepare(`UPDATE submissions SET status=? WHERE id=? AND status='pending'`);
 
 function parseJson(text) {
@@ -97,7 +98,11 @@ async function viaJev(imgPath) {
   const r = await fetch(`${JEV_URL}/v1/judge`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ image: `data:image/${ext};base64,${buf.toString("base64")}`, state: JEV_PROMPT.state, questions: JEV_PROMPT.questions }),
+    body: JSON.stringify({
+      image: `data:image/${ext};base64,${buf.toString("base64")}`,
+      state: JEV_PROMPT.state,
+      questions: JEV_PROMPT.questions,
+    }),
     signal: AbortSignal.timeout(60000),
   });
   if (!r.ok) throw new Error(`jev ${r.status} ${(await r.text()).slice(0, 80)}`);
@@ -143,7 +148,8 @@ export async function screenOne(row, onChange) {
     v.reason = String(e.message).slice(0, 120);
   }
   const ms = Date.now() - t0;
-  insScreen.run(row.id, verdict, v.shark ? 1 : 0, v.person ? 1 : 0, v.confidence ?? null, v.reason || "", ENGINE, ms, new Date().toISOString());
+  insScreen.run(row.id, verdict, v.shark ? 1 : 0, v.person ? 1 : 0, v.confidence ?? null, v.reason || "",
+    ENGINE, ms, new Date().toISOString());
 
   if (verdict === "pass" && AUTO_APPROVE) updStatus.run("approved", row.id);
   else if (verdict === "reject" && AUTO_REJECT) updStatus.run("rejected", row.id);
@@ -156,14 +162,20 @@ export async function screenOne(row, onChange) {
 
 export function startScreener(onChange) {
   if (ENGINE === "off") { console.log("[심사] 꺼짐"); return; }
-  console.log(`[심사] ${ENGINE} 엔진, ${INTERVAL / 1000}초마다 최대 ${BATCH}장, 동시 ${PARALLEL}장${ENGINE === "jev" ? `, 기준 ${JEV_THRESHOLD}, ${JEV_URL}` : ""}`);
+  const jevInfo = ENGINE === "jev" ? `, 기준 ${JEV_THRESHOLD}, ${JEV_URL}` : "";
+  console.log(`[심사] ${ENGINE} 엔진, ${INTERVAL / 1000}초마다 최대 ${BATCH}장, 동시 ${PARALLEL}장${jevInfo}`);
   let busy = false;
   const tick = async () => {
     if (busy) return; busy = true;
     try {
       const rows = qPending.all();
       let i = 0;
-      const worker = async () => { while (i < rows.length) { const row = rows[i++]; try { await screenOne(row, onChange); } catch (e) { console.error("[심사] 오류:", e.message); } } };
+      const worker = async () => {
+        while (i < rows.length) {
+          const row = rows[i++];
+          try { await screenOne(row, onChange); } catch (e) { console.error("[심사] 오류:", e.message); }
+        }
+      };
       await Promise.all(Array.from({ length: Math.min(PARALLEL, rows.length) }, worker));
     } catch (e) { console.error("[심사] 오류:", e.message); }
     busy = false;

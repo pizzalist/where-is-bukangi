@@ -16,6 +16,6 @@ for (const rarity of ['holo', 'galaxy', 'fullart', 'gold']) {
       설명폭: sp.scrollWidth, 가용폭: sp.clientWidth };
   }).filter((x) => x.기술 === want), WANT);
   console.log(rarity.padEnd(8), JSON.stringify(r[0]));
-  await p.locator('.holo-moves').screenshot({ path: `/private/tmp/claude-501/-Users-teamlab-Projects/aa3a2ba1-f333-4946-9404-5b8d01f878fb/scratchpad/ov-${rarity}.png` });
+  await p.locator('.holo-moves').screenshot({ path: `${process.env.OUT || 'test-output'}/ov-${rarity}.png` });
 }
 await b.close();

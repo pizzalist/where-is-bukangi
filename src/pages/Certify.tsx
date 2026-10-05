@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import exifr from "exifr";
 import type { Status, ZoneCode, Submission } from "../lib/types";
-import { addSubmission, drawsLeft, useDraw, DAILY_LIMIT } from "../lib/store";
+import { addSubmission, drawsLeft, consumeDraw, DAILY_LIMIT } from "../lib/store";
 import { RARITY_ORDER, RARITY_META, oddsPercent } from "../lib/rarity";
 import { postSubmission } from "../lib/api";
 import { gaEvent } from "../lib/ga";
@@ -61,7 +61,7 @@ export default function Certify({ onDone, onTiers }: { status: Status; onDone: (
       };
       addSubmission(s);
       gaEvent("report", { rarity: String(r.rarity ?? "") });
-      useDraw();
+      consumeDraw();
       setLeft(drawsLeft());
       onDone(s);
     } catch (e) {
