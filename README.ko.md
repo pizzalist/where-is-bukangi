@@ -6,7 +6,7 @@
 현장에서 상어를 찍어 올리거나 "보여요 / 안 보여요"를 누르면 마지막 목격 시각이 바로 바뀝니다.
 
 - 서비스: https://bukangi.com (2026-09-22 공개, Claude Code로 개발)
-- 회고 (왜 이렇게 만들었는지): [한국어](KO_POST_URL) · [English](https://pizzalist.tistory.com/16)
+- 회고 (왜 이렇게 만들었는지): [한국어](https://pizzalist.tistory.com/17) · [English](https://pizzalist.tistory.com/16)
 
 <p align="center">
   <img src="docs/screenshots/home.png" width="19%" alt="홈: 마지막 목격 시각과 현장 버튼">
