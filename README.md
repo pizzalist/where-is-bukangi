@@ -6,7 +6,7 @@ A citizen-reported status board for "Bukangi," the shark that showed up at Bukha
 When someone at the park uploads a photo of the shark or taps "I see it / I don't," the last-seen time updates right away.
 
 - Service: https://bukangi.com (launched 2026-09-22, developed with Claude Code)
-- Write-up, including why it is built this way: [English](EN_POST_URL) · [Korean](KO_POST_URL)
+- Write-up, including why it is built this way: [English](https://pizzalist.tistory.com/16) · [Korean](KO_POST_URL)
 
 <p align="center">
   <img src="docs/screenshots/home.png" width="19%" alt="Home: last-seen time and on-site buttons">
