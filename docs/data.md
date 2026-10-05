@@ -1,4 +1,4 @@
-**English** | [한국어](DATA.ko.md)
+**English** | [한국어](data.ko.md)
 
 # Data we collect
 

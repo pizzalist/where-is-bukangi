@@ -1,4 +1,4 @@
-[English](SCREENING.md) | **한국어**
+[English](screening.md) | **한국어**
 
 # AI 1차 심사
 
@@ -27,18 +27,19 @@ seed09       pass   실사진=true  상어=true  사람=false 확신=0.85  13.3�
 
 앱 스크린샷 안의 상어 그림까지 "합성 이미지"로 잡아낸다.
 
-## 디스코드 알림 (보류·실패만)
+## 디스코드 알림
 
-AI가 못 가른 것만 디스코드 채널로 온다. 썸네일 + AI 의견 + **공개 / 반려 링크**.
+기본값에서는 AI가 못 가른 것만 디스코드 채널로 온다. 썸네일 + AI 의견 + **공개 / 반려 링크**.
 링크를 누르면 확인 화면이 뜨고, 버튼을 한 번 더 누르면 처리된다. 폰에서 끝난다.
 
 ```
 DISCORD_WEBHOOK=https://discord.com/api/webhooks/...   # 채널 설정 → 연동 → 웹훅 만들기
 PUBLIC_URL=https://api.도메인                          # 링크 앞부분 (API 서버 바깥 주소)
 SITE_URL=https://도메인                                 # 관리자 페이지 링크 (선택)
-NOTIFY_ON=unsure,error                                  # 기본값. pass,reject를 넣으면 전부 옴
+NOTIFY_ON=unsure,error                                  # 기본값. 운영은 unsure,error,pass,reject
 ```
 
+- `pass,reject`를 켜면 자동 판정도 오고, 한 번에 **뒤집기** 링크가 붙는다. AI 결정이 그대로이고 사람이 손대지 않았을 때만 동작한다.
 - 링크는 `ADMIN_TOKEN`으로 서명돼 있어 못 만들어낸다. **대기 중일 때만** 동작하니 두 번 눌러도 안전하다.
 - 미리보기 봇이 링크를 열어도 아무 일 없다 (GET은 확인 화면, 처리는 POST).
 - 웹훅 URL이 새면 남이 채널에 글을 쓸 수 있으니 채널은 나만 보는 곳으로. 새면 디스코드에서 웹훅을 지우고 다시 만든다.
@@ -47,7 +48,7 @@ NOTIFY_ON=unsure,error                                  # 기본값. pass,reject
 ## 동시 업로드
 
 업로드는 서버가 동시 8건씩 받고 200건까지 줄 세운다 (그 이상은 503 → 앱이 "잠시 뒤 다시"로 안내).
-실측 4,405건/초, 1,000건 동시 제출 전부 저장 확인 (`OPS.ko.md`).
+실측 4,405건/초, 1,000건 동시 제출 전부 저장 확인 ([operations.ko.md](operations.ko.md)).
 심사는 별도 루프라 업로드를 막지 않는다. `SCREEN_INTERVAL`마다 대기 중인 걸 `SCREEN_BATCH`장씩 집어
 `SCREEN_PARALLEL`장 동시에 돌린다. 밀리면 그냥 대기 상태로 쌓이고 순서대로 처리된다.
 카드는 업로드 즉시 발급되니 사용자는 심사를 기다리지 않는다.

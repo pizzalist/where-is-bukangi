@@ -30,21 +30,21 @@
                              └─ 디스코드 웹훅 (판정 알림 + 서명된 공개/반려/뒤집기 링크)
 ```
 
-- **사진**은 Cloudflare 엣지 캐시가 받고, 상황판 응답과 **쓰기**(제보, 버튼)는 맥미니까지 옵니다. 캐시 설정과 부하 테스트는 [`OPS.ko.md`](OPS.ko.md).
+- **사진**은 Cloudflare 엣지 캐시가 받고, 상황판 응답과 **쓰기**(제보, 버튼)는 맥미니까지 옵니다. 캐시 설정과 부하 테스트는 [`docs/operations.ko.md`](docs/operations.ko.md).
 - **운영자 화면**은 별도 주소(admin)로만 열리고 Bearer 토큰으로 인증합니다.
 
 ## AI 사진 심사
 
 - 엔진: [jev-visual](https://github.com/hr98w/jev-visual) (MIT) + Qwen3.5-4B-4bit (MLX). 평가에 쓴 커밋에 고정해 설치합니다. 답을 글로 생성하지 않고 보기마다 확률만 읽습니다.
 - 공개 확률 ≥ 0.7이면 자동 공개, ≤ 0.3이면 자동 반려, 그 사이는 운영자에게. 자동 판정도 전부 디스코드로 보내고, 서명된 링크로 뒤집을 수 있습니다.
-- 실제 제보 146장 평가: 자동 처리 69.2%, 자동 판정 101/101 정답. 기준 0.7을 같은 146장에서 골랐고 반려 표본이 14장뿐이라 낙관적인 상한으로 봐야 합니다. 자세한 기록: [`eval/README.ko.md`](eval/README.ko.md), [`SCREENING.ko.md`](SCREENING.ko.md)
+- 실제 제보 146장 평가: 자동 처리 69.2%, 자동 판정 101/101 정답. 기준 0.7을 같은 146장에서 골랐고 반려 표본이 14장뿐이라 낙관적인 상한으로 봐야 합니다. 자세한 기록: [`docs/screening.ko.md`](docs/screening.ko.md), [`eval/README.ko.md`](eval/README.ko.md)
 
 ## 보안과 개인정보
 
 - 서버는 127.0.0.1에서만 듣고, 공유기 포트는 열지 않습니다. 밖으로는 터널이 허용한 경로만 나갑니다 (`ops/cloudflared-config.example.yml`).
 - 운영자 토큰과 디스코드 서명 링크는 `timingSafeEqual`로 비교하고, 토큰이 없으면 서버가 뜨지 않습니다. 업로드는 파일 앞부분으로 이미지인지 확인하고, 사진 ID는 추측할 수 없는 난수입니다.
 - IP별 요청 제한, 요청 크기 제한, 모든 SQL은 prepared statement입니다.
-- IP와 브라우저 정보는 해시로만 남깁니다 ([`DATA.ko.md`](DATA.ko.md)). 구글 애널리틱스는 `VITE_GA_ID`가 있을 때만 불러옵니다. 제보 사진, 운영 DB, 비밀값은 저장소에 없습니다.
+- IP와 브라우저 정보는 해시로만 남깁니다 ([`docs/data.ko.md`](docs/data.ko.md)). 구글 애널리틱스는 `VITE_GA_ID`가 있을 때만 불러옵니다. 제보 사진, 운영 DB, 비밀값은 저장소에 없습니다.
 
 ## 폴더
 
@@ -53,10 +53,10 @@ src/            React + TypeScript 화면 (Vite)
 server/         Express API, SQLite, AI 심사 연결, 디스코드 알림, 카드 이미지
 eval/           AI 사진 심사 평가 스크립트와 결과 (제보 ID는 익명 번호)
 ops/            맥미니 운영 스크립트, launchd 설정, 터널 설정 예시, jev 엔진 설치
-test/           화면 캡처·흐름 점검용 스크립트 (Playwright), 부하 테스트
-art/, public/   캐릭터와 정적 자산
+test/           부하 테스트, 브라우저 흐름 점검 (Playwright)
+public/         정적 자산
 worker.js       Cloudflare Worker (카드 미리보기 경로만 API로 전달)
-*.md            운영(OPS), 배포(DEPLOY), 도메인(DOMAIN), 데이터(DATA), 심사(SCREENING) 문서
+docs/           배포, 운영, AI 심사, 데이터, 외부 코드 문서 (영어·한국어)
 ```
 
 ## 로컬에서 실행
@@ -105,9 +105,8 @@ npm run server
 
 ### 운영 배포
 
-맥미니 상시 실행(launchd), Cloudflare 터널, 도메인 연결은 [`DEPLOY.ko.md`](DEPLOY.ko.md), [`DOMAIN.ko.md`](DOMAIN.ko.md), [`OPS.ko.md`](OPS.ko.md)에 순서대로 적어 두었습니다.
-터널 설정은 `ops/cloudflared-config.example.yml`을 `~/.cloudflared/config.yml`로 복사해 `<TUNNEL_ID>`를 채워 씁니다.
+도메인, 맥미니(launchd), Cloudflare 터널, Workers 화면 배포는 [`docs/deploy.ko.md`](docs/deploy.ko.md). 보안 체크리스트와 부하 테스트는 [`docs/operations.ko.md`](docs/operations.ko.md).
 
 ## 라이선스
 
-MIT. [`LICENSE`](LICENSE)를 참고하세요. 외부 코드: [`THIRD_PARTY.ko.md`](THIRD_PARTY.ko.md). jev-visual(MIT)과 Qwen3.5 모델(Apache-2.0)은 설치할 때 내려받으며 이 저장소에 포함하지 않습니다.
+MIT. [`LICENSE`](LICENSE)를 참고하세요. 외부 코드: [`docs/third-party.ko.md`](docs/third-party.ko.md). jev-visual(MIT)과 Qwen3.5 모델(Apache-2.0)은 설치할 때 내려받으며 이 저장소에 포함하지 않습니다.

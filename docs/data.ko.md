@@ -1,4 +1,4 @@
-[English](DATA.md) | **한국어**
+[English](data.md) | **한국어**
 
 # 수집하는 데이터
 

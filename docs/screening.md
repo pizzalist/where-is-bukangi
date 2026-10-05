@@ -1,4 +1,4 @@
-**English** | [한국어](SCREENING.ko.md)
+**English** | [한국어](screening.ko.md)
 
 # AI First-Pass Screening
 
@@ -27,18 +27,19 @@ card screenshot reject real_photo=false shark=false person=false conf=0.95  13.2
 
 It even catches the shark drawing inside an app screenshot as a "composite image".
 
-## Discord notifications (unsure and failed only)
+## Discord notifications
 
-Only what the AI couldn't decide goes to the Discord channel: thumbnail + AI opinion + **approve / reject links**.
+By default, only what the AI couldn't decide goes to the Discord channel: thumbnail + AI opinion + **approve / reject links**.
 Tapping a link opens a confirmation screen, and one more button press processes it. You can finish it all on your phone.
 
 ```
 DISCORD_WEBHOOK=https://discord.com/api/webhooks/...   # Channel settings → Integrations → Create webhook
 PUBLIC_URL=https://api.<domain>                        # Link prefix (public address of the API server)
 SITE_URL=https://<domain>                              # Admin page link (optional)
-NOTIFY_ON=unsure,error                                  # Default. Add pass,reject to get everything
+NOTIFY_ON=unsure,error                                  # Default. Production uses unsure,error,pass,reject
 ```
 
+- With `pass,reject` on, automatic decisions also arrive, each with a one-tap **flip** link. It works only while the AI's decision is unchanged and no human has touched the report.
 - Links are signed with `ADMIN_TOKEN`, so they can't be forged. They **only work while the report is pending**, so pressing twice is safe.
 - Nothing happens if a link-preview bot opens the link (GET shows the confirmation screen; processing is a POST).
 - If the webhook URL leaks, others can post to the channel, so use a channel only you can see. If it leaks, delete the webhook in Discord and create a new one.
@@ -47,7 +48,7 @@ NOTIFY_ON=unsure,error                                  # Default. Add pass,reje
 ## Concurrent uploads
 
 The server accepts uploads 8 at a time and queues up to 200 (beyond that, 503 → the app tells the user to try again shortly).
-Measured at 4,405 per second; all 1,000 concurrent submissions were confirmed saved (`OPS.md`).
+Measured at 4,405 per second; all 1,000 concurrent submissions were confirmed saved ([operations.md](operations.md)).
 Screening runs in a separate loop, so it doesn't block uploads. Every `SCREEN_INTERVAL`, it picks up `SCREEN_BATCH` pending photos
 and runs `SCREEN_PARALLEL` of them concurrently. If it falls behind, reports simply pile up as pending and are processed in order.
 The card is issued immediately on upload, so users don't wait for screening.

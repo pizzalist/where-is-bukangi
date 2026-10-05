@@ -1,4 +1,4 @@
-**English** | [한국어](THIRD_PARTY.ko.md)
+**English** | [한국어](third-party.ko.md)
 
 # Third-party code and models
 
@@ -24,5 +24,5 @@ and jev-visual itself states that it does not reproduce the architecture or trai
 This repository is likewise not affiliated with TypeSafe.
 
 ## This repository's own assets
-- Bukangi character art (`art/`, `public/bukang-*.webp`): created by the author using an image-generation AI.
+- Bukangi character art (`public/bukang-*.webp`): created by the author using an image-generation AI.
 - Photos uploaded by citizens and the production DB are not included in the repository. In the result files under `eval/`, report IDs have been replaced with the anonymous numbers `s001`–`s147`.

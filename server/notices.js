@@ -1,5 +1,5 @@
 /**
- * 안전·공지 기본값 주입. 자동 파싱은 아직 없다 (SCREENING.md / OPS.md 참고).
+ * 안전·공지 기본값 주입. 자동 파싱은 아직 없다 (docs/screening.md / docs/operations.md 참고).
  * 같은 제목이 이미 있으면 건너뛰니 여러 번 실행해도 된다.
  *   node server/notices.js
  */

@@ -30,21 +30,21 @@ When someone at the park uploads a photo of the shark or taps "I see it / I don'
                             └─ Discord webhook (decision alerts + signed approve/reject/undo links)
 ```
 
-- **Photos** are served from the Cloudflare edge cache; status reads and **writes** (reports, buttons) go to the Mac mini. Caching notes and load tests: [`OPS.md`](OPS.md).
+- **Photos** are served from the Cloudflare edge cache; status reads and **writes** (reports, buttons) go to the Mac mini. Caching notes and load tests: [`docs/operations.md`](docs/operations.md).
 - The **admin page** opens only on a separate host (admin) and authenticates with a Bearer token.
 
 ## AI photo screening
 
 - Engine: [jev-visual](https://github.com/hr98w/jev-visual) (MIT) + Qwen3.5-4B-4bit on MLX, pinned to the commit used for evaluation. Instead of generating an answer, it reads the probability of each answer option.
 - Publish probability ≥ 0.7 means auto-approve, ≤ 0.3 means auto-reject, and anything in between goes to the operator. Every automatic decision is also sent to Discord with a signed link to overturn it.
-- Evaluation on 146 real reports: 69.2% handled automatically, 101/101 automatic decisions correct. The threshold was chosen on the same 146 photos and there were only 14 rejected samples, so treat this as an optimistic upper bound. Details: [`eval/README.md`](eval/README.md), [`SCREENING.md`](SCREENING.md)
+- Evaluation on 146 real reports: 69.2% handled automatically, 101/101 automatic decisions correct. The threshold was chosen on the same 146 photos and there were only 14 rejected samples, so treat this as an optimistic upper bound. Details: [`docs/screening.md`](docs/screening.md), [`eval/README.md`](eval/README.md)
 
 ## Security and privacy
 
 - The server listens only on 127.0.0.1 and no router ports are opened. Only the paths the tunnel allows are exposed (`ops/cloudflared-config.example.yml`).
 - The admin token and Discord signed links are compared with `timingSafeEqual`, and the server will not start without a token. Uploads are checked by their leading bytes, and photo IDs are unguessable random values.
 - Per-IP rate limits, request size limits, and prepared statements for all SQL.
-- IP addresses and browser information are kept only as hashes ([`DATA.md`](DATA.md)). Google Analytics loads only when `VITE_GA_ID` is set. Report photos, the production DB, and secrets are not in this repository.
+- IP addresses and browser information are kept only as hashes ([`docs/data.md`](docs/data.md)). Google Analytics loads only when `VITE_GA_ID` is set. Report photos, the production DB, and secrets are not in this repository.
 
 ## Folders
 
@@ -53,10 +53,10 @@ src/            React + TypeScript UI (Vite)
 server/         Express API, SQLite, AI screening integration, Discord alerts, card images
 eval/           AI photo screening evaluation scripts and results (report IDs anonymized)
 ops/            Mac mini ops scripts, launchd config, example tunnel config, jev engine installer
-test/           Scripts for screen captures and flow checks (Playwright), load tests
-art/, public/   Character art and static assets
+test/           Load test and browser flow check (Playwright)
+public/         Static assets
 worker.js       Cloudflare Worker (forwards only card preview paths to the API)
-*.md            Docs: operations (OPS), deployment (DEPLOY), domain (DOMAIN), data (DATA), screening (SCREENING)
+docs/           Deployment, operations, AI screening, data, third-party notices (English and Korean)
 ```
 
 ## Running locally
@@ -105,9 +105,8 @@ npm run server
 
 ### Production deployment
 
-Always-on operation on the Mac mini (launchd), the Cloudflare Tunnel, and domain setup are documented step by step in [`DEPLOY.md`](DEPLOY.md), [`DOMAIN.md`](DOMAIN.md), and [`OPS.md`](OPS.md).
-For the tunnel, copy `ops/cloudflared-config.example.yml` to `~/.cloudflared/config.yml` and fill in `<TUNNEL_ID>`.
+Domain, the Mac mini (launchd), the Cloudflare Tunnel, and the Workers frontend: [`docs/deploy.md`](docs/deploy.md). Security checklist and load tests: [`docs/operations.md`](docs/operations.md).
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE). Third-party code: [`THIRD_PARTY.md`](THIRD_PARTY.md). jev-visual (MIT) and the Qwen3.5 models (Apache-2.0) are downloaded at install time and are not included in this repository.
+MIT. See [`LICENSE`](LICENSE). Third-party code: [`docs/third-party.md`](docs/third-party.md). jev-visual (MIT) and the Qwen3.5 models (Apache-2.0) are downloaded at install time and are not included in this repository.

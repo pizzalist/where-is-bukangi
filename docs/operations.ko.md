@@ -1,4 +1,4 @@
-[English](OPS.md) | **한국어**
+[English](operations.md) | **한국어**
 
 # 운영 가이드 (실제 서비스)
 
@@ -7,7 +7,6 @@
 | 할 일 | 왜 |
 |---|---|
 | `ADMIN_TOKEN`을 32자 이상 무작위로 바꾼다 | 기본값이 없으면 서버가 아예 안 뜬다. 짧으면 경고 |
-| `SERVE_STATIC=0`으로 띄운다 | 정적 파일은 Cloudflare Pages가 담당. 맥미니는 API만 |
 | `HOST=127.0.0.1` 확인 | 루프백만 열고 터널이 앞에 선다. 공유기 포트는 절대 열지 않는다 |
 | 운영자 도메인에 Cloudflare Access를 건다 | 토큰이 새도 한 겹 더 막는다 |
 | 맥미니 방화벽 켠다 | 시스템 설정 → 네트워크 → 방화벽 |
@@ -137,67 +136,4 @@ sudo softwareupdate --schedule on
 
 운영자가 현장에서 "못 봄"을 입력하는 것도 `/#/admin`의 **현장 관측 입력**에서 된다.
 
----
-
-## 4. 실행
-
-```bash
-# 로컬 검증
-npm run build && npm run seed && ADMIN_TOKEN=$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))") npm run server
-
-# 부하 테스트
-TOK=<토큰> npm run load
-
-# 브라우저 흐름 테스트
-npm run e2e
-```
-
-### 상시 구동 (launchd)
-`ops/bukang.plist`의 `CHANGE_ME`를 채우고:
-```bash
-cp ops/bukang.plist ~/Library/LaunchAgents/kr.bukang.server.plist
-launchctl load ~/Library/LaunchAgents/kr.bukang.server.plist
-curl -s localhost:8787/healthz
-```
-
-### 백업
-```bash
-./ops/backup.sh /Volumes/Backup/bukang     # 주 1회 cron
-```
-
----
-
-## 5. 배포 순서
-
-1. 도메인 구매 → Cloudflare DNS 연결
-2. `npm run build` → `dist/`를 Cloudflare Pages에 업로드 → 앱 주소 확인
-3. 맥미니에 cloudflared 설치, 명명된 터널 생성, `ops/cloudflared-config.example.yml` 적용
-4. `api.도메인`을 터널에 연결, Pages에서 `/api/*`와 `/photos/*`를 그쪽으로 프록시
-5. `admin.도메인`에 Cloudflare Access 적용
-6. `ADMIN_TOKEN` 생성 후 plist에 넣고 launchd 등록
-7. `curl https://api.도메인/healthz`로 확인
-8. 첫 제보를 직접 올려보고 운영자 페이지에서 공개까지 한 바퀴 돌린다
-
----
-
-## 6. 디스코드로 검수하기
-
-AI가 못 가른 제보(보류·실패)만 디스코드로 온다. 썸네일과 AI 의견, 공개/반려 링크가 붙어 있다.
-링크 → 확인 화면 → 버튼 한 번이면 끝. 설정과 안전장치는 `SCREENING.ko.md`의 "디스코드 알림" 참고.
-
-```
-DISCORD_WEBHOOK=...   PUBLIC_URL=https://api.도메인   SITE_URL=https://도메인
-```
-
-통과·반려는 조용히 처리되고 운영자 페이지(`/#/admin`)에서 언제든 다시 볼 수 있다.
-
----
-
-## 7. 아직 없는 것
-
-- **공지 자동 수집.** 재난문자·해경·구청 공지를 자동으로 끌어오는 크롤러가 없다.
-  지금은 `node server/notices.js`(기본 2건) 또는 `/api/admin/notice`로 수동 입력.
-  만들려면 재난문자 OpenAPI(data.go.kr 키)와 네이버 뉴스 검색 API(클라이언트 ID) 발급이 먼저다
-- **명예의 전당 페이지네이션.** 60장까지만 나온다
-- **다중 운영자.** 토큰 하나를 공유하는 구조
-- **디스코드 버튼.** 지금은 링크 방식. 메시지 안에서 바로 누르는 버튼은 봇 계정이 필요해서 미룸
+배포 순서는 [deploy.ko.md](deploy.ko.md).

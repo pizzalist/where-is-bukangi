@@ -1,4 +1,4 @@
-**English** | [한국어](OPS.ko.md)
+**English** | [한국어](operations.ko.md)
 
 # Operations Guide (Production)
 
@@ -7,7 +7,6 @@
 | Task | Why |
 |---|---|
 | Change `ADMIN_TOKEN` to a random value of 32+ characters | There is no default, so the server won't start without it. Short values trigger a warning |
-| Run with `SERVE_STATIC=0` | Cloudflare Pages serves static files. The Mac mini serves only the API |
 | Check `HOST=127.0.0.1` | Listen on loopback only, with the tunnel in front. Never open ports on the router |
 | Put Cloudflare Access on the operator domain | One more layer of protection even if the token leaks |
 | Turn on the Mac mini firewall | System Settings → Network → Firewall |
@@ -137,67 +136,4 @@ Public:   GET /api/status  → shown in today's log with a photo thumbnail
 
 The operator can also enter "못 봄" (not seen) from the field via **현장 관측 입력** (on-site observation entry) in `/#/admin`.
 
----
-
-## 4. Running
-
-```bash
-# Local verification
-npm run build && npm run seed && ADMIN_TOKEN=$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))") npm run server
-
-# Load test
-TOK=<token> npm run load
-
-# Browser flow test
-npm run e2e
-```
-
-### Always-on (launchd)
-Fill in `CHANGE_ME` in `ops/bukang.plist`, then:
-```bash
-cp ops/bukang.plist ~/Library/LaunchAgents/kr.bukang.server.plist
-launchctl load ~/Library/LaunchAgents/kr.bukang.server.plist
-curl -s localhost:8787/healthz
-```
-
-### Backups
-```bash
-./ops/backup.sh /Volumes/Backup/bukang     # weekly cron
-```
-
----
-
-## 5. Deployment steps
-
-1. Buy a domain → connect it to Cloudflare DNS
-2. `npm run build` → upload `dist/` to Cloudflare Pages → check the app URL
-3. Install cloudflared on the Mac mini, create a named tunnel, apply `ops/cloudflared-config.example.yml`
-4. Connect `api.<domain>` to the tunnel, and have Pages proxy `/api/*` and `/photos/*` to it
-5. Apply Cloudflare Access to `admin.<domain>`
-6. Generate `ADMIN_TOKEN`, put it in the plist, and register with launchd
-7. Check with `curl https://api.<domain>/healthz`
-8. Submit a first report yourself and take it all the way through to approval on the operator page
-
----
-
-## 6. Reviewing via Discord
-
-Only reports the AI couldn't decide (unsure or failed) come to Discord, with a thumbnail, the AI's opinion, and approve/reject links.
-Link → confirmation screen → one button press and you're done. For setup and safeguards, see "Discord notifications" in `SCREENING.md`.
-
-```
-DISCORD_WEBHOOK=...   PUBLIC_URL=https://api.<domain>   SITE_URL=https://<domain>
-```
-
-Passes and rejections are handled silently and can be reviewed at any time on the operator page (`/#/admin`).
-
----
-
-## 7. Not built yet
-
-- **Automatic notice collection.** There's no crawler that pulls in emergency alerts, Coast Guard, or district office notices.
-  For now, enter them manually with `node server/notices.js` (2 by default) or `/api/admin/notice`.
-  Building one first requires an emergency alert OpenAPI key (data.go.kr) and a Naver News Search API client ID
-- **Hall of Fame pagination.** Shows only up to 60 photos
-- **Multiple operators.** Everyone shares a single token
-- **Discord buttons.** Links for now. Buttons you can press right inside the message need a bot account, so this was postponed
+Deployment steps: [deploy.md](deploy.md).

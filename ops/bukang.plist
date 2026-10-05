@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>kr.bukang.server</string>
+  <key>Label</key><string>kr.bukangi.server</string>
   <key>ProgramArguments</key>
   <array>
     <string>/opt/homebrew/bin/node</string>
@@ -13,7 +13,7 @@
   <dict>
     <key>PORT</key><string>8787</string>
     <key>HOST</key><string>127.0.0.1</string>
-    <key>SERVE_STATIC</key><string>0</string>
+    <key>SERVE_STATIC</key><string>1</string>
     <key>ADMIN_TOKEN</key><string>CHANGE_ME_32자_이상_무작위</string>
     <!-- 디스코드 알림 (선택). 없으면 알림 없이 관리자 페이지에서만 처리 -->
     <key>DISCORD_WEBHOOK</key><string></string>
