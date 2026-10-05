@@ -114,7 +114,7 @@ Installation and always-on setup is one command (Apple Silicon, requires uv):
 
 The speedup from 11.4s → 2.2s is a whole-system comparison in which the CLI invocation, the internet round trip, and the model size all changed together. Changing only how the answer is extracted, with the same 4B model, gives a median of 2.22s vs 4.34s over all 146 photos, or 1.29x on the 60 photos both methods answered. Also, with plain generation-based answering, 86 of 146 photos failed to produce an answer within the output length limit (`eval/`).
 
-Production results (161 reports since the 9/28 switch, as of 2026-10-04): 126 auto-approved, 16 auto-rejected (including 2 operator test photos), 19 handed to a human (16 published, 2 rejected, 1 pending), 0 automated decisions overturned by a human, 88% handled automatically. "Correct" here means "a human did not overturn it".
+Production results (242 reports since the 9/28 switch, as of 2026-10-05): 194 auto-approved, 17 auto-rejected (including 2 operator test photos), 31 handed to a human (27 published, 4 rejected), 0 automated decisions overturned by a human, 87% handled automatically. "Correct" here means "a human did not overturn it".
 
 Known weakness: jev may approve a **video frame or screen capture** in which the shark is clearly visible (claude marks these unsure).
 Screen captures without a shark are reliably rejected. Auto-approved reports can be reversed from "AI가 통과시킨 것" (passed by AI) in the admin page.

@@ -27,7 +27,7 @@ Ground truth is the state the operator finally confirmed (`approved` = approved,
 
 Limitation: there are only 14 negatives (photos that should be rejected), so the 95% upper bound on "the rate at which a false report scores above 0.7" is about 19% (`quant_4b_v2_t07.txt`, section 2). That's why, in production, every automated decision is sent to Discord so a human can overturn it.
 
-Re-checked in production (since the 9/28 switch, 44 reports not used in this evaluation): 91% automated, 0 automated decisions overturned by a human. Ground truth here is "not overturned by a human", so these are not independently verified labels.
+Re-checked in production (242 reports since the 9/28 switch, not used in this evaluation, as of 2026-10-05): 87% automated, 0 automated decisions overturned by a human. Ground truth here is "not overturned by a human", so it is an operating record, not an independent label.
 
 ## To re-run
 

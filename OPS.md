@@ -77,8 +77,8 @@ sudo softwareupdate --schedule on
 Writers (reports) → tunnel → Mac mini
 ```
 
-`/api/status` sets `s-maxage=10`, so Cloudflare caches it for 10 seconds.
-**Whether there are 100,000 readers or 1,000,000, the Mac mini receives the same number of requests.**
+`/api/status` sets `s-maxage=10`. By default Cloudflare does not cache extensionless URLs, so this only takes effect after you add a Cache Rule for `/api/status` (not set up in production yet).
+**With that rule, whether there are 100,000 readers or 1,000,000, the Mac mini receives the same number of status requests.** Photos are cached at the edge either way.
 
 ### Measurements (local, no network latency)
 
